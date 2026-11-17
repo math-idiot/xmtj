@@ -85,16 +85,6 @@ function 升星效果板(x, t){
   副標: x => String(x._名).includes('/')
       ? [x.部位, x.所屬套裝 && ('屬 '+(x.所屬套裝.名稱||''))]      // 部件
       : [x.品牌?('品牌 '+x.品牌):null, x.件數?(x.件數+' 件'):null],  // 整套
-  /* 部件索引(545)歸成套裝清單(133)—— 不動素材。部件不列進清單,靠引用連進來。 */
-  清單轉換: 清單=>{
-    const 見=new Map();
-    for(const o of 清單){
-      const 套=String(o.名).split('/')[0];
-      if(套.startsWith('_')) continue;
-      if(!見.has(套)) 見.set(套,{名:套, 名稱:套, 品質:o.品質});
-    }
-    return [...見.values()];
-  },
   /* 抬頭:整套=半身預覽圖;部件=單品圖(走部件協議) */
   抬頭HTML: async x=>{
     if(String(x._名).includes('/')) return await 引用塊({類:'時裝', 名:x._名, 顯名:false, 樣式:'大'});

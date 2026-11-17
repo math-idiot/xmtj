@@ -104,10 +104,28 @@ function 切(i,聚焦){
    「巡夢圖鑑」和類別名都連回總覽頁(範本/index.html),在那裡切到別的類。
    使用者 2026-11-15:「麵包屑不能正常作業」→ 先做了下拉選單 →「不要下拉選單」。 */
 /* 中段:[[名字, 連結], …],最後一段不給連結 */
+/* 列表清單:從原始 _索引 取「要列出來的主條目」。入口與列表頁共用,數字才跟列表一致。
+   - 傳記劇情(名帶「/傳記/」)是夥伴/珍藏底下的東西,不列。
+   - 時裝部件歸成套裝(一套一筆)。
+   - 寵物(名/稀有度)、裝備(名/星級)那種本來就是主條目,照列。
+   使用者 2026-11-17。 */
+function 列表清單(類, 清單){
+  let a = (清單 || []).filter(o => o && o.名 && !String(o.名).includes('/傳記/'));
+  if(類 === '時裝'){
+    const m = new Map();
+    for(const o of a){
+      const su = String(o.名).split('/')[0];
+      if(!su.startsWith('_') && !m.has(su)) m.set(su, {名: su, 名稱: su, 品質: o.品質});
+    }
+    a = [...m.values()];
+  }
+  return a;
+}
+
 function 麵包(類, 中段){
   const 段 = (中段 || []).map(([n, h], i, a) =>
     `<i>/</i>${(h && i < a.length - 1) ? `<a href="${h}">${esc(n)}</a>` : esc(n)}`).join('');
-  return `<span class="crumb"><a href="../index.html">巡夢圖鑑</a><i>/</i>`
+  return `<span class="crumb"><a href="../首頁.html">巡夢圖鑑</a><i>/</i>`
     + `<a href="${encodeURIComponent(類)}範本.html">${esc(類)}</a>`
     + 段 + `</span>`;
 }
@@ -1265,7 +1283,7 @@ async function 開範本(設定){
   async function 畫(名){
     /* 清單轉換:某些類的 _索引 是零件層(時裝部件 545 筆),但範本要用的是**套裝層**。
        範本給一個轉換把索引歸成要顯示的清單,**不改素材**(使用者 2026-11-17:不動素材)。 */
-    const 清單 = 設定.清單轉換 ? await 設定.清單轉換(await 類索引(類)) : await 類索引(類);
+    const 清單 = 設定.清單轉換 ? await 設定.清單轉換(await 類索引(類)) : 列表清單(類, await 類索引(類));
     const app = document.getElementById('app');
     if(!清單.length){
       app.innerHTML = `<div class="bad">讀不到 <code>素材/${esc(類)}/_索引.json</code>。<br><br>
@@ -1276,7 +1294,7 @@ async function 開範本(設定){
     /* 列表頁:進一個類但沒指定單筆 → 列出該類全部(使用者 2026-11-17:
        中央入口點一類 → 列出該範本下所有東西,再點一筆進詳情)。 */
     if(!名){
-      const grid = await 索引排(類, 清單, null, null);
+      const grid = await 快列(類, 清單);
       app.innerHTML = `
         <div class="bar">${麵包(類)}${挑(清單)}<button class="btn" id="th">深淺色</button></div>
         <h1 class="title" style="margin:0 0 var(--sp3)">${esc(類)}</h1>
@@ -1373,6 +1391,28 @@ async function 開範本(設定){
 }
 
 /* 一排引用,給列表頁籤用。清單是索引項,標出「這件」。 */
+const _色等 = {};
+/* 快列:列表頁專用,從 _索引 直接畫(名/品質 + 預測圖路徑),**不抓每筆 資料.json**。
+   283 筆道具原本要 283 次抓取才畫得出來 → 太慢(使用者 2026-11-17)。這裡一次都不抓。
+   圖用素材夾裡的 圖.png(時裝套裝用 預覽圖.png);品質框用 品質色→等級→框 推。 */
+async function 快列(類, 清單){
+  const 規 = await 載格規();
+  if(規 && 規.等級對色 && !Object.keys(_色等).length)
+    for(const [lv, col] of Object.entries(規.等級對色)) if(_色等[col] == null) _色等[col] = +lv;
+  const 圖名 = (類 === '時裝') ? '預覽圖.png' : '圖.png';
+  const base = window.素材基底 + encodeURIComponent(類) + '/';
+  const 本頁 = n => '#/' + encodeURIComponent(類) + '/' + encodeURIComponent(n);
+  return `<div class="objs set">` + (清單 || []).map(o => {
+    const 路 = String(o.名).split('/').map(encodeURIComponent).join('/');
+    const 等 = _色等[o.品質];
+    const 框 = (等 != null) ? _框路(等, 規) : null;
+    return `<a class="obj" href="${本頁(o.名)}" title="${esc(o.名稱 || o.名)}">`
+      + `<span class="rfi${框 ? '' : ' bare'}"${框 ? ` style="background-image:url('${框}')"` : ''}>`
+      + `<img src="${base}${路}/${圖名}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"></span>`
+      + `<b>${esc(o.名稱 || o.名)}</b></a>`;
+  }).join('') + `</div>`;
+}
+
 async function 索引排(類, 清單, 這件名, 標題, 上限, 版, 照給的序){
   if(!清單 || !清單.length) return '';   // 空的就整組不畫,不要留一個空標題
   /* 預設:一整組 → 稀有度由低排到高。

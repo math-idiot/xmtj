@@ -25,14 +25,18 @@ const 不上 = new Set(['活動','家族','歷練','招募']);
 (async () => {
   const top = await fetch(基底() + '_索引.json').then(r => r.ok ? r.json() : null).catch(() => null);
   const 類表 = (((top || {}).清單) || [])
-    .map(c => ({類: c.名 || c.類, 數: c.數量}))
-    .filter(o => o.類 && !不上.has(o.類));
-  /* 有索引(數量>0)+ 有範本 才建卡片 */
-  const 卡表 = (await Promise.all(類表.map(async o => {
-    if(!(o.數 > 0)) return null;
-    const u = encodeURIComponent(o.類) + '/' + encodeURIComponent(o.類) + '範本.html';
-    const r = await fetch(u, {method:'HEAD'}).catch(() => null);
-    return (r && r.ok) ? Object.assign(o, {連: u}) : null;
+    .map(c => c.名 || c.類).filter(c => c && !不上.has(c));
+  /* 數字自己算 —— 抓各類 _索引,用 列表清單 數(傳記不算、時裝歸套裝),不讀寫死的數量。
+     有範本(HEAD)+ 列表有東西 才建卡片。使用者 2026-11-17。 */
+  const 卡表 = (await Promise.all(類表.map(async 類 => {
+    const u = encodeURIComponent(類) + '/' + encodeURIComponent(類) + '範本.html';
+    const [r, idx] = await Promise.all([
+      fetch(u, {method: 'HEAD'}).catch(() => null),
+      fetch(基底() + encodeURIComponent(類) + '/_索引.json').then(r => r.ok ? r.json() : null).catch(() => null)
+    ]);
+    if(!(r && r.ok)) return null;
+    const 數 = idx ? 列表清單(類, idx.清單 || []).length : 0;
+    return 數 > 0 ? {類, 連: u, 數} : null;
   }))).filter(Boolean);
   const 卡 = o => `<a href="${o.連}"><b>${esc(o.類)}</b><i>${o.數} 筆</i></a>`;
   document.getElementById('app').innerHTML = `
