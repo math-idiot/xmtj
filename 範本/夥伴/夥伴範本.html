@@ -68,14 +68,8 @@ async function 好感板(x){
   const a = x.好感獎勵 || [];
   if(!a.length) return '';
   const 梯 = await 好感梯(x, a);
-  const 列 = await Promise.all(a.map(async r => {
-    /* 一格可能有兩樣:「夥伴經驗×4000、金錠20」—— 先用頓號拆開再各自去對。 */
-    const 項 = String(r.獎勵 || '').split(/[、,，]/).map(t => t.trim()).filter(Boolean);
-    const 格 = await 名字排(項, null);
-    return kv(r.好感度 + ' 好感' + (r.等級 != null ? `(${r.等級} 級)` : ''),
-              格 || `<span class="dim">—</span>`);
-  }));
-  return 梯 + `<h3 class="grp">每一階給什麼</h3><div class="rows">${列.join('')}</div>`;
+  /* 好感tab已是拉桿,底下「每一階給什麼」的表格拿掉(使用者 2026-11-17:拉桿已涵蓋,表格不需要)。 */
+  return 梯;
 }
 
 /* 好感也用那一套雙頭拉桿(使用者 2026-11-16:「我發現夥伴好感也可以做成這個模式」)。
