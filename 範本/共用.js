@@ -270,8 +270,10 @@ async function 找物(名){
   /* 還是對不到 → 查 範本/_來源對照.json(商店上架那種系統講法) */
   const 對 = await 對照(去括);
   if(對 && 對.類){
-    const 再 = 索.get(對.名);
-    if(再) return 挑(再);
+    /* 對照指定了「類」(例 主題活動·宮廷夜宴 → 活動)→ **只在那一類找**。
+       不然 索.get 會撈到同名別類(飾框 宮牌/宮廷夜宴),挑錯(使用者 2026-11-17)。 */
+    const 再 = (索.get(對.名) || []).filter(h => h.類 === 對.類);
+    if(再.length) return 挑(再);
     return {類:對.類, 名:對.名, 缺:true};   // 那一類素材還沒建 → 畫成「尚未建檔」但分類是對的
   }
   return null;
@@ -1392,6 +1394,14 @@ async function 開範本(設定){
 
 /* 一排引用,給列表頁籤用。清單是索引項,標出「這件」。 */
 const _色等 = {};
+/* 快列的圖名退路:圖.png → 立繪 → 縮圖 … 都沒有才隱藏(名字照顯示)。
+   坐騎有些只有立繪、沒圖.png(使用者 2026-11-17)。 */
+function 快圖退(img){
+  let c; try{ c = JSON.parse(img.dataset.c || '[]'); }catch(e){ c = []; }
+  const i = (+img.dataset.i || 0) + 1;
+  if(i < c.length){ img.dataset.i = i; img.src = img.dataset.b + c[i]; }
+  else img.style.visibility = 'hidden';
+}
 /* 快列:列表頁專用,從 _索引 直接畫(名/品質 + 預測圖路徑),**不抓每筆 資料.json**。
    283 筆道具原本要 283 次抓取才畫得出來 → 太慢(使用者 2026-11-17)。這裡一次都不抓。
    圖用素材夾裡的 圖.png(時裝套裝用 預覽圖.png);品質框用 品質色→等級→框 推。 */
@@ -1399,16 +1409,18 @@ async function 快列(類, 清單){
   const 規 = await 載格規();
   if(規 && 規.等級對色 && !Object.keys(_色等).length)
     for(const [lv, col] of Object.entries(規.等級對色)) if(_色等[col] == null) _色等[col] = +lv;
-  const 圖名 = (類 === '時裝') ? '預覽圖.png' : '圖.png';
+  const 候選 = (類 === '時裝') ? ['預覽圖.png'] : ['圖.png','立繪.png','縮圖.png','立繪_縮圖.png'];
+  const cj = esc(JSON.stringify(候選));
   const base = window.素材基底 + encodeURIComponent(類) + '/';
   const 本頁 = n => '#/' + encodeURIComponent(類) + '/' + encodeURIComponent(n);
   return `<div class="objs set">` + (清單 || []).map(o => {
     const 路 = String(o.名).split('/').map(encodeURIComponent).join('/');
+    const 夾 = base + 路 + '/';
     const 等 = _色等[o.品質];
     const 框 = (等 != null) ? _框路(等, 規) : null;
     return `<a class="obj" href="${本頁(o.名)}" title="${esc(o.名稱 || o.名)}">`
       + `<span class="rfi${框 ? '' : ' bare'}"${框 ? ` style="background-image:url('${框}')"` : ''}>`
-      + `<img src="${base}${路}/${圖名}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"></span>`
+      + `<img src="${夾}${候選[0]}" alt="" loading="lazy" data-b="${夾}" data-c="${cj}" data-i="0" onerror="快圖退(this)"></span>`
       + `<b>${esc(o.名稱 || o.名)}</b></a>`;
   }).join('') + `</div>`;
 }
