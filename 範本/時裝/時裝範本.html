@@ -88,9 +88,9 @@ function 升星效果板(x, t){
   /* 抬頭:整套=半身預覽圖;部件=單品圖(走部件協議) */
   抬頭HTML: async x=>{
     if(String(x._名).includes('/')) return await 引用塊({類:'時裝', 名:x._名, 顯名:false, 樣式:'大'});
-    const u=window.素材基底+'時裝/'+encodeURIComponent(x._名)+'/展示圖_縮圖.png';
-    return `<span class="rfi bare" style="--比:1.537">
-      <img src="${u}" alt="" loading="lazy" onerror="this.closest('.rfi').classList.add('noimg')"></span>`;
+    const u=window.素材基底+'時裝/'+encodeURIComponent(x._名)+'/展示圖_抬頭.png';
+    return `<span class="rfi bare" style="--比:1.3">
+      <img src="${u}" alt="" loading="lazy" onerror="this.src='${window.素材基底}時裝/'+encodeURIComponent(x._名)+'/預覽圖.png'"></span>`;
   },
   分頁: async (x,清單)=> String(x._名).includes('/') ? await 部件頁(x) : await 套裝頁(x,清單),
 });
