@@ -1350,7 +1350,9 @@ async function 開範本(設定){
     const 頁 = await 設定.分頁(x, 清單);
     /* 抬頭那張也走協議。範本可以指定用哪個圖樣式 ——
        夥伴引用用大頭照(128×128)、抬頭用全身立繪(使用者 2026-11-16)。 */
-    const _抬 = 設定.抬頭樣式 ? {樣式: 設定.抬頭樣式} : {};
+    /* 抬頭用全身/立繪時不畫品質框 —— 品質框會把全身圖裁成方形、切掉身體。
+       使用者 2026-11-17:標題大圖要全身完整。 */
+    const _抬 = 設定.抬頭樣式 ? {樣式: 設定.抬頭樣式, 框: false} : (設定.抬頭不框 ? {框: false} : {});
     /* 自訂抬頭:某些類(時裝套裝)的資料檔不是 資料.json、抬頭圖也不走部件協議,
        範本自己給一段 HTML(使用者 2026-11-17 做時裝)。 */
     const 卡 = 設定.抬頭HTML ? (await 設定.抬頭HTML(x)) : await 引用塊(Object.assign(
@@ -1412,11 +1414,16 @@ function 快圖退(img){
 /* 快列:列表頁專用,從 _索引 直接畫(名/品質 + 預測圖路徑),**不抓每筆 資料.json**。
    283 筆道具原本要 283 次抓取才畫得出來 → 太慢(使用者 2026-11-17)。這裡一次都不抓。
    圖用素材夾裡的 圖.png(時裝套裝用 預覽圖.png);品質框用 品質色→等級→框 推。 */
+const _稀字等 = {N:2, R:3, SR:4, SSR:5, UR:6, '幸運':7};
 async function 快列(類, 清單){
   const 規 = await 載格規();
   if(規 && 規.等級對色 && !Object.keys(_色等).length)
     for(const [lv, col] of Object.entries(規.等級對色)) if(_色等[col] == null) _色等[col] = +lv;
-  const 候選 = (類 === '時裝') ? ['預覽圖.png'] : ['圖.png','立繪.png','縮圖.png','立繪_縮圖.png'];
+  await 備妥零件();                                   // 要拿 window.格遮罩
+  const 協 = await 載協議(類);
+  const 原樣 = (協 && 協.版式) === '原樣';              // 貼圖那種:不畫框、原比例、不遮罩
+  const 罩 = (!原樣 && window.格遮罩) ? `-webkit-mask-image:url('${window.格遮罩}');mask-image:url('${window.格遮罩}');-webkit-mask-size:100% 100%;mask-size:100% 100%` : '';
+  const 候選 = (類 === '時裝') ? ['展示圖_縮圖.png','預覽圖.png'] : ['圖.png','立繪.png','縮圖.png','立繪_縮圖.png'];
   const cj = esc(JSON.stringify(候選));
   const base = window.素材基底 + encodeURIComponent(類) + '/';
   const 本頁 = n => '#/' + encodeURIComponent(類) + '/' + encodeURIComponent(n);
@@ -1424,11 +1431,12 @@ async function 快列(類, 清單){
   return `<div class="objs set">` + 序.map(o => {
     const 路 = String(o.名).split('/').map(encodeURIComponent).join('/');
     const 夾 = base + 路 + '/';
-    const 等 = _色等[o.品質];
+    /* 等級:品質色優先,沒有(寵物只有稀有度)就用稀有度字母對 */
+    const 等 = 原樣 ? null : (_色等[o.品質] ?? _稀字等[o.稀有度]);
     const 框 = (等 != null) ? _框路(等, 規) : null;
     return `<a class="obj" href="${本頁(o.名)}" title="${esc(o.名稱 || o.名)}">`
-      + `<span class="rfi${框 ? '' : ' bare'}"${框 ? ` style="background-image:url('${框}')"` : ''}>`
-      + `<img src="${夾}${候選[0]}" alt="" loading="lazy" data-b="${夾}" data-c="${cj}" data-i="0" onerror="快圖退(this)"></span>`
+      + `<span class="rfi${原樣 ? ' raw' : (框 ? '' : ' bare')}"${框 ? ` style="background-image:url('${框}')"` : ''}>`
+      + `<img src="${夾}${候選[0]}" alt="" loading="lazy"${罩 ? ` style="${罩}"` : ''} data-b="${夾}" data-c="${cj}" data-i="0" onerror="快圖退(this)"></span>`
       + `<b>${esc(o.名稱 || o.名)}</b></a>`;
   }).join('') + `</div>`;
 }
