@@ -43,7 +43,8 @@ const 不上 = new Set(['活動','家族','歷練','招募']);
     <div class="bar"><span class="crumb">巡夢圖鑑</span><span class="sp"></span>
       <button class="btn" id="th">深淺色</button></div>
     <h1 class="title" style="margin:0 0 var(--sp2)">巡夢圖鑑</h1>
-    <p class="note" style="margin:0 0 var(--sp4)">${卡表.length} 個分類 · 點一類看全部</p>
+    <p class="note" style="margin:0 0 2px">${卡表.length} 個分類 · 點一類看全部</p>
+    <p class="note" style="margin:0 0 var(--sp4);color:var(--fg3)">資料僅供參考,如有錯誤請私訊 69 - 白蓮花</p>
     <div class="hub">${卡表.map(卡).join('')}</div>`;
 })();
 document.addEventListener('click', e => { if(e.target.id === 'th') 切色(); });

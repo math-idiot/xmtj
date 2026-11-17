@@ -274,7 +274,14 @@ async function 找物(名){
        不然 索.get 會撈到同名別類(飾框 宮牌/宮廷夜宴),挑錯(使用者 2026-11-17)。 */
     const 再 = (索.get(對.名) || []).filter(h => h.類 === 對.類);
     if(再.length) return 挑(再);
-    return {類:對.類, 名:對.名, 缺:true};   // 那一類素材還沒建 → 畫成「尚未建檔」但分類是對的
+    /* 對照給的類沒有這一筆 → 退回看名字在不在別的類。
+       優先「名完全相符」的(宮廷夜宴 在畫冊收集 名=宮廷夜宴,勝過飾框的 宮牌/宮廷夜宴)。
+       使用者 2026-11-17:畫冊收集不算活動。 */
+    const 全 = 索.get(對.名) || [];
+    const 準 = 全.filter(h => h.名 === 對.名);
+    if(準.length) return 挑(準);
+    if(全.length) return 挑(全);
+    return {類:對.類, 名:對.名, 缺:true};   // 真的沒有 → 尚未建檔,分類照對照給的
   }
   return null;
 }
@@ -456,14 +463,14 @@ async function 獲取頁(x){
     }
   /* 道具 / 活動 / 商店 / 歷練 四組**固定畫**,沒有就寫「沒有」—— 每一筆顯示的東西一樣。
      其他類(夥伴、寵物…)有才畫。 */
-  const 固定 = ['道具','活動','商店','歷練'];
-  const 類序 = [...new Set([...固定, ...[...組.keys()].sort((a, b) =>
-    ((組序.indexOf(a) + 1) || 99) - ((組序.indexOf(b) + 1) || 99))])];
   if(!組.size && !文.length) return '';
-  let h = '';
-  for(const 類 of 類序)
-    h += 組.has(類) ? await 引用排(組.get(類), 類) : `<h3 class="grp">${esc(類)}</h3><p class="note">沒有</p>`;
-  if(文.length) h += `<h3 class="grp">其他</h3><div class="ways">${
+  /* 不分類:所有來源直接列成一排引用(使用者 2026-11-17:「獲取 tab 不需要顯示分類,
+     直接引用來源就好,反正點過去就是那個位置」)。原本固定分類(道具/活動/商店/歷練)
+     會讓有些來源沒地方放,也會把畫冊收集誤塞進活動。 */
+  const 全部 = [];
+  for(const arr of 組.values()) for(const r of arr) 全部.push(r);
+  let h = 全部.length ? await 引用排(全部) : '';
+  if(文.length) h += `${全部.length ? '' : ''}<div class="ways">${
     文.map(n => `<span class="way"><b>${esc(n)}</b></span>`).join('')}</div>`;
   return h;
 }
@@ -1413,7 +1420,8 @@ async function 快列(類, 清單){
   const cj = esc(JSON.stringify(候選));
   const base = window.素材基底 + encodeURIComponent(類) + '/';
   const 本頁 = n => '#/' + encodeURIComponent(類) + '/' + encodeURIComponent(n);
-  return `<div class="objs set">` + (清單 || []).map(o => {
+  const 序 = 稀排(清單 || []);
+  return `<div class="objs set">` + 序.map(o => {
     const 路 = String(o.名).split('/').map(encodeURIComponent).join('/');
     const 夾 = base + 路 + '/';
     const 等 = _色等[o.品質];
