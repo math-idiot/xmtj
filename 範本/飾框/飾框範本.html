@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>飾框 · 巡夢圖鑑</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../共用.css">
+</head><body><div class="page" id="app"></div>
+<script src="../共用.js"></script>
+<script>
+/* 飾框範本。**不帶任何資料** —— 全部執行時讀 素材/飾框/。
+   外框(抬頭/分頁/挑選框/路由/事件)在 共用.js 的 開範本();
+   引用一律走協議引擎,包括自己引用自己。 */
+開範本({
+  類別: '飾框',
+  副標: x => [x.種類, x.系列 && x.系列.名稱],
+  分頁: async (x, 清單) => {
+    const 種 = x.種類 || (x._索 && x._索.種類);
+    const 同種 = 清單.filter(o => o.種類 && o.種類 === 種);
+    const 系 = (x.系列 && x.系列.成員) || [];
+    return [
+      ['資訊', rows([
+        ['品質',     x => x.品質],
+        ['種類',     x => x.種類],
+        ['說明',     x => x.說明],
+        // 稱號沒有 get_type(那是 Frames 的欄位),它的來源在 取得途徑
+        ['取得類型', x => x.取得類型 ?? x.取得途徑],
+        ['解鎖說明', x => x.解鎖說明 ?? (x.獲取說明 || []).join('、')],
+        ['系列',     x => x.系列 && x.系列.名稱],
+      ], x)
+        + (系.length > 1
+            ? `<h3 class="grp">同系列「${esc(x.系列.名稱)}」· ${系.length} 件</h3>`
+              + `<p class="note">同一個主題常常同時出頭像/頭像框/聊天氣泡/宮牌/稱號。</p>`
+            : '')],
+      ['獲取', (await 獲取頁(x) || '<p class="note">尚未建檔</p>')],
+      ['同種類', await 索引排('飾框', 同種, x._名, 種 || '同種類', 120)],
+      ['其他', rows([
+        ['編號',         x => x.設定表編號 ?? x.編號],
+        ['圖片編號',     x => x.圖片編號 ?? x.圖號],
+        ['取得類型原碼', x => x.取得類型原碼 != null ? x.取得類型原碼 + '(Frames.get_type)' : null],
+        ['有效秒數',     x => x.有效秒數],
+        ['獲取資料來源', x => x.獲取資料來源],
+        ['資料來源',     x => x.資料來源],
+        ['產生時間',     x => x.產生時間],
+        ['素材路徑',     x => '素材/飾框/' + x._名],
+      ], x)],
+    ];
+  },
+});
+</script></body></html>

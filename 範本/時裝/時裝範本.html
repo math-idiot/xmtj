@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>時裝 · 巡夢圖鑑</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../共用.css">
+</head><body><div class="page" id="app"></div>
+<script src="../共用.js"></script>
+<script>
+/* 時裝(套裝為主)。使用者 2026-11-17:每套效果/條文/升級升星效果都不同,但**走拉桿、像坐騎**——
+   只有升級一條路,每階段到頂(第10/20/30/40級)用霓裳紗升星、解鎖升星效果。
+   **不帶資料、不動素材**:套裝讀 套裝.json(設定.資料檔),部件走協議引用,
+   升星資料全套共用 素材/時裝/_升星.json(照各套的升星範本編號查)。 */
+
+let _系;
+async function 系列表(){
+  if(_系===undefined||_系===null)
+    _系=await fetch(window.素材基底+'時裝/_系列.json').then(r=>r.ok?r.json():null).catch(()=>null);
+  return _系;
+}
+/* 系列:同 series_id 的所有套裝。系列顯示名在 _系列.json 的「系列名」(待補),沒有就寫「系列 N」。 */
+async function 系列板(x){
+  const S=await 系列表(); if(!S) return '<p class="note">讀不到系列資料</p>';
+  const sid=(S.套裝對系列||{})[x._名];
+  if(!sid) return '<p class="note">這套沒有系列歸屬</p>';
+  const 名=(S.系列名||{})[sid] || ('系列 '+sid);
+  const 成員=(S.系列成員||{})[sid]||[];
+  const 卡=await Promise.all(成員.map(n=>引用塊({類:'時裝', 名:n})));
+  return `<h3 class="grp">${esc(名)}(${成員.length} 套)</h3><div class="objs fam">${卡.join('')}</div>`;
+}
+
+let _升;
+async function 升星表(){
+  if(_升===undefined||_升===null)
+    _升=await fetch(window.素材基底+'時裝/_升星.json').then(r=>r.ok?r.json():null).catch(()=>null);
+  return _升;
+}
+
+/* 升級:坐騎式一條路。節點=升級階、每星第0階是升星點(吃霓裳紗、解鎖星級效果)。
+   階段用「N星M階」表示。屬性/感知力/星級效果都照使用者整理好的節點資料。 */
+async function 升級板(x){
+  const r=await 升星表(); const t=r&&x.升星範本編號&&r.範本[String(x.升星範本編號)];
+  if(!t) return '<p class="note">這套沒有升級資料</p>';
+  const 節=t.節點, 上=節.length;
+  const 名單=[...new Set(節.flatMap(n=>Object.keys(n.材料||{})))];
+  const 階段=v=>v<=0?'未升級':(節[v-1]?節[v-1].階段:v+'');
+  const 升星點=節.filter(n=>/星0階$/.test(n.階段||'')&&n.節點>1).map(n=>n.節點);
+  const 梯=await 階梯板({
+    樣式:'拉桿', 鍵:'時裝升級', 下限:0, 上限:上, 單位:'', 起始:0, 目標:上,
+    格式:階段,
+    格式H:v=>{ const st=階段(v); const mm=/^(\d+)星(\d+)階$/.exec(st);
+      return mm?`${mm[1]}<i>星</i>${mm[2]}<i>階</i>`:`<span class="txt">${esc(st)}</span>`; },
+    圖:v=>{ const n=節[Math.max(0,v-1)]; const 星數=(v<=0||!n)?0:(n.星||0);
+      return 星圖(星數, t.最高星||5); },   // 時裝升星有圖示(1-5 星),使用者 2026-11-17
+    材料:名單.map(n=>({類:'道具',名:n})),
+    算:(a,b)=>{ const 需={};
+      for(const n of 節) if(+n.節點>a&&+n.節點<=b) for(const k in (n.材料||{})) 需[k]=(需[k]||0)+n.材料[k];
+      return 需; },
+    量格式:n=>n>=1e4?(n/1e4).toFixed(2).replace(/\.?0+$/,'')+'萬':String(n),
+    附文:(a,b)=>{ if(b<=0) return ''; const n=節[b-1]; if(!n) return '';
+      return [n.屬性加成, n.感知力加成?('感知力+'+n.感知力加成):''].filter(Boolean).join(' · '); },
+  });
+  const 註=升星點.length?`<p class="note">升星點(每星第0階):第 ${升星點.join('、')} 節點要花霓裳紗升星、解鎖星級效果,其餘用綢布升級。</p>`:'';
+  return 梯 + 註;
+}
+
+/* 升星效果:每套不同,照節點資料列在哪一星解鎖什麼(靈犀:感知力+14 這種)。 */
+function 升星效果板(x, t){
+  const 效=(t.節點||[]).filter(n=>n.星級效果);
+  if(!效.length) return '<p class="note">這套沒有升星效果</p>';
+  return `<h3 class="grp">升星效果</h3><table class="aff"><thead><tr><th>階段</th><th>星級效果</th></tr></thead><tbody>${
+    效.map(n=>{ const p=String(n.星級效果).split(':');
+      const nm=p[0], de=p.slice(1).join(':');
+      return `<tr><td>${esc(n.階段||(n.星+' 星'))}</td><td><b>${esc(nm)}</b>${de?' · '+esc(de):''}</td></tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+開範本({
+  類別:'時裝',
+  品質為稀有: true,
+  子項: true,                                  // 部件(名帶「/」)有自己的頁
+  資料檔: 名 => String(名).includes('/') ? '資料.json' : '套裝.json',
+  副標: x => String(x._名).includes('/')
+      ? [x.部位, x.所屬套裝 && ('屬 '+(x.所屬套裝.名稱||''))]      // 部件
+      : [x.品牌?('品牌 '+x.品牌):null, x.件數?(x.件數+' 件'):null],  // 整套
+  /* 部件索引(545)歸成套裝清單(133)—— 不動素材。部件不列進清單,靠引用連進來。 */
+  清單轉換: 清單=>{
+    const 見=new Map();
+    for(const o of 清單){
+      const 套=String(o.名).split('/')[0];
+      if(套.startsWith('_')) continue;
+      if(!見.has(套)) 見.set(套,{名:套, 名稱:套, 品質:o.品質});
+    }
+    return [...見.values()];
+  },
+  /* 抬頭:整套=半身預覽圖;部件=單品圖(走部件協議) */
+  抬頭HTML: async x=>{
+    if(String(x._名).includes('/')) return await 引用塊({類:'時裝', 名:x._名, 顯名:false, 樣式:'大'});
+    const u=window.素材基底+'時裝/'+encodeURIComponent(x._名)+'/預覽圖.png';
+    return `<span class="rfi bare" style="--比:1.537">
+      <img src="${u}" alt="" loading="lazy" onerror="this.closest('.rfi').classList.add('noimg')"></span>`;
+  },
+  分頁: async (x,清單)=> String(x._名).includes('/') ? await 部件頁(x) : await 套裝頁(x,清單),
+});
+
+/* ── 整套頁 ── */
+async function 套裝頁(x,清單){
+  const r=await 升星表(); const t=r&&x.升星範本編號&&r.範本[String(x.升星範本編號)];
+  const 件=(x.部件||[]);
+  const 卡=await Promise.all(件.map(p=>引用塊({類:'時裝', 名:x._名+'/'+(p.資料夾||p.名稱), 附註:p.部位})));
+  return [
+    ['資訊', rows([
+      ['品質',x=>稀有字(x.品質)],['品牌',x=>x.品牌],['件數',x=>x.件數+' 件'],
+      ['穿齊套裝加成',x=>x.穿齊套裝加成],
+      ['介紹',x=>x.介紹],
+    ], x)
+      + (件.length?`<h3 class="grp">套裝部件(${件.length} 件,點進去看單件)</h3><div class="objs fam">${卡.join('')}</div>`:'')],
+    ['升級', ()=>升級板(x)],
+    ['升星效果', t?升星效果板(x,t):'<p class="note">這套沒有升星效果</p>'],
+    ['系列', ()=>系列板(x)],
+    ['獲取', (await 獲取頁(x)) || (Array.isArray(x.獲得途徑摘要)&&x.獲得途徑摘要.length
+        ? `<h3 class="grp">反查到的來源</h3><ul class="bul">${x.獲得途徑摘要.map(s=>`<li>${esc(s)}</li>`).join('')}</ul>`
+        : '<p class="note">尚未建檔</p>')],
+    ['其他', rows([
+      ['編號',x=>x.編號],['升星範本',x=>x.升星範本編號],['_序',x=>x._序],
+      ['動畫',x=>x.動畫?'有(只在本機素材,動畫檔太大沒上網站)':null],
+      ['資料來源',x=>x.資料來源],['素材路徑',x=>'時裝/'+x._名],
+    ], x)],
+  ];
+}
+
+/* ── 單件(部件)頁 ── 有自己的詞條:單件加成、風格標籤、所屬套裝 ── */
+async function 部件頁(x){
+  const 套=x.所屬套裝||{}; const 套名=套.名稱||String(x._名).split('/')[0];
+  const 風=x.風格標籤分數||{};
+  const 風表=Object.keys(風).length
+    ? `<h3 class="grp">風格標籤分數(搭配用)</h3><table class="aff"><tbody>${
+        Object.entries(風).map(([k,v])=>`<tr><td>${esc(k)}</td><td>${esc(String(v))}</td></tr>`).join('')}</tbody></table>`
+    : '';
+  const 套卡=await 引用塊({類:'時裝', 名:套名});   // 所屬套裝走引用(帶圖、可點)
+  return [
+    ['資訊', rows([
+      ['部位',x=>x.部位],['品質',x=>稀有字(x.品質)],
+      ['單件加成',x=>x.屬性加成],
+      ['說明',x=>x.說明],
+    ], x)
+      + (套卡?`<h3 class="grp">所屬套裝</h3><div class="objs fam">${套卡}</div>`:'')
+      + 風表],
+    ['獲取', (await 獲取頁(x)) || '<p class="note">尚未建檔</p>'],
+    ['其他', rows([
+      ['編號',x=>x.編號],['對應圖像編號',x=>x.對應圖像編號],
+      ['請求獲取指令',x=>(x.請求獲取指令||{}).範例],
+      ['資料來源',x=>x.資料來源],['素材路徑',x=>'時裝/'+x._名],
+    ], x)],
+  ];
+}
+
+</script></body></html>

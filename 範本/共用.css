@@ -1,0 +1,611 @@
+
+/* ── 遊戲字型 ──────────────────────────────────────────
+   格子疊層(數量/等級/+N)在遊戲裡用的是 assets/arts/fonts/font.ttf.tw 與
+   font_md.ttf.tw —— 兩個檔**內容完全相同**(md5 62310e0a84…,16,332,508 bytes),
+   內部名 FZDocKai(方正公文楷體),22,025 字形。
+   原檔 16 MB 不可能上網頁,所以只取格子會用到的 32 個字
+   (0-9 + x 階級星滿突破未取得—-·/%萬億千百十)子集成 woff2,6.3 KB。
+   這樣字級就能直接用遊戲的原值(28/128、24/128),不用再去補什麼字面比例。
+   來源:雜物/_格子系統/_字型/(mumu 從 bundle 抽出)。
+   注意:這個字型**只有一個字重**,寫 font-weight:500 瀏覽器會自己加粗,
+   筆畫就跟遊戲不一樣 —— 疊層一律 400。 */
+@font-face{font-family:"遊戲字";src:url("字型/遊戲字_格子用.woff2") format("woff2");
+  font-weight:400;font-style:normal;font-display:swap}
+
+:root{
+  --bg:#f7f4ee; --card:#fdfbf7; --raise:#efe9df;
+  --fg:#1f1b16; --fg2:#5e554a; --fg3:#7b7266;
+  --line:rgba(31,27,22,.08); --line2:rgba(31,27,22,.05);
+  --shadow:0 1px 2px rgba(0,0,0,.05);
+  --q:#b3892f;
+  --sans:"Noto Sans TC",system-ui,-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;
+  --serif:"Noto Serif TC",Georgia,"Songti TC",serif;
+  --game:"遊戲字","Noto Sans TC",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+  /* 固定間距尺度 —— 版面上所有 margin / padding / gap 只准用這六格,不再手寫數字 */
+  --sp1:4px; --sp2:8px; --sp3:12px; --sp4:20px; --sp5:32px; --sp6:48px;
+  /* 格子排版的通用常數 —— 所有範本共用,要改就改這兩行。
+     使用者 2026-11-15:「間距是每個範本通用的常數,可以改小一點,但全部要一起改,
+     寶石 tab 那邊的間距不錯」。寶石那排是 9 欄:(960 − 8×12) ÷ 9 = 96。 */
+  --格寬:96px; --格距:var(--sp3);
+  --r1:8px; --r2:12px; --r3:16px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --bg:#161513; --card:#1c1a18; --raise:#262421;
+  --fg:#efe9de; --fg2:#aaa398; --fg3:#8a847a;
+  --line:rgba(239,233,222,.08); --line2:rgba(239,233,222,.05); --shadow:none;}}
+:root[data-theme=dark]{
+  --bg:#161513; --card:#1c1a18; --raise:#262421;
+  --fg:#efe9de; --fg2:#aaa398; --fg3:#8a847a;
+  --line:rgba(239,233,222,.08); --line2:rgba(239,233,222,.05); --shadow:none;}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);
+  font:15px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+svg{display:block}
+a{color:inherit;text-decoration:none}
+.page{max-width:1040px;margin:0 auto;padding:var(--sp4) var(--sp4) var(--sp6)}
+
+.bar{display:flex;align-items:center;gap:var(--sp2);min-height:40px;margin-bottom:var(--sp3);font-size:13px;color:var(--fg2)}
+.bar .sp{flex:1}
+.crumb a{color:var(--fg2);transition:color .14s var(--ease)}
+.crumb a:hover{color:var(--fg)}
+.crumb i{font-style:normal;color:var(--fg3);margin:0 8px}
+
+.btn{font:400 13px/1 var(--sans);height:32px;padding:0 12px;border-radius:8px;cursor:pointer;
+  border:1px solid var(--line);background:var(--card);color:var(--fg2);
+  display:inline-flex;align-items:center;gap:8px;
+  transition:color .14s var(--ease),border-color .14s var(--ease)}
+.btn:hover{color:var(--fg)}
+.btn:focus-visible,a:focus-visible{outline:2px solid var(--q);outline-offset:2px;border-radius:4px}
+
+/* 抬頭區:圖和文字各一欄,文字**垂直置中**對齊圖卡 */
+
+.top{display:grid;grid-template-columns:280px minmax(0,1fr);gap:40px;align-items:center;margin-bottom:28px}
+.art{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;
+  box-shadow:var(--shadow);display:grid;place-items:center;aspect-ratio:1/1}
+.art .fr{width:100%;max-width:200px;aspect-ratio:1/1;display:grid;place-items:center;
+  background-size:100% 100%;background-repeat:no-repeat}
+.art .fr img{max-width:86%;max-height:86%;display:block}
+.art .nil{color:var(--fg3);font-size:13px}
+.meta{margin:8px 0 0;font:400 12px/16px var(--mono);color:var(--fg3);text-align:center}
+
+.title{margin:0 0 10px;font:500 40px/1.15 var(--serif);padding-left:16px;border-left:3px solid var(--q)}
+.kind{margin:0 0 18px;font-size:15px;color:var(--fg2);padding-left:19px}
+.desc{margin:0;font-size:16px;line-height:1.85;color:var(--fg2);max-width:56ch}
+.desc .hl{color:var(--fg);font-weight:500}
+
+/* 資料欄位的頁籤。尺寸照 eBay Playbook 的 Tab 規格:
+   頁籤之間 40px、文字到指示線 4px、指示線 2px、底下分隔線 2px、
+   指示線寬度等於文字寬度(所以頁籤本身沒有左右內距,靠 gap 排)、
+   放不下就橫向捲動。那份規格沒給字級和顏色,用本站自己的 token。 */
+/* 分隔線放在外層,不要放在 .tabs 上:.tabs 是橫向捲動容器,
+   捲動容器會把超出內距框的東西剪掉,指示線用負邊距壓上去就會**整條被裁掉**。
+   改成外層畫線、.tabs 自己 -2px 往下壓,指示線就留在自己的框裡不會被剪。 */
+.tabwrap{border-bottom:2px solid var(--line);margin:0 0 var(--sp4)}
+.tabs{display:flex;gap:var(--sp5);margin-bottom:-2px;overflow-x:auto;
+  scrollbar-width:none;-ms-overflow-style:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;appearance:none;background:none;cursor:pointer;
+  padding:0 0 4px;
+  font:400 15px/22px var(--sans);color:var(--fg2);
+  border:0;border-bottom:2px solid transparent;
+  transition:color .14s var(--ease),border-color .14s var(--ease)}
+.tab:hover{color:var(--fg)}
+.tab[aria-selected=true]{color:var(--fg);font-weight:500;border-bottom-color:var(--q)}
+.tab:focus-visible{outline:2px solid var(--q);outline-offset:3px;border-radius:2px}
+.tab .cnt{margin-left:8px;font:400 12px/16px var(--mono);color:var(--fg3)}
+.tab[aria-selected=true] .cnt{font-weight:400}
+
+/* 分頁內容。原本每一塊各自是一張卡,現在卡片都收進頁籤,
+   卡片的外框就移到分頁上,內容的排版(.rows/.ways/.cmd)完全不動。 */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:var(--sp4);box-shadow:var(--shadow);min-width:0}
+/* 等級(精煉)面板。照遊戲的「裝備培養 / 精煉」排:
+   星級鈕 → 品質框配圖 → Lv/進度條 → 屬性(現在→下一級)→ 升級消耗 → 最小/−/級數/+/最大 */
+#lvpanel{display:flex;flex-direction:column;align-items:center;gap:16px;
+  max-width:820px;margin:0 auto;text-align:center}
+/* 物件框:品質框當底圖、物件圖疊上去,**所有物件共用同一個尺寸**。
+   使用者:「如果我沒有說的話就是都要等級框配圖然後都要同樣的大小」。
+   是 <a> 的時候就能點進那個物件的詳細頁。 */
+/* 全站物件框統一 72px(= 分解那邊造型圖的大小)。抬頭區那張不走這裡,維持大圖。 */
+/* 高度可以不是正方形:協議的「圖比例」= 高/寬,沒給就是 1(正方形,道具格那套)。
+   夥伴的抬頭要放全身立繪(1657×2105),硬塞進正方形會剩一條細縫。 */
+.rfi{--c:72px;--比:1;position:relative;width:var(--c);height:calc(var(--c) * var(--比));display:grid;place-items:center;
+  background-size:contain;background-repeat:no-repeat;background-position:center;
+  transition:transform .14s var(--ease)}
+/* 品質框是 128×128 滿版的圖,圖案要**幾乎填滿**它 —— 使用者:「遊戲裡面邊框
+   沒那麼大,道具的圖案幾乎是填滿一整個框」。66% 會在圖和框之間留一大圈空白。
+   **但不可以超出框**(使用者 2026-11-15:「圖都超出去框」)——
+   只寫 max-width/max-height:100% 在 grid 容器裡會失效(百分比高度解析不到確定值,
+   實測貼圖 353×368 會被畫成 72×75、垂直溢出 3px)。
+   所以給明確的 100% 寬高 + object-fit:contain:既填滿又絕不溢出。 */
+.rfi img{position:absolute;inset:0;width:100%;height:100%;
+  object-fit:contain;display:block}
+a.rfi:hover{transform:scale(1.04)}
+/* 道具格子:框 + 名字,整格可點。框的尺寸跟其他物件一致(.rfi) */
+/* 格子一律靠左對齊、而且**每一格都剛好一個格寬**(使用者 2026-11-15:「間隔問題」)。
+   以前 grid 是 minmax(格寬,1fr)(有空間就把欄拉寬)、flex 排是 flex:0 0 auto
+   (寬度由名字長度決定),所以同一頁的兩種排法圖示的間距對不上,
+   flex 那排名字一長格子就被撐開,圖示看起來忽寬忽窄。
+   現在兩邊都釘死一個格寬:圖示永遠等距,名字長了就折行。 */
+.objs{width:100%;display:grid;grid-template-columns:repeat(auto-fill,var(--格寬));
+  gap:var(--格距);justify-items:start}
+.obj{display:flex;flex-direction:column;align-items:center;gap:var(--sp1);padding:var(--sp2);
+  width:var(--格寬);box-sizing:border-box;
+  border-radius:12px;transition:background-color .14s var(--ease)}
+a.obj:hover{background:var(--raise)}
+.obj>b{font:400 13px/1.4 var(--sans);color:var(--fg2);text-align:center}
+/* 不能堆疊的類(裝備)數量寫在名字旁邊:「青竹冠 ×2」 */
+.obj>b .q{margin-left:4px;color:var(--fg3);font:400 12px/1.4 var(--mono)}
+/* 分解是一星一列,物件橫著排,所以格子改成橫向 */
+.row.sal{align-items:center}
+.row.sal dd{display:flex;flex-wrap:wrap;gap:12px}
+.row.sal .obj{flex-direction:row;gap:12px;width:auto}
+.row.sal .obj>b{text-align:left}
+/* 星星:原圖 59px。遊戲裡是**緊密重疊**排的(約 45%),不是並排 ——
+   並排看起來會散掉,跟遊戲對不上。 */
+.xs{display:inline-flex;align-items:center;vertical-align:middle}
+.xi{width:24px;height:24px;display:block}
+.xi+.xi{margin-left:-15.6px}   /* 重疊 65%,所以只往右推 35% */
+.xi.dim{opacity:.9}
+/* 分解用「那一星的造型圖」(框+圖+星),不是單獨一排星星 */
+.sty{width:72px;height:72px;display:block}
+/* 升星:**需求在前、數值在後,左右排,不要上下疊**。
+   使用者:「升星後數值移到後面,不要跟升星需求疊在一起」。 */
+.row.st{align-items:center}
+.row.st dd{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:24px;align-items:center}
+@media (max-width:720px){.row.st dd{grid-template-columns:1fr;gap:10px}}
+.stp2{display:flex;flex-direction:column;gap:3px}
+.stp2 b{font:500 15px/1.4 var(--sans);font-variant-numeric:tabular-nums}
+.stp2 .dim{font-size:12px;color:var(--fg3)}
+.cost{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.cost .dim{font-size:12px;color:var(--fg3)}
+.cost .obj{flex-direction:row;gap:10px;padding:4px 8px}
+.cost .obj>b{text-align:left;font-size:13px}
+/* 隨機詞條表 */
+.aff{width:100%;border-collapse:collapse;font-size:14px}
+.aff th{text-align:left;font:500 13px/18px var(--sans);color:var(--fg3);
+  padding:0 12px 8px 0;border-bottom:1px solid var(--line)}
+.aff td{padding:9px 12px 9px 0;border-bottom:1px solid var(--line2);vertical-align:top}
+.aff tr:last-child td{border-bottom:0}
+.aff td.m{font:400 12px/18px var(--mono);color:var(--fg2)}
+/* 逐級表:行多(30~40 列),壓縮一點;消耗那格裡有引用方塊 */
+.aff.lv td{padding:4px 12px 4px 0;font-size:13px}
+.aff.lv td:first-child{font:400 12px var(--mono);color:var(--fg3);width:3em}
+/* 表格裡的引用方塊維持全站一樣的大小(--c 不要改小,數量疊在格子裡才看得清楚) */
+.aff.lv .obj{padding:2px 0;align-items:flex-start}
+.aff.lv td{vertical-align:middle}
+/* 補充註記 */
+.sup{margin:0 0 8px;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.sup li{position:relative;padding:10px 12px;border-radius:8px;background:var(--raise);
+  font-size:14px;line-height:1.7;color:var(--fg2)}
+.sup .ev{margin-left:8px;padding:1px 6px;border-radius:4px;border:1px solid var(--line);
+  font:400 11px/16px var(--sans);color:var(--fg3);white-space:nowrap}
+/* 還沒對到中文名的設定表名,攤著列出來 —— 不要假裝它是別的東西 */
+.note.tbl{font:400 12px/1.9 var(--mono);color:var(--fg3);word-break:break-all}
+.need{display:inline-flex;align-items:center;gap:8px;margin-right:12px}
+.need b{font-weight:400}
+.eff{color:var(--fg2)}
+a.obj:hover>b{color:var(--fg)}
+/* 家族那兩排**不要撐滿寬度**。使用者:「有 5 個就 5 個、6 個就比較長而已,
+   他們的間隔固定,總長會依數量改變」。所以改用 flex:格子維持原尺寸、
+   間隔固定 16px、靠左排,不像道具格子那樣用 1fr 把每格拉寬去填滿一整列。 */
+.objs.set.lv9{grid-template-columns:repeat(9,minmax(0,1fr))}
+.objs.set.lv9>.obj{width:100%}
+@media (max-width:900px){.objs.set.lv9{grid-template-columns:repeat(auto-fill,minmax(calc(var(--格寬) * 0.875),1fr))}}
+.objs.fam{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:var(--格距);margin-bottom:var(--sp2)}
+.objs.fam .obj{flex:0 0 var(--格寬)}
+.obj.here{background:var(--raise)}
+.obj.here>b{color:var(--fg);font-weight:500}
+
+/* 等級:起始裝備 → 銀兩 → 目標裝備,三張圖排在同一條線上(圖都是 .rfi,同尺寸)。
+   三欄等寬,圖才會對齊;中間那欄沒有控制,所以用 align-items:start + 固定上緣。 */
+.lvpair{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;
+  align-items:start;width:100%}
+.lvside,.lvmid{display:flex;flex-direction:column;align-items:center;gap:12px}
+.lvt{font:400 13px/1 var(--sans);color:var(--fg3)}
+.rfl{margin:0;font:400 15px/1 var(--sans);color:var(--fg2)}
+.rfl b{font-weight:500;font-size:20px;color:var(--fg);font-variant-numeric:tabular-nums}
+.rfh{margin:4px 0 0;font:400 13px/1 var(--sans);color:var(--fg3)}
+.coin{margin:0;font:500 24px/1 var(--sans);font-variant-numeric:tabular-nums}
+/* 級數控制:一顆藥丸裝 ( − ) [可打字的級數] ( + )。
+   數字輸入框的上下小箭頭拿掉,旁邊已經有 ± 了。 */
+.lvbox{display:inline-flex;align-items:center;gap:2px;height:42px;padding:0 5px;
+  border:1px solid var(--line);border-radius:21px;background:var(--card);
+  font:500 17px/1 var(--sans);font-variant-numeric:tabular-nums;
+  transition:border-color .14s var(--ease)}
+.lvbox:focus-within{border-color:var(--q)}
+.lvbox input{width:48px;padding:0;border:0;background:none;color:inherit;
+  font:inherit;text-align:right;-moz-appearance:textfield}
+.lvbox input:focus{outline:none}
+.lvbox input::-webkit-outer-spin-button,
+.lvbox input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.lvbox i{font-style:normal;margin:0 6px 0 3px;color:var(--fg2);font-size:14px}
+.lvstep{width:32px;height:32px;border:0;border-radius:50%;background:none;cursor:pointer;
+  color:var(--fg2);font-size:19px;line-height:1;display:grid;place-items:center;
+  transition:background-color .14s var(--ease),color .14s var(--ease)}
+.lvstep:hover{background:var(--raise);color:var(--fg)}
+/* 最小 / 最大 退成小字 —— 五顆圓鈕排一列太吵 */
+.lvends{display:flex;gap:18px}
+.lvend{border:0;background:none;cursor:pointer;padding:2px 4px;
+  color:var(--fg3);font:400 12px/1 var(--sans);
+  transition:color .14s var(--ease)}
+.lvend:hover{color:var(--fg)}
+.lvend:focus-visible,.lvstep:focus-visible{outline:2px solid var(--q);outline-offset:2px;
+  border-radius:6px}
+.panel[hidden]{display:none}
+/* 三段小標。沒有上方那條線的話,「強化」夾在兩列資料中間會被當成是一列的欄位名。 */
+.grp{margin:var(--sp5) 0 var(--sp3);padding-top:var(--sp4);border-top:1px solid var(--line2);
+  font:500 13px/18px var(--sans);color:var(--fg3)}
+.grp:first-child{margin-top:0;padding-top:0;border-top:0}
+
+.rows{margin:0;display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:112px 1fr;gap:12px;padding:8px 0;
+  border-bottom:1px solid var(--line2);align-items:baseline}
+.row:first-child{padding-top:0}
+.row:last-child{border-bottom:0;padding-bottom:0}
+.row dt{font-size:13px;color:var(--fg2)}
+.row dd{margin:0;font-size:14px;font-variant-numeric:tabular-nums;word-break:break-word}
+.row dd.nil{color:var(--fg3)}
+.row dd .dim{color:var(--fg3)}
+
+/* 原本每張卡只有 320px 寬,一欄排得下。現在卡片收進分頁、寬度是整頁,
+   14 條途徑排成一長條會很空,所以改成**隨寬度自動分欄**。 */
+.ways{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:4px}
+.way{display:flex;align-items:center;gap:12px;padding:8px;border-radius:8px;
+  transition:background-color .14s var(--ease)}
+a.way:hover{background:var(--raise)}
+.way svg{width:16px;height:16px;flex:0 0 16px;stroke-width:1.5;color:var(--fg3)}
+.way>b{flex:1;min-width:0;font:400 14px/20px var(--sans);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.way .c{font:400 12px/16px var(--mono);color:var(--fg2);white-space:nowrap}
+.way>svg:last-child{color:var(--line);transition:color .14s var(--ease)}
+a.way:hover>svg:last-child{color:var(--fg3)}
+
+.spots{display:flex;flex-wrap:wrap;gap:4px}
+.spot{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 10px;border-radius:8px;
+  background:var(--raise);color:var(--fg2);font-size:13px;max-width:100%;
+  transition:color .14s var(--ease)}
+.spot:hover{color:var(--fg)}
+.spot svg{width:16px;height:16px;flex:0 0 16px;stroke-width:1.5;color:var(--fg3)}
+.spot span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.grp{margin-top:12px}
+.grp+.grp{margin-top:16px}
+.grp h3{margin:0 0 8px;font:400 12px/16px var(--sans);color:var(--fg3);
+  display:flex;align-items:baseline;gap:8px}
+.grp h3 a{color:var(--fg2);border-bottom:1px solid var(--line);transition:color .14s var(--ease)}
+.grp h3 a:hover{color:var(--fg)}
+.grp h3 em{font-style:normal;font-family:var(--mono);font-size:11px;color:var(--fg3)}
+.tags{display:flex;flex-wrap:wrap;gap:4px}
+.tags a,.tags span{font-size:12px;line-height:16px;padding:4px 8px;border-radius:6px;
+  background:var(--raise);color:var(--fg2);transition:color .14s var(--ease)}
+.tags a:hover{color:var(--fg)}
+
+.ladder{display:flex;gap:4px;overflow-x:auto;padding-bottom:4px}
+.rung{flex:0 0 auto;min-width:56px;padding:8px;border-radius:8px;text-align:center;
+  background:var(--raise);transition:color .14s var(--ease)}
+.rung i{display:block;font:400 12px/16px var(--mono);font-style:normal;color:var(--fg3)}
+.rung b{display:block;font:400 13px/20px var(--sans);color:var(--fg2)}
+a.rung:hover b{color:var(--fg)}
+.rung.on{background:var(--fg)}
+.rung.on i,.rung.on b{color:var(--bg)}
+
+.chain{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.end{padding:8px 12px;border-radius:8px;background:var(--raise);transition:color .14s var(--ease)}
+a.end:hover b{color:var(--fg)}
+.end b{font:400 14px/20px var(--sans)}
+.end span{font:400 12px/16px var(--mono);color:var(--fg3);margin-left:8px}
+.link{display:flex;align-items:center;color:var(--fg3)}
+.link svg{width:16px;height:16px;stroke-width:1.5}
+
+.cmd{font:400 13px/20px var(--mono);color:var(--fg2);background:var(--raise);
+  padding:12px;border-radius:8px}
+.cmd b{color:var(--fg);font-weight:400}
+.note{margin:8px 0 0;font-size:12px;line-height:16px;color:var(--fg3)}
+.foot{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);
+  display:flex;gap:16px;flex-wrap:wrap;font-size:12px;line-height:16px;color:var(--fg3)}
+@media (max-width:720px){
+  .page{padding:16px 16px 64px}
+  .top{grid-template-columns:1fr;gap:24px}
+  .art{max-width:280px}
+  .title{font-size:30px}
+  .desc{font-size:15px}
+  .row{grid-template-columns:96px 1fr}
+  .lvpair{grid-template-columns:1fr;gap:20px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+
+/* ───────── 以下是把六張統一起來時補的 ───────── */
+
+/* 「換別的」挑選框:每一張都要能跳到同類的另一筆 */
+.jump{position:relative;margin-left:auto}
+.jump input{height:32px;padding:0 11px;border-radius:8px;border:1px solid var(--line);
+  background:var(--card);color:var(--fg);font:400 13px var(--sans);width:190px}
+.jump input:focus{outline:2px solid var(--q);outline-offset:1px}
+.jump ul{position:absolute;z-index:9;top:36px;right:0;width:280px;margin:0;padding:4px;list-style:none;
+  background:var(--card);border:1px solid var(--line);border-radius:10px;max-height:320px;overflow:auto;
+  box-shadow:0 8px 24px rgba(0,0,0,.14)}
+.jump li a{display:block;padding:7px 9px;border-radius:7px;font-size:13px;color:var(--fg2)}
+.jump li a:hover{background:var(--raise);color:var(--fg)}
+.jump li small{display:block;color:var(--fg3);font:400 11px/1.4 var(--mono)}
+
+/* 物件格底下多一行小字(數量 / 機率 / 來源),裝備那邊本來只有名字 */
+.obj>u{text-decoration:none;font:500 13px/1.3 var(--mono);color:var(--fg);text-align:center}
+.obj>i{font-style:normal;font:400 10px/1.3 var(--mono);color:var(--fg3);text-align:center}
+.obj.minus>u{color:#c0552f}
+/* 遊戲裡有些資源圖只有 34~51px,撐滿品質框會糊 */
+.rfi.sml img{max-width:62%;max-height:62%;image-rendering:-webkit-optimize-contrast}
+
+/* 矩陣(精粹的 品質×部位) */
+.mtx{width:100%;border-collapse:collapse;font-size:13px}
+.mtx th,.mtx td{border-top:1px solid var(--line2);padding:7px 8px;text-align:left}
+.mtx th{color:var(--fg3);font-weight:400}
+.mtx td .obj{padding:3px 6px}
+
+/* 垂直樹狀圖(歷練的選擇事件流程) */
+.tree{margin:4px 0 0;padding:0 0 0 2px}
+.tnode{position:relative;padding:0 0 0 22px;margin:0 0 2px}
+.tnode:before{content:"";position:absolute;left:5px;top:0;bottom:0;width:1px;background:var(--line)}
+.tnode:last-child:before{bottom:auto;height:16px}
+.tnode>.tk{position:relative;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:7px 0 5px}
+.tnode>.tk:before{content:"";position:absolute;left:-17px;top:16px;width:13px;height:1px;background:var(--line)}
+.troot{display:flex;align-items:center;gap:9px;padding:0 0 6px;font:500 15px/1.4 var(--sans)}
+.troot .d{width:9px;height:9px;border-radius:50%;background:var(--q)}
+.tname{font:500 15px/1.3 var(--sans);color:var(--fg)}
+.tbr{font:400 13px/1.3 var(--sans);color:var(--fg2)}
+.tbr.ok{color:#3f8a52}.tbr.no{color:#b45a3c}
+.trate{font:400 11px/1 var(--mono);color:var(--fg3);border:1px solid var(--line);border-radius:5px;padding:3px 6px}
+.ttext{margin:0 0 4px;padding:7px 10px;border-radius:8px;background:var(--raise);
+  font-size:13px;line-height:1.65;color:var(--fg2)}
+
+/* 歷練專屬:直式小卡(品質外框當底)+ 橫式場景圖 */
+.cardimg{position:relative;width:100%;max-width:210px;aspect-ratio:310/469;
+  background-size:100% 100%;background-repeat:no-repeat;display:grid;place-items:center}
+.cardimg img{max-width:74%;max-height:70%;margin-bottom:4%}
+.scenebox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px;
+  box-shadow:var(--shadow);display:grid;place-items:center;align-self:start}
+.scenebox img{max-height:150px;width:auto;max-width:100%;display:block;border-radius:10px}
+.rightcol{display:flex;flex-direction:column;gap:16px;min-width:0}
+
+/* 可收合的長名單(獎勵池太大時) */
+details.big>summary{cursor:pointer;list-style:none;font:400 12px/1.6 var(--mono);color:var(--q);padding:6px 0}
+details.big>summary::-webkit-details-marker{display:none}
+details.big>summary:hover{text-decoration:underline}
+
+.mono{font:400 12px/1.6 var(--mono);color:var(--fg3)}
+.empty{color:var(--fg3);font-size:14px;padding:6px 0}
+
+/* 引用不到(素材還沒建檔)—— 要看得見,不能靜靜地不畫 */
+.obj.miss{opacity:.72}
+.obj.miss .rfi{border:1px dashed var(--line);background:transparent}
+.obj.miss .ab{color:var(--fg3);font:400 15px/1 var(--serif)}
+.obj.miss>i{color:#b45a3c}
+.rfi .ab{font:500 13px/1.2 var(--serif);color:var(--fg3);text-align:center;padding:0 var(--sp1);
+  white-space:normal;word-break:break-all}
+/* 建檔了但還沒有圖:虛線框,跟「尚未建檔」的缺塊長一樣但不寫那行紅字 */
+.obj.noimg .rfi{border:1px dashed var(--line);background:transparent}
+.obj.noimg .ab{color:var(--fg3);font:400 15px/1 var(--serif)}
+/* 來源 / 用途 那種一條一列的,也要能點 */
+.ways{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:var(--sp1)}
+.way{display:flex;align-items:center;gap:var(--sp3);padding:var(--sp2);border-radius:var(--r1)}
+
+/* 需要讀的一段話(技能屬性那種解釋),比 .note 寬鬆一點 */
+.note.long{max-width:62ch;line-height:1.75;margin:var(--sp2) 0 var(--sp4);
+  color:var(--fg2);font-size:.95rem}
+
+/* 遊戲自己不顯示的獎勵格(技能屬性/職級經驗):留著但壓下去,不跟真的獎勵搶注意力 */
+.way.quiet{opacity:.62;border-style:dashed}
+.way.quiet b{font-weight:400}
+
+/* 條列(權位的「晉升後得到」那種,設定表本來就是一條一條的) */
+ul.bul{margin:var(--sp2) 0 var(--sp4);padding-left:1.25em;max-width:62ch}
+ul.bul li{margin:var(--sp1) 0;line-height:1.7;color:var(--fg2)}
+
+/* 引用方塊裡的序號(劇情章節:「06 鏡中迷局」)。遊戲裡是大號描邊數字,
+   網頁端縮成名字前的小字就夠了 —— 引用方塊本來就只有 72px。 */
+.obj b .no{font:400 12px/1 var(--mono);color:var(--q);margin-right:2px}
+
+/* ── 格子裡的疊層 ──────────────────────────────────────────
+   數量/等級/星星/寶石孔在遊戲裡都是**疊在 128 格子裡面**的。
+   這裡一律寫成 `--c`(格子邊長)的比例 = 原始像素 ÷ 128,
+   所以抬頭那種放大的格子(--c:200px)疊層會跟著等比放大、不會錯位。
+   來源:素材/系統/道具格.json、雜物/_裝備格部件版面/、雜物/_等級部件_寵物坐騎珍寶/ */
+.rfi .ov{position:absolute;pointer-events:none;--ol:calc(var(--c)*0.0078125)}  /* 1px @128 */
+/* 數量:右下角(右緣距右 8.6、下緣距底 1.3、fontSize 24) */
+.rfi .ov.num{right:calc(var(--c)*0.0672);bottom:calc(var(--c)*0.0102);
+  font:400 calc(var(--c)*0.1875)/1.2 var(--game);color:#fff;
+  /* CompPropPart_Count/content/Txt_numback:font_md 24、MiddleRight、#ffffffff、
+     Outline #332824ff (1,-1) **兩層**(Unity 的 Outline 畫四個對角複本) */
+  text-shadow:var(--ol) calc(var(--ol)*-1) 0 #332824,calc(var(--ol)*-1) var(--ol) 0 #332824,
+    var(--ol) var(--ol) 0 #332824,calc(var(--ol)*-1) calc(var(--ol)*-1) 0 #332824,
+    calc(var(--ol)*2) calc(var(--ol)*-2) 0 #332824,calc(var(--ol)*-2) calc(var(--ol)*2) 0 #332824,
+    calc(var(--ol)*2) calc(var(--ol)*2) 0 #332824,calc(var(--ol)*-2) calc(var(--ol)*-2) 0 #332824}
+/* 等級條:寵物 pet_level 滿寬貼底 128×29.4。
+   字級就是遊戲的原值:font_md **28** → 28/128 = 0.21875。
+   (之前寫 0.1986 是我自己拿 0.86/0.95 的「字面比例」補出來的 —— 用了遊戲
+    本體的字型之後不需要補,也不該補。) */
+.rfi .ov.lv{left:0;right:0;bottom:0;height:calc(var(--c)*0.2297);
+  display:grid;place-items:center;
+  background-size:100% 100%;background-repeat:no-repeat;
+  font:400 calc(var(--c)*0.21875)/1 var(--game);color:#fff;
+  /* Pet_Level/lv_bg/UIText:Outline #000000ff + #00000080 兩層 */
+  text-shadow:var(--ol) calc(var(--ol)*-1) 0 #000,calc(var(--ol)*-1) var(--ol) 0 #000,
+    var(--ol) var(--ol) 0 #000,calc(var(--ol)*-1) calc(var(--ol)*-1) 0 #000,
+    calc(var(--ol)*2) calc(var(--ol)*-2) 0 rgba(0,0,0,.5),calc(var(--ol)*-2) calc(var(--ol)*2) 0 rgba(0,0,0,.5),
+    calc(var(--ol)*2) calc(var(--ol)*2) 0 rgba(0,0,0,.5),calc(var(--ol)*-2) calc(var(--ol)*-2) 0 rgba(0,0,0,.5)}
+/* 裝備:122×32、x∈[3,125]、y∈[2.6,34.6] */
+.rfi .ov.lv.eq{left:calc(var(--c)*0.0234);right:calc(var(--c)*0.0234);
+  bottom:calc(var(--c)*0.0203);height:calc(var(--c)*0.25)}
+/* 坐騎:122×29.4、x3~125、y2.8~32.2 */
+.rfi .ov.lv.car{left:calc(var(--c)*0.0234);right:calc(var(--c)*0.0234);
+  bottom:calc(var(--c)*0.0219);height:calc(var(--c)*0.2297);
+  /* Car_Level/lv_bg/UIText:Outline #000000ff (1,-1) 只有一層 */
+  text-shadow:var(--ol) calc(var(--ol)*-1) 0 #000,calc(var(--ol)*-1) var(--ol) 0 #000,
+    var(--ol) var(--ol) 0 #000,calc(var(--ol)*-1) calc(var(--ol)*-1) 0 #000}
+/* 珍寶:滿寬貼底 128×32,而且部件 root 原生 182.25 → 整組縮 0.7023 */
+.rfi .ov.lv.gd{left:0;right:0;bottom:0;height:calc(var(--c)*0.1756);
+  /* 28/128 × 0.7023(部件 root 182.25 → 128 的縮放)= 0.1536 */
+  font-size:calc(var(--c)*0.1536);
+  /* txt_lv:Outline #332824ff (1,-1) ×2,描邊也跟著縮 0.7023 */
+  --ol:calc(var(--c)*0.0054844);
+  text-shadow:var(--ol) calc(var(--ol)*-1) 0 #332824,calc(var(--ol)*-1) var(--ol) 0 #332824,
+    var(--ol) var(--ol) 0 #332824,calc(var(--ol)*-1) calc(var(--ol)*-1) 0 #332824,
+    calc(var(--ol)*2) calc(var(--ol)*-2) 0 #332824,calc(var(--ol)*-2) calc(var(--ol)*2) 0 #332824,
+    calc(var(--ol)*2) calc(var(--ol)*2) 0 #332824,calc(var(--ol)*-2) calc(var(--ol)*-2) 0 #332824}
+/* 星列:5 槽 × 38.44,步距 15.256,列底 y=29.1(有等級列)或 0 */
+.rfi .ov.st{left:0;bottom:0;height:calc(var(--c)*0.3003);display:block}
+.rfi .ov.st.up{bottom:calc(var(--c)*0.2273)}
+.rfi .ov.st i{position:absolute;bottom:0;
+  width:calc(var(--c)*0.3003);height:calc(var(--c)*0.3003);
+  background-size:contain;background-repeat:no-repeat;background-position:center}
+/* 寶石孔:4 格直排貼右緣,16.96²,中心 x=114.7 */
+.rfi .ov.gem{left:0;right:0;top:0;bottom:0}
+.rfi .ov.gem i{position:absolute;
+  width:calc(var(--c)*0.1325);height:calc(var(--c)*0.1325);
+  left:calc(var(--c)*0.8961);transform:translate(-50%,-50%);
+  background-size:contain;background-repeat:no-repeat;background-position:center}
+/* 角標(+N):滿寬貼頂 128×50、UpperRight。prefab 是白字,遊戲裡看到的是金色 */
+.rfi .ov.tag{left:0;right:0;top:0;height:calc(var(--c)*0.3906);
+  display:flex;align-items:flex-start;justify-content:flex-end;
+  padding:calc(var(--c)*0.014) calc(var(--c)*0.028) 0 0;
+  font:400 calc(var(--c)*0.21875)/1.1 var(--game);color:#fff;
+  /* Pet_Level/txt_breakthrough:font_md 28、UpperRight、Outline #cf8a19ff (1,-1) ×2 */
+  text-shadow:var(--ol) calc(var(--ol)*-1) 0 #cf8a19,calc(var(--ol)*-1) var(--ol) 0 #cf8a19,
+    var(--ol) var(--ol) 0 #cf8a19,calc(var(--ol)*-1) calc(var(--ol)*-1) 0 #cf8a19,
+    calc(var(--ol)*2) calc(var(--ol)*-2) 0 #cf8a19,calc(var(--ol)*-2) calc(var(--ol)*2) 0 #cf8a19,
+    calc(var(--ol)*2) calc(var(--ol)*2) 0 #cf8a19,calc(var(--ol)*-2) calc(var(--ol)*-2) 0 #cf8a19}
+/* 珍寶的 +N 在右上 88×33 的底圖上,中心 (109.2, 距頂 14.4),整組縮 0.7023 */
+.rfi .ov.tag.gd{right:auto;height:auto;width:auto;
+  left:calc(var(--c)*0.8531);top:calc(var(--c)*0.1125);transform:translate(-50%,-50%);
+  display:block;padding:0;
+  font-size:calc(var(--c)*0.1536);
+  /* txt_through_lv:Outline #d18a16ff (1,-1) ×2 */
+  --ol:calc(var(--c)*0.0054844);
+  text-shadow:var(--ol) calc(var(--ol)*-1) 0 #d18a16,calc(var(--ol)*-1) var(--ol) 0 #d18a16,
+    var(--ol) var(--ol) 0 #d18a16,calc(var(--ol)*-1) calc(var(--ol)*-1) 0 #d18a16,
+    calc(var(--ol)*2) calc(var(--ol)*-2) 0 #d18a16,calc(var(--ol)*-2) calc(var(--ol)*2) 0 #d18a16,
+    calc(var(--ol)*2) calc(var(--ol)*2) 0 #d18a16,calc(var(--ol)*-2) calc(var(--ol)*-2) 0 #d18a16}
+/* 狀態橫幅:中間(裝備中 / 攜帶中) */
+.rfi .ov.bn{left:0;right:0;top:50%;transform:translateY(-50%);
+  height:calc(var(--c)*0.236);
+  display:grid;place-items:center;background:rgba(0,0,0,.45);
+  font:400 calc(var(--c)*0.1528)/1 var(--sans);color:#fff}
+
+/* 圖槽 = **滿格 128×128**(comppropbase 的 mask/Img_prop),被 com_mask_djk0 裁圓角。
+   `Img_dyn` 的 94×94 是另一層執行期動態圖層,不是道具圖 ——
+   素材/系統/道具格.json 早就寫過「不要再乘 94/128,那是縮兩次」,我一度照做了。
+   所以不縮圖,改成套**遊戲自己的遮罩**,圓角才跟遊戲一樣。 */
+.rfi img{-webkit-mask-size:100% 100%;mask-size:100% 100%;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+
+
+/* 版式=原樣:**不是道具格的類**用這個。
+   正向反證:mumu 的 雜物/_格子系統/_格子系統總整理.md 把走通用道具格(comp_prop 128)的
+   類一個不漏地列了(道具/裝備/寵物/坐騎/珍寶/時裝/伙伴/頭像框),**聊天貼圖、表情符號、
+   活動入口圖都不在裡面**。所以不能套 128 方格那套(品質框 + 圓角遮罩 + 滿版),
+   要照原比例整張容納進去 —— 使用者 2026-11-15:「活動入口還是太大被切掉,貼圖也還是太大」。 */
+/* 基礎的 .rfi img 已經是 絕對定位 + object-fit:contain = 等比容納、不裁切。
+   所以「原樣」要拿掉的只有**遮罩和框**,定位不用動
+   (改回 position:static 會踩到 grid 百分比高度解析不到的老坑,圖會溢出)。 */
+.rfi.raw{background:none}
+.rfi.raw img{-webkit-mask-image:none;mask-image:none}
+
+/* 抬頭區那張圖:整格放大。疊層都是 --c 的比例,所以跟著等比放大。
+   使用者 2026-11-15:「標題旁邊那張圖是大的啊,那就要整個放大」。 */
+.art .rfi{--c:200px}
+.art .obj{gap:0;padding:0}
+.art .obj>b,.art .obj>u,.art .obj>i{display:none}
+
+/* 技能表:技能名(.grp)下面那行「普攻 · 控制」跟表頭貼太近 */
+.grp + .note{margin:-6px 0 10px}
+.aff thead th{font:400 12px/1.4 var(--sans);color:var(--fg3);text-align:left;
+  padding:0 0 8px;border-bottom:1px solid var(--line2)}
+.aff td{padding:10px 0;border-bottom:1px solid var(--line2);vertical-align:top}
+.aff td:first-child,.aff td:nth-child(2){color:var(--fg2);width:110px}
+
+/* ── 雙頭拉桿:選一段區間 ────────────────────────────────────
+   使用者 2026-11-16 指定的版面:
+
+                 (圖示)          ← 固定位置、水平置中
+                x - y            ← 用中間那個「-」當定位點
+
+       最小 x ──●━━━━━━━●── 最大 y   ← 一整條排在一直線
+
+   「-」當定位點:左值靠右、分隔固定寬、右值靠左,三格等寬,
+   所以不管數字幾位數,「-」永遠在正中間,整塊不會左右晃。 */
+.rgtop{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:4px}
+.rgtop .rgicon{display:grid;place-items:center;height:56px}
+.rgtop .rgicon img{max-height:52px;max-width:72px;display:block}
+.rgtop .rgicon .txt{font:500 15px/1 var(--sans);color:var(--fg3);letter-spacing:.04em}
+/* 數字:三格,中間那格固定寬,「-」永遠置中 */
+.rgnum{display:grid;grid-template-columns:1fr 26px 1fr;align-items:baseline;
+  font:500 19px/1.1 var(--sans);font-variant-numeric:tabular-nums;color:var(--fg)}
+.rgnum>span:first-child{text-align:right}
+.rgnum>span:last-child{text-align:left}
+.rgnum .dash{text-align:center;color:var(--fg3);font-weight:400}
+.rgnum i{font-style:normal;font-size:12px;color:var(--fg3);margin-left:3px}
+.rgnum b{display:block;font:400 11px/1.3 var(--sans);color:var(--fg3);font-weight:400}
+
+/* 拉桿那一條:最小/最大跟軌道同一行,文字不換行 */
+.rgrow{display:flex;align-items:center;gap:10px;width:100%;max-width:620px;margin:0 auto}
+.rg-end{flex:0 0 auto;border:0;background:none;cursor:pointer;padding:4px 2px;white-space:nowrap;
+  color:var(--fg3);font:400 12px/1 var(--sans);font-variant-numeric:tabular-nums;
+  transition:color .14s var(--ease)}
+.rg-end:hover{color:var(--fg)}
+.rg-end:focus-visible{outline:2px solid var(--q);outline-offset:2px;border-radius:4px}
+/* 軌道本體。左右內縮 11px(拇指半徑),拇指跑到兩端才不會凸出去 */
+.rg{position:relative;flex:1 1 auto;min-width:0;height:24px;padding:0 11px}
+.rg-track{position:absolute;left:11px;right:11px;top:9px;height:6px;border-radius:3px;
+  background:var(--line2)}
+.rg-fill{position:absolute;top:9px;height:6px;border-radius:3px;background:var(--q);opacity:.5}
+.rg input[type=range]{position:absolute;left:0;right:0;top:1px;width:100%;height:22px;margin:0;
+  background:none;pointer-events:none;-webkit-appearance:none;appearance:none}
+.rg input[type=range]:focus{outline:none}
+.rg input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;
+  width:22px;height:22px;border-radius:50%;background:var(--card);
+  border:2px solid var(--q);box-shadow:0 1px 3px rgba(0,0,0,.18);cursor:grab}
+.rg input[type=range]::-moz-range-thumb{pointer-events:auto;box-sizing:border-box;
+  width:22px;height:22px;border-radius:50%;background:var(--card);
+  border:2px solid var(--q);box-shadow:0 1px 3px rgba(0,0,0,.18);cursor:grab}
+.rg input[type=range]:active::-webkit-slider-thumb{cursor:grabbing}
+.rg input[type=range]::-webkit-slider-runnable-track{background:none;border:none}
+.rg input[type=range]:focus-visible::-webkit-slider-thumb{outline:2px solid var(--q);outline-offset:2px}
+.rgbox{display:flex;flex-direction:column;align-items:center;gap:var(--sp3);width:100%;
+  max-width:620px;margin:0 auto}
+.rgbox .objs.fam{justify-content:center}
+/* 材料底下那行會跟著拉桿變的小字(能力的研習時間) */
+.rgsub{margin:0;font:400 12px/1.5 var(--sans);color:var(--fg3);text-align:center}
+/* 升星的扇形:五瓣各自預先轉好角度,照 prefab 座標疊 */
+.fan{position:relative;width:96px;height:64px}
+.fan img{position:absolute;max-width:none;max-height:none}
+
+@media (max-width:560px){
+  .rgrow{gap:6px}
+  .rg-end{font-size:11px}
+  .rg{height:28px;padding:0 13px}
+  .rg-track,.rg-fill{left:13px;right:13px;top:11px}
+  .rg input[type=range]{top:1px;height:26px}
+  .rg input[type=range]::-webkit-slider-thumb{width:26px;height:26px}
+  .rg input[type=range]::-moz-range-thumb{width:26px;height:26px}
+  .rgnum{font-size:17px;grid-template-columns:1fr 22px 1fr}
+}
+
+/* 技能:圖示跟名字同一條水平線(使用者 2026-11-16 的草圖) */
+.grp.skrow{display:flex;align-items:center;gap:10px}
+.skico{width:40px;height:40px;border-radius:8px;display:block;flex:0 0 auto}
+/* 抬頭圖示區裡的星星要放大一點才看得清楚 */
+.rgtop .xi{width:30px;height:30px}
+.rgtop .xi+.xi{margin-left:-19.5px}
+/* 等級圖示:遊戲的數量底條(128×32)+ 數字。比例照原圖,字大小是框高的 0.6 */
+.lvbar{display:grid;place-items:center;width:112px;height:28px;
+  background-size:100% 100%;background-repeat:no-repeat;
+  font:500 17px/1 var(--sans);font-variant-numeric:tabular-nums;color:#fff;
+  text-shadow:0 1px 2px rgba(0,0,0,.55)}
+/* 資料列裡的小圖示(五行/職業類型):圖在字前面,同一條基線 */
+.iconline{display:inline-flex;align-items:center;gap:6px}
+.ic{display:block}
+.ic.ys{width:26px;height:26px}
+.ic.vo{width:20px;height:30px}

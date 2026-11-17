@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>珍寶 · 巡夢圖鑑</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../共用.css">
+</head><body><div class="page" id="app"></div>
+<script src="../共用.js"></script>
+<script>
+/* 珍寶(守護 Guardian)。升級(珍寶經驗→珍品靈砂)/ 突破(幸運之花或吃同品質珍寶)/ 技能 / 隨機被動。
+   養成表讀 素材/珍寶/_升級.json、_突破.json。**不帶資料**。 */
+
+const _珍={};
+async function 珍表(名){
+  if(_珍[名]===undefined)
+    _珍[名]=await fetch(window.素材基底+'珍寶/_'+名+'.json').then(r=>r.ok?r.json():null).catch(()=>null);
+  return _珍[名];
+}
+/* 珍寶經驗的三種靈砂,大→小(使用者 2026-11-17:從等級最大的往下貪心) */
+const _靈砂=[{名:'珍品靈砂·大',值:1000},{名:'珍品靈砂·中',值:250},{名:'珍品靈砂·小',值:50}];
+function 貪心(經驗, 幣){
+  let T=經驗; const 需={};
+  for(const c of 幣){ const n=Math.floor(T/c.值); if(n){需[c.名]=n; T-=n*c.值;} }
+  if(T>0){ 需[幣[幣.length-1].名]=(需[幣[幣.length-1].名]||0)+1; }  // 補一個最小的蓋過剩餘
+  return 需;
+}
+
+/* 升級:拉桿算總經驗,再用靈砂貪心拆成「幾個大+幾個中+幾個小」。 */
+async function 升級板(x){
+  const r=await 珍表('升級'); const t=r&&x.升級範本&&r.範本[String(x.升級範本)];
+  if(!t) return '<p class="note">這件沒有升級資料</p>';
+  const 級=t.級, 上=級.length;
+  const 累經=[0]; for(const l of 級) 累經.push(累經[累經.length-1]+l.經驗);
+  const 梯=await 階梯板({
+    樣式:'拉桿', 鍵:'珍寶升級', 下限:0, 上限:上, 單位:'級', 起始:0, 目標:上,
+    圖:v=>`<span class="txt">Lv.${v}</span>`,
+    材料:_靈砂.map(c=>({類:'道具',名:c.名})),
+    算:(a,b)=>{ const 經=累經[b]-累經[a]; return 貪心(經,_靈砂); },
+    附文:(a,b)=>{ const 經=累經[b]-累經[a]; const l=級[Math.max(0,b-1)];
+      return b>0?`共需 ${經.toLocaleString('zh-TW')} 經驗 · ${l?l.累計屬性:''}`:''; },
+  });
+  return 梯 + 心醫門檻板(t.心醫門檻, '升');
+}
+
+/* 突破:要花那排 = 幸運之花 + 這件珍寶自己(少數階吃自己)。
+   使用者 2026-11-17:(1)吃的是自己不是同品質 (2)花=同階珍寶分解品,兩者同義,
+   所以吃自己直接放要花那排、不另開區 (3)突破也有心醫等級上限。 */
+async function 突破板(x){
+  if(!x.突破範本) return '<p class="note">這件沒有突破(低品質珍寶無突破)</p>';
+  const r=await 珍表('突破'); const t=r&&r.範本[String(x.突破範本)];
+  if(!t) return '<p class="note">讀不到突破表</p>';
+  const 階=t.階, 上=Math.max(...階.map(s=>+s.階));
+  const 珍圖=window.素材基底+'珍寶/'+encodeURIComponent(x._名)+'/圖.png';
+  const 梯=await 階梯板({
+    樣式:'拉桿', 鍵:'珍寶突破', 下限:0, 上限:上, 單位:'階', 起始:0, 目標:上,
+    圖:v=>突破徽(珍圖, v),
+    材料:[{類:'道具',名:'幸運之花'},{類:'珍寶',名:x._名}],
+    算:(a,b)=>{ let 花=0,自=0;
+      for(const s of 階) if(+s.階>=a&&+s.階<b){ 花+=(s.材料['道具/幸運之花']||0); 自+=(s.材料['@自己']||0); }
+      const 需={}; if(花) 需['幸運之花']=花; if(自) 需[x._名]=自; return 需; },
+  });
+  const 門=階.filter(s=>s.心醫門檻).map(s=>({到:'第 '+s.階+' 階',需:s.心醫門檻}));
+  return 梯+(門.length?心醫門檻板(門,'突破'):'');
+}
+
+/* 技能:夥伴式 —— 圖+名一條線、定位、表「突破階 | 技能等級 | 效果」。
+   珍寶技能等級由突破階帶動。 */
+async function 技能板(x){
+  const a=x.技能||[]; if(!a.length) return '';
+  /* 突破表的 skill_lv_conf 給「第幾階→技能幾級」,沒突破的珍寶就只列等級 */
+  const r=x.突破範本?await 珍表('突破'):null; const t=r&&r.範本[String(x.突破範本)];
+  const 階映={}; if(t) for(const s of t.階){ const lv=+s.技能等級; if(階映[lv]==null) 階映[lv]=+s.階; }
+  return (await Promise.all(a.map(async s=>{
+    const u=window.素材基底+'珍寶/'+encodeURIComponent(x._名)+'/技能/被.png';
+    const 有=await new Promise(ok=>{const im=new Image();im.onload=()=>ok(true);im.onerror=()=>ok(false);im.src=u;});
+    const lv=s.等級||[];
+    return `<h3 class="grp skrow">${有?`<img class="skico" src="${u}" alt="">`:''}<span>${esc(s.名稱||'')}</span></h3>`
+      + (x.定位?`<p class="note">${esc(x.定位)}</p>`:'')
+      + `<table class="aff"><thead><tr><th>${t?'突破階':''}</th><th>技能等級</th><th>效果</th></tr></thead><tbody>${
+          lv.map(l=>`<tr><td>${t&&階映[l.級]!=null?階映[l.級]:''}</td><td>${l.級}</td><td>${rich(l.說明||'')}</td></tr>`).join('')
+        }</tbody></table>`;
+  }))).join('');
+}
+
+開範本({
+  類別:'珍寶',
+  品質為稀有: true,
+  副標:x=>[x.階!=null?'第 '+x.階+' 階':null, x.定位, x.專屬?'專屬':null],
+  分頁: async (x,清單)=>[
+    ['資訊', rows([
+      ['品質',x=>x.品質],['階',x=>x.階],['定位',x=>x.定位],
+      ['基礎戰力',x=>x.基礎戰力],['啟動屬性',x=>x.啟動屬性],
+      ['分解可得',x=>x.分解可得],['專屬',x=>x.專屬===true?'是':(x.專屬===false?'否':null)],
+      ['說明',x=>x.說明],
+    ], x)
+      + (x.綁定夥伴? await 名字排([x.綁定夥伴],'綁定夥伴'):'')
+      + await 索引排('珍寶', 清單.filter(o=>o.品質===x.品質&&o.名!==x._名), x._名, '同品質')],
+    ['升級', ()=>升級板(x)],
+    ['突破', ()=>突破板(x)],
+    ['技能', ()=>技能板(x)],
+    ['獲取', (await 獲取頁(x)||'<p class="note">尚未建檔</p>')],
+    ['其他', rows([
+      ['編號',x=>x.id??x.編號],['升級範本',x=>x.升級範本],['突破範本',x=>x.突破範本],
+      ['隨機被動組',x=>x.隨機被動組],['請求獲取指令',x=>(x.請求獲取指令||{}).格式],
+      ['資料來源',x=>x.資料來源],['產生時間',x=>x.產生時間],['素材路徑',x=>'素材/珍寶/'+x._名],
+    ], x)],
+  ],
+});
+</script></body></html>

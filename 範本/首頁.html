@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>巡夢圖鑑</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="共用.css">
+<style>
+.hub{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:var(--格距)}
+.hub a{display:flex;flex-direction:column;gap:2px;padding:14px 16px;border-radius:12px;
+  background:var(--card);border:1px solid var(--line);text-decoration:none}
+.hub a:hover{border-color:var(--q)}
+.hub b{font:500 16px/1.4 var(--sans);color:var(--fg)}
+.hub i{font:400 12px/1.4 var(--mono);font-style:normal;color:var(--fg3)}
+</style>
+</head><body><div class="page" id="app"></div>
+<script>window.素材基底 = '../素材/';</script>
+<script src="共用.js"></script>
+<script>
+/* 發佈用首頁(跟 index.html 分開 —— 原本那個還留著開發/活動用)。
+   使用者 2026-11-17:卡片動態產生、只放**已建好**的(有索引+有範本),還沒建的不上。
+   這幾類這批先不上:活動/家族/歷練/招募(改 不上 清單即可)。 */
+const 不上 = new Set(['活動','家族','歷練','招募']);
+(async () => {
+  const top = await fetch(基底() + '_索引.json').then(r => r.ok ? r.json() : null).catch(() => null);
+  const 類表 = (((top || {}).清單) || [])
+    .map(c => ({類: c.名 || c.類, 數: c.數量}))
+    .filter(o => o.類 && !不上.has(o.類));
+  /* 有索引(數量>0)+ 有範本 才建卡片 */
+  const 卡表 = (await Promise.all(類表.map(async o => {
+    if(!(o.數 > 0)) return null;
+    const u = encodeURIComponent(o.類) + '/' + encodeURIComponent(o.類) + '範本.html';
+    const r = await fetch(u, {method:'HEAD'}).catch(() => null);
+    return (r && r.ok) ? Object.assign(o, {連: u}) : null;
+  }))).filter(Boolean);
+  const 卡 = o => `<a href="${o.連}"><b>${esc(o.類)}</b><i>${o.數} 筆</i></a>`;
+  document.getElementById('app').innerHTML = `
+    <div class="bar"><span class="crumb">巡夢圖鑑</span><span class="sp"></span>
+      <button class="btn" id="th">深淺色</button></div>
+    <h1 class="title" style="margin:0 0 var(--sp2)">巡夢圖鑑</h1>
+    <p class="note" style="margin:0 0 var(--sp4)">${卡表.length} 個分類 · 點一類看全部</p>
+    <div class="hub">${卡表.map(卡).join('')}</div>`;
+})();
+document.addEventListener('click', e => { if(e.target.id === 'th') 切色(); });
+</script></body></html>

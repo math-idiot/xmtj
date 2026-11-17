@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>裝備 · 巡夢圖鑑</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../共用.css">
+</head><body><div class="page" id="app"></div>
+<script src="../共用.js"></script>
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   裝備範本。**不帶任何資料**,全部執行時讀素材。
+
+   使用者 2026-11-15 定的幾條,這張全部照做:
+     「每一個星級的裝備再分開,變成一個星級一個東西,不存在 0 星的東西了」
+       → 指向一律 <名>/<N>星,沒有「零星」的頁面
+     「裝備的資料頁面他的圖案要用有星的」
+       → 抬頭圖走協議,拿的就是該星的組成圖(本體+星+寶石孔)
+     「獲取方式的寶箱也要改掉」「你範本的引用又都沒改」
+       → 這張**沒有任何自繪的引用**,寶箱/材料/家族全部走 引用塊
+     「裝備有關的還是要放在裝備這邊」
+       → 強化消耗、共鳴/套裝 讀 素材/裝備/_強化消耗.json、_共鳴.json
+   ══════════════════════════════════════════════════════════════════ */
+const 類別 = '裝備';
+const 基 = () => window.素材基底 + 類別 + '/';
+const _快 = new Map();
+const 讀 = 路 => { if(!_快.has(路)) _快.set(路, fetch(路).then(r => r.ok ? r.json() : null).catch(() => null)); return _快.get(路); };
+const 索引 = () => 讀(基() + '_索引.json').then(d => (d && d.清單) || []);
+const 一筆 = 名 => 讀(基() + 名.split('/').map(encodeURIComponent).join('/') + '/資料.json');
+const 強化表 = () => 讀(基() + '_強化消耗.json');
+const 共鳴表 = () => 讀(基() + '_共鳴.json');
+const 本頁 = n => '#/' + encodeURIComponent(類別) + '/' + n.split('/').map(encodeURIComponent).join('/');
+const 空 = t => `<p class="note">${esc(t)}</p>`;
+
+/* 金額:過億用「億」、過萬用「萬」,尾巴的 0 砍掉。12500 → 1.25萬 */
+const 錢 = n => {
+  const 單 = (v, u) => v.toFixed(2).replace(/\.?0+$/, '') + u;
+  if(n >= 1e8) return 單(n / 1e8, '億');
+  if(n >= 1e4) return 單(n / 1e4, '萬');
+  return String(n);
+};
+/* 屬性在 N 級的值 = 基礎 + floor(配置值 × N^係數)。
+   驗過 300 級對設定表的「滿強化(300級)」,230 筆全中。 */
+const 算屬 = (p, lv) => Math.round(p.基礎) + Math.floor(p.配置值 * Math.pow(lv, p.係數));
+
+/* 獲取方式就**兩種**:道具(寶箱/自選箱)和活動 —— 使用者 2026-11-15。
+   兩邊都走協議畫成引用方塊,點了就跳過去;素材還沒建那一筆就會自己標「尚未建檔」。
+   「掉落池(來源待查)」那種不是來源,是我自己留的待查記號,不畫。 */
+async function 獲取排(x, 全冊, 位){
+  const 道 = await 索引類('道具');
+  const 是道具 = n => 道.some(o => o.名 === n);
+  const 全 = [...(x.獲取 || []).map(o => o.名稱), ...(x.反查來源 || [])]
+    .filter(n => n && !/待查/.test(n));
+  const 名單 = [...new Set(全)];
+  // 道具這一組是一整組 → 稀有度由低排到高(索引帶品質)
+  const 道序 = 稀排(名單.filter(是道具).map(名 => 道.find(o => o.名 === 名) || {名}));
+  // 三組固定畫,沒有就寫「沒有」(每一件顯示的東西一樣)
+  const 組 = async (refs, 題) => await 引用排(refs, 題) || `<h3 class="grp">${題}</h3><p class="note">沒有</p>`;
+  return await 組(道序.map(o => ({類:'道具', 名:o.名})), '道具')
+       + await 組(名單.filter(n => !是道具(n)).map(名 => ({類:'活動', 名})), '活動')
+       + await 組(進階來源(x, 全冊, 位), '進階');
+}
+/* 三行引用要的是 品質(等級)×星級×部位 三個軸。索引現在只有 品質/星,
+   缺 部位 就補讀一次各筆的 資料.json(讀過會快取)。
+   使用者把 雜物\_類索引\搬進素材.bat 點過之後,索引自己就帶 部位,這段不會跑。 */
+async function 補部位(清單){
+  if(清單.every(o => o.部位)) return 清單;
+  return Promise.all(清單.map(async o => {
+    const d = await 一筆(o.名);
+    return Object.assign({}, o, {部位: d && d.部位, 父: (d && d.父) || o.父});
+  }));
+}
+const _其索 = new Map();
+async function 索引類(類){
+  if(!_其索.has(類))
+    _其索.set(類, 讀(window.素材基底 + encodeURIComponent(類) + '/_索引.json').then(d => (d && d.清單) || []));
+  return _其索.get(類);
+}
+/* 「青竹冠(1星)×2」「橙色綺光花×15」兩種寫法都要變成引用 */
+async function 材料排(字, 標題, 父){
+  if(!字) return '';
+  const 項 = String(字).split(/[、,]/).map(s => s.trim()).filter(Boolean);
+  const 道 = await 索引類('道具');
+  const 卡 = await Promise.all(項.map(async s => {
+    const m = /^(.+?)(?:\((\d+)星\))?[×x](\d+)$/.exec(s);
+    if(!m) return `<span class="obj"><b>${esc(s)}</b></span>`;
+    const [, 名, 星, 量] = m;
+    if(星) return 引用塊({類:'裝備', 名:名 + '/' + 星 + '星', 量:'×' + 量});
+    if(道.some(o => o.名 === 名)) return 引用塊({類:'道具', 名, 量:'×' + 量});
+    return 引用塊({類:'資源', 名, 量:'×' + 量});
+  }));
+  return `<h3 class="grp">${esc(標題)}</h3><div class="objs">${卡.join('')}</div>`;
+}
+
+/* ── 進階 ────────────────────────────────────────────────
+   使用者 2026-11-15:「升星跟進階其實是同個東西,遊戲裡叫進階」。設定表對得上:
+     EquipStar.cost  同一件的下一星要吃什麼(低星是 2 件自己,高星改吃道具)
+     EquipDefine.through  滿星之後接到哪一件(布冠→青竹冠→雲紋冠→琉璃冠→星河冠→朱雀冠)
+   through 就是「同部位、下一階品質」,所以不用另外存欄位,素材裡的
+   部位/品質/星級上限 就推得出來。 */
+const 階序 = ['白','綠','藍','紫','橙','紅'];
+function 進階來源(x, 全, 位){
+  if(+x.星 > 1) return [{類:'裝備', 名: x.父 + '/' + (+x.星 - 1) + '星'}];
+  const i = 階序.indexOf(x.品質);
+  if(i <= 0) return [];
+  const 低 = 全.filter(o => o.品質 === 階序[i - 1] && o.部位 === 位);
+  if(!低.length) return [];
+  const 滿 = 低.reduce((a, b) => (+b.星 > +a.星 ? b : a));
+  return [{類:'裝備', 名: 滿.名}];
+}
+
+/* ── 銘刻 ────────────────────────────────────────────────
+   精粹自己的說明寫得很清楚:「可銘刻在紫及以上品質**發冠**類型裝備上」。
+   部位對精粹類型是設定表對出來的,不是照字面猜:
+     Essence.equip_type  1發冠 2衣服 3護腕 4鞋靴 5配飾
+     EquipDefine.type    1冠(頭) 2衣 3腕 4靴 5飾
+   同一組編號,所以 頭→發冠、衣→衣服、腕→護腕、靴→鞋靴、飾→配飾。 */
+const 銘刻型 = {頭:'發冠', 衣:'衣服', 腕:'護腕', 靴:'鞋靴', 飾:'配飾'};
+async function 銘刻板(x, 位){
+  const 型 = 銘刻型[位];
+  if(!型) return 空('不可銘刻');
+  if((稀階[x.品質] || 0) < 稀階['紫'])
+    return 空('不可銘刻');          // 精粹說明:紫及以上品質才銘刻得上
+  const 全 = await 索引類('精粹');
+  const 看 = new Set(), 合 = [];
+  for(const o of 全){
+    const n = o.名稱 || o.名;
+    if(!String(n).endsWith('·' + 型) || 看.has(n)) continue;
+    看.add(n); 合.push(o);
+  }
+  return await 索引排('精粹', 合, null, '可銘刻的精粹') || 空('尚未建檔');
+}
+
+/* ── 寶石 ────────────────────────────────────────────────
+   寶石說明只寫「鑲嵌在裝備上」,沒有部位限制,所以能鑲的就是全部 7 種屬性 ×9 級。
+   孔數是這一星的(EquipStar.gem_num,白/綠沒有孔)。 */
+async function 寶石板(x){
+  if(!(+x.寶石孔)) return 空('不可鑲嵌');   // 這一星沒有寶石孔(EquipStar.gem_num)
+  const 全 = await 索引類('寶石');
+  const 群 = new Map();
+  for(const o of 全){
+    const m = /^(\d+)級(.+?)寶石$/.exec(o.名稱 || o.名);
+    if(!m) continue;
+    if(!群.has(m[2])) 群.set(m[2], []);
+    群.get(m[2]).push(Object.assign({}, o, {等級: +m[1]}));
+  }
+  // 列序照設定表編號(攻擊 10001 → 防禦 → 氣勢 → 暴傷 → 暴免 → 增傷 → 減傷)
+  const 列 = [...群.entries()].sort((a, b) =>
+    (Math.min(...a[1].map(o => +o.編號 || 1e9))) - (Math.min(...b[1].map(o => +o.編號 || 1e9))));
+  let h = '';
+  for(const [屬, a] of 列) h += await 索引排('寶石', a, null, 屬, null, 'lv9');
+  return h || 空('尚未建檔');
+}
+
+async function 分頁(x, 清單){
+  const 父 = x.父, 星 = x.星, 上限 = x.星級上限;
+  const 公 = (x.屬性公式 || {}).屬性 || {};
+  const 強 = await 強化表();
+  const 共 = await 共鳴表();
+
+  /* 資訊頁底下固定三行引用 —— 使用者 2026-11-15。
+     裝備的三個軸是 等級(品質)× 星級 × 部位,任一筆就是這三個值的交點
+     (全庫 115 筆,品質×星×部位 完全不重複),所以固定住兩軸、放開第三軸
+     剛好就是這三行。 */
+  const 全 = await 補部位(清單);
+  const 這 = 全.find(o => o.名 === x._名) || {};
+  const 等 = x.品質, 位 = 這.部位 || x.部位;
+  const 同 = f => 全.filter(o => o.名 !== x._名 && f(o));
+  const 三行 =
+      await 索引排('裝備', 同(o => o.品質 === 等 && +o.星 === +星 && o.部位 !== 位),
+                   null, '同等級同星級,不同部位')
+    + await 索引排('裝備', 同(o => o.品質 === 等 && o.部位 === 位),
+                   null, '同等級同部位,不同星級')
+    + await 索引排('裝備', 同(o => o.部位 === 位 && +o.星 === +星 && o.品質 !== 等),
+                   null, '同部位同星級,不同等級');
+
+  /* 等級:起始 → 銀兩 → 目標。資料來自 _強化消耗.json,不是焊死的 300 筆。 */
+  const 費 = (a, b) => ((強 && 強.每級消耗) || []).slice(a, b).reduce((s, v) => s + v, 0);
+  /* 等級:互動式 —— 從 a 級練到 b 級要多少銀兩(使用者 2026-11-16:
+     「升級/心途/突破的用跟裝備同一套互動式的,不要用表格」)。
+     消耗來自 _強化消耗.json 的 每級消耗 陣列,不是焊死的數字。 */
+  const 等級板 = (強 && 強.每級消耗)
+    ? await 階梯板({
+        樣式: '拉桿',
+        鍵: '裝備強化',
+                /* 遊戲裡等級就是寫成「Lv.130」的文字,沒有獨立圖示(使用者 2026-11-16 的截圖) */
+    圖: v => `<span class="txt">Lv.${v}</span>`,
+        下限: (強.等級範圍 || [0, 300])[0],
+        上限: (強.等級範圍 || [0, 300])[1],
+        單位: '級',
+        起始: 0,
+        目標: (強.等級範圍 || [0, 300])[1],
+        材料: [{類: '資源', 名: '銀兩'}],
+        算: (a, b) => ({銀兩: 費(a, b)}),
+        量格式: 錢,          // 九位數塞不進格子,縮成「18.7億」
+      })
+    : 空('尚未建檔');
+  const 等級板加上限 = 等級板 + (await 心醫上限板('裝備強化上限'));
+
+  /* 升星:只放升到下一星需要的素材 —— 使用者 2026-11-15。 */
+  /* 進階:從現在這一件一路算到最高(朱雀滿星),跨品質也接下去
+     (使用者 2026-11-16:「不管從哪個裝備一路顯示到紅色五星還是六星」)。
+
+     算法照使用者講的:**每升一星要 3 個同星級的,含自己** ——
+     設定表的 升星消耗 寫「同名同星 ×2」就是「另外再 2 個」。
+     所以升 n 星 = 3^n 個(含自己)= **3^n − 1 個**(扣掉自己,遊戲介面就是這樣顯示)。
+       1 星 → 2 星:3^1 − 1 = 2
+       2 星 → 4 星:3^2 − 1 = 8
+     跨品質是 1:1 換(滿星那一件 + 綺光花 → 下一階 1 星),所以換過去之後
+     單位要換成新品質的 1 星,不再往回乘。 */
+  const 鏈 = (() => {
+    const out = []; 
+    for(let k = 階序.indexOf(x.品質); k < 階序.length; k++){
+      const 群 = 全.filter(o => o.部位 === 位 && o.品質 === 階序[k]);
+      if(!群.length) break;
+      out.push({品質: 階序[k], 上限: Math.max(...群.map(o => +o.星 || 1)),
+                父: String(群[0].名).split('/')[0]});
+    }
+    return out;
+  })();
+  /* 扁平座標:0 = 鏈[0] 的 1 星,往上一格一星,跨品質接著算 */
+  const 格 = [];
+  鏈.forEach((q, qi) => { for(let st = 1; st <= q.上限; st++) 格.push({qi, 品質:q.品質, 父:q.父, 星:st}); });
+  const 現 = Math.max(0, 格.findIndex(g => g.品質 === x.品質 && g.星 === +x.星));
+  /* 每一星自己的 升星消耗(那一星 → 下一星要花什麼)。
+     紫以下是「同名同星 ×2」(合成),橙以上直接吃綺光花,滿星那一格是進階到下一品質。
+     使用者 2026-11-16:「他只有紫色含以下可以用合成的,到上面就是 15 朵花直接升一星」。 */
+  const 階消 = {};
+  await Promise.all(格.map(async g => {
+    const d = await 類資料('裝備', g.父 + '/' + g.星 + '星').catch(() => null);
+    if(d && d.升星消耗) 階消[g.父 + '/' + g.星] = d.升星消耗;
+  }));
+  const 拆一 = 字 => { const m = /^(.+?)(?:\((\d+)星\))?[×x](\d+)$/.exec(String(字 || '').trim());
+    return m ? {名: m[1], 星: m[2] ? +m[2] : null, 量: +m[3]} : null; };
+  /* 材料格:第一階的每一星(起點可能停在任何一星)+ 鏈上所有會用到的消耗品 */
+  const 耗名 = [...new Set(格.map(g => 拆一(階消[g.父 + '/' + g.星]))
+    .filter(c => c && c.星 == null).map(c => c.名))];
+  const 料名 = [...new Set([
+    ...Array.from({length: 鏈[0] ? 鏈[0].上限 : 0}, (_, i) => 鏈[0].父 + '/' + (i + 1) + '星'),
+    ...耗名])];
+  const 進階梯 = 格.length > 1 ? await 階梯板({
+    /* 裝備不能降星,所以最小值就是**現在這一件** —— 拉桿只往上(使用者 2026-11-16:
+       「碎片和裝備都沒有辦法降級,頁面只需要列出從這一個等級到最高等級的範圍」)。 */
+    樣式: '拉桿', 鍵: '裝備進階', 下限: 現, 上限: 格.length - 1,
+    單位: '', 起始: 現, 目標: 格.length - 1,
+    格式: v => { const g = 格[Math.max(0, Math.min(格.length - 1, v))];
+      return g ? `${g.品質} ${g.星} 星` : ''; },
+    圖: v => { const g = 格[Math.max(0, Math.min(格.length - 1, v))];
+      const q = 鏈.find(r => r.品質 === g.品質);
+      return g ? 星圖(g.星, q ? q.上限 : g.星) : ''; },
+    材料: await Promise.all(料名.map(async n => {
+      const h = await 找物(n); return h && h.類 ? {類:h.類, 名:h.名} : null; })).then(a => a.filter(Boolean)),
+    /* **從目標往回走**:一路記「這一格需要幾個」。
+       碰到同星合成就 ×3(自己 + 2),碰到消耗品就把 幾個 × 數量 加進去。
+       走回起點時 幾個−1 就是要另外準備幾個起點那一星的(遊戲介面不把自己算進去)。 */
+    算: (a, b) => {
+      const 需 = {};
+      const 起 = Math.min(a, b), 終 = Math.max(a, b);
+      let 幾 = 1;
+      for(let p = 終 - 1; p >= 起; p--){
+        const g = 格[p], c = 拆一(階消[g.父 + '/' + g.星]);
+        if(!c) continue;
+        if(c.星 != null) 幾 *= (1 + c.量);               // 同星合成:自己 + c.量 個
+        else 需[c.名] = (需[c.名] || 0) + 幾 * c.量;      // 消耗品:照目前需要的份數算
+      }
+      if(幾 > 1){ const g = 格[起];
+        需[g.父 + '/' + g.星 + '星'] = (需[g.父 + '/' + g.星 + '星'] || 0) + (幾 - 1); }
+      return 需;
+    },
+    量格式: 錢,
+    註: '紫以下是同名同星合成(自己 + 2 個),橙以上每一星直接吃綺光花。這裡跟遊戲一樣不把自己算進去。',
+  }) : '';
+  const 進階板 = 進階梯 || 空(x.星 >= 上限 && 階序.indexOf(x.品質) === 階序.length - 1
+          ? '不可進階' : '尚未建檔');
+
+  /* 共鳴/套裝:按品質篩,低品質只對應到其中幾級 */
+  const 符 = (共 && 共.共鳴 || []).filter(r => r.需求品質 === x.品質);
+  const 套 = (共 && 共.套裝 || []).filter(r => r.品質 === x.品質);
+  const 屬字 = a => (a || []).map(p => p.屬性 ? `${p.屬性}+${p.值}` : p.原碼).join('、');
+  const 共鳴板 = (符.length || 套.length)
+    ? (符.length ? `<h3 class="grp">裝備共鳴</h3><div class="rows">${符.map(r =>
+        `<div class="row"><dt>${esc(r.需求品質)} ${r.需求件數} 件</dt><dd>${esc(屬字(r.屬性))}</dd></div>`).join('')}</div>` : '')
+      + (套.length ? `<h3 class="grp">套裝加成</h3><div class="rows">${套.map(r =>
+        `<div class="row"><dt>${r.件數} 件</dt><dd>${esc(屬字(r.屬性))}</dd></div>`).join('')}</div>` : '')
+    : 空('不可共鳴');     // 共鳴是一條品質階梯,這個品質沒有對應的級
+
+  return [
+    ['資訊', rows([
+        ['部位',       x => x.部位],
+        ['品質',       x => x.品質],
+        ['星級',       x => x.星 + ' / ' + x.星級上限 + ' 星'],
+        ['寶石孔',     x => x.寶石孔],
+        ['可裝備等級', x => x.可裝備等級],
+        ['基礎屬性',   x => x.基礎屬性],
+        ['滿強化',     x => x['滿強化(300級)']],
+        ['特殊屬性',   x => x.特殊屬性],
+      ], x) + 三行],
+    ['獲取方式', await 獲取排(x, 全, 位) || 空('尚未建檔')],
+    ['等級', 等級板加上限],
+    ['進階', 進階板],
+    ['銘刻', await 銘刻板(x, 位)],
+    ['寶石', await 寶石板(x)],
+    ['共鳴', 共鳴板],
+    ['分解', await 材料排(x.分解返還, '分解退回') || 空('不可分解')],
+    ['其他', rows([
+        ['父',         x => x.父],
+        ['強化成長',   x => x.強化成長],
+        ['所屬組合',   x => (x.所屬組合 || []).join('、')],
+        ['請求獲取指令', x => (x.請求獲取指令 || {}).格式],
+        ['資料來源',   x => x.資料來源],
+        ['產生時間',   x => x.產生時間],
+        ['素材路徑',   x => '素材/裝備/' + x._名],
+      ], x)
+      + ((x.補充 || []).length ? `<h3 class="grp">補充</h3><ul class="sup">${
+          x.補充.map(b => `<li title="${esc([b.證據, b.來源].filter(Boolean).join(' · '))}">${esc(b.內容)}${
+            b.證據 ? `<span class="ev">${esc(b.證據)}</span>` : ''}</li>`).join('')}</ul>` : '')],
+  ];
+}
+
+開範本({
+  類別: '裝備',
+  副標: x => [x.部位 ? x.部位 + '部位' : null, x.星 + ' / ' + x.星級上限 + ' 星'],
+  分頁,
+});
+</script></body></html>

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>表情符號 · 巡夢圖鑑</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../共用.css">
+</head><body><div class="page" id="app"></div>
+<script src="../共用.js"></script>
+<script>
+/* 表情符號範本。**不帶任何資料** —— 全部執行時讀 素材/表情符號/。
+   外框(抬頭/分頁/挑選框/路由/事件)在 共用.js 的 開範本();
+   引用一律走協議引擎,包括自己引用自己。 */
+開範本({
+  類別: '表情符號',
+  副標: x => [x.系列 && x.系列.名稱],
+  分頁: async (x, 清單) => [
+    ['資訊', rows([
+      ['品質', x => x.品質],
+      ['說明', x => x.說明],
+      ['系列', x => x.系列 && x.系列.名稱],
+        ['子分頁',   x => x.子分頁],
+    ], x)],
+    ['獲取', (await 獲取頁(x) || '<p class="note">尚未建檔</p>')],
+    ['全部', await 索引排('表情符號', 清單, x._名, '全部', 200)],
+    ['其他', rows([
+      ['編號',     x => x.編號 ?? x.設定表編號],
+      ['資料來源', x => x.資料來源],
+      ['產生時間', x => x.產生時間],
+      ['素材路徑', x => '素材/表情符號/' + x._名],
+    ], x)],
+  ],
+});
+</script></body></html>

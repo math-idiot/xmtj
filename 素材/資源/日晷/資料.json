@@ -1,0 +1,342 @@
+{
+ "名稱": "日晷",
+ "分類": "資源",
+ "資源編號": 110,
+ "對應圖像編號": "comz_icon_res_110",
+ "_序": 30028,
+ "品質": "紫",
+ "品質原碼": 4,
+ "沒有固定品質的原因": null,
+ "說明": "時間總能創造奇蹟，用於加速技能的學習。",
+ "請求獲取指令": {
+  "格式": "110_<數量>",
+  "範例": "110_1",
+  "說明": "資源的獎勵碼只有兩段,跟道具的 2_<編號>_<數量> 不一樣"
+ },
+ "獲得途徑": {
+  "遊戲標示": [
+   {
+    "名稱": "鎮魘塔",
+    "說明": "可通過鎮魘塔獲得",
+    "開啟條件": null
+   },
+   {
+    "名稱": "日晷廣告",
+    "說明": "免費獲得學習加速",
+    "開啟條件": null
+   },
+   {
+    "名稱": "雅集",
+    "說明": "可在商城中購買獲得",
+    "開啟條件": "5級"
+   }
+  ],
+  "反查摘要": [
+   "Achievement",
+   "AdDefine",
+   "BusinessTripCheckpoint",
+   "CooperationCheckpoint",
+   "DailyImprestShop",
+   "DiceEventReward",
+   "DropLib",
+   "HangIncomeLv",
+   "IncomeLvReward",
+   "InsideTaskTime",
+   "LetterTask",
+   "MainTaskChapter",
+   "MainTaskFemale",
+   "MonsterTower",
+   "NewFreshShop",
+   "NightmareCodex",
+   "PloyResBackReward",
+   "PlutocratSmallIns",
+   "RegressGift",
+   "RewardTemplate",
+   "SecretReportRound",
+   "SevenDreamNoteTask",
+   "ShopDefine",
+   "StrategyCheckpoint",
+   "TeamBuild",
+   "TiktokGift",
+   "UnionMobilizeLv"
+  ],
+  "反查": [
+   {
+    "來源表": "PlutocratSmallIns",
+    "欄位": "reward",
+    "名稱": null,
+    "筆數": 600
+   },
+   {
+    "來源表": "BusinessTripCheckpoint",
+    "欄位": "sweep_preview",
+    "名稱": null,
+    "筆數": 250
+   },
+   {
+    "來源表": "CooperationCheckpoint",
+    "欄位": "sweep_preview",
+    "名稱": null,
+    "筆數": 120
+   },
+   {
+    "來源表": "MonsterTower",
+    "欄位": "floor_reward",
+    "名稱": null,
+    "筆數": 100
+   },
+   {
+    "來源表": "TeamBuild",
+    "欄位": "join_reward",
+    "名稱": null,
+    "筆數": 46
+   },
+   {
+    "來源表": "Achievement",
+    "欄位": "reward",
+    "名稱": null,
+    "筆數": 44
+   },
+   {
+    "來源表": "TeamBuild",
+    "欄位": "reward_show",
+    "名稱": null,
+    "筆數": 41
+   },
+   {
+    "來源表": "StrategyCheckpoint",
+    "欄位": "sweep_preview",
+    "名稱": null,
+    "筆數": 28
+   },
+   {
+    "來源表": "DiceEventReward",
+    "欄位": "reward",
+    "名稱": null,
+    "筆數": 26
+   },
+   {
+    "來源表": "NewFreshShop",
+    "欄位": "reward",
+    "名稱": null,
+    "筆數": 15
+   },
+   {
+    "來源表": "UnionMobilizeLv",
+    "欄位": "union_reward",
+    "名稱": null,
+    "筆數": 12
+   },
+   {
+    "來源表": "NightmareCodex",
+    "欄位": "reward",
+    "名稱": null,
+    "筆數": 7
+   },
+   {
+    "來源表": "SevenDreamNoteTask",
+    "欄位": "reward",
+    "名稱": null,
+    "筆數": 7
+   },
+   {
+    "來源表": "InsideTaskTime",
+    "欄位": "judge_reward",
+    "名稱": null,
+    "筆數": 6
+   },
+   {
+    "來源表": "DailyImprestShop",
+    "欄位": "reward",
+    "名稱": null,
+    "筆數": 4
+   },
+   {
+    "來源表": "DropLib",
+    "欄位": "drop",
+    "名稱": null,
+    "筆數": 4
+   },
+   {
+    "來源表": "DropLib",
+    "欄位": "preview",
+    "名稱": null,
+    "筆數": 4
+   },
+   {
+    "來源表": "IncomeLvReward",
+    "欄位": "reward",
+    "名稱": null,
+    "筆數": 3
+   },
+   {
+    "來源表": "MainTaskChapter",
+    "欄位": "reward",
+    "名稱": null,
+    "筆數": 3
+   },
+   {
+    "來源表": "ShopDefine",
+    "欄位": "goods",
+    "名稱": null,
+    "筆數": 3
+   },
+   {
+    "來源表": "TiktokGift",
+    "欄位": "reward",
+    "名稱": null,
+    "筆數": 3
+   },
+   {
+    "來源表": "HangIncomeLv",
+    "欄位": "reward",
+    "名稱": null,
+    "筆數": 2
+   },
+   {
+    "來源表": "RegressGift",
+    "欄位": "day_reward",
+    "名稱": null,
+    "筆數": 2
+   },
+   {
+    "來源表": "AdDefine",
+    "欄位": "reward",
+    "名稱": null,
+    "筆數": 1
+   },
+   {
+    "來源表": "LetterTask",
+    "欄位": "reward",
+    "名稱": null,
+    "筆數": 1
+   },
+   {
+    "來源表": "MainTaskFemale",
+    "欄位": "reward",
+    "名稱": null,
+    "筆數": 1
+   },
+   {
+    "來源表": "PloyResBackReward",
+    "欄位": "reward",
+    "名稱": null,
+    "筆數": 1
+   },
+   {
+    "來源表": "RewardTemplate",
+    "欄位": "reward",
+    "名稱": null,
+    "筆數": 1
+   },
+   {
+    "來源表": "SecretReportRound",
+    "欄位": "judge_reward",
+    "名稱": null,
+    "筆數": 1
+   }
+  ],
+  "沒列出的職場原版殘留": {
+   "筆數": 1,
+   "表": [
+    "InsideTask"
+   ],
+   "為什麼不列": "這幾張是底層職場模擬遊戲的殘留表(整張都是職級/辦公室/員工頭銜),巡夢少女沒有這些系統,對應功能走別張表(歷練走 HangDailyPlace 不是 HangPlace、家族職位走 UnionRole/UnionPower 不是 Right)。它們的獎勵欄掃得到這個東西,但那不是台版玩家的獲取途徑。名單見 `工具/來源歸屬.py` 的 `非本遊戲`。"
+  },
+  "反查結論": null,
+  "斷鏈的取得編號": null
+ },
+ "用途": {
+  "被消耗於": null
+ },
+ "資料來源": "遊戲設定表(解包) ResDefine",
+ "產生時間": "2026-11-13",
+ "圖片": {
+  "檔名": "圖.png",
+  "來源檔": "現役抓的 commonnew 圖集 comz_icon_res_110.png(92×110,置中貼到 128×128,跟其他資源圖一樣)",
+  "換過圖": "2026-11-16:原本那張是沙漏,**抓錯了**(使用者指出)。同名的 comz_icon_res_110 在 歷練廣告(hangdicead)那個圖集裡是一張沙漏,真正的日晷是 commonnew/item 圖集那張**日晷盤**(遊戲內截圖對過)。",
+  "sha1": "5439ff6c711b"
+ },
+ "反查結論": "從歷練的事件獎勵池/選項/探索圖鑑/切磋反查到的(9_掉落庫已展開)。",
+ "歷練取得": [
+  {
+   "種類": "資源",
+   "事件": [
+    "上岸錦鯉",
+    "佛堂幽影",
+    "幻局迷夢",
+    "搖晃木橋",
+    "教坊樂聲",
+    "派系之爭",
+    "特供膳食",
+    "聽泉思辨",
+    "螢光夜行",
+    "雪後暖陽",
+    "雲海奇觀"
+   ],
+   "地圖": [
+    "通用"
+   ],
+   "情境": [
+    "獎勵"
+   ],
+   "獎勵碼": [
+    "110_300",
+    "110_600",
+    "110_900"
+   ],
+   "來源筆數": 11,
+   "素材位置": [
+    "歷練/事件/通用/小卡/nengli_10007_螢光夜行",
+    "歷練/事件/通用/小卡/nengli_10016_青崖舊聞等3種",
+    "歷練/事件/通用/小卡/nengli_10018_特供膳食等33種",
+    "歷練/事件/通用/小卡/nengli_10024_熬夜夜遊等24種",
+    "歷練/事件/通用/小卡/nengli_10043_殘箋舊夢等4種",
+    "歷練/事件/通用/小卡/nengli_10060_帳目疑雲等20種",
+    "歷練/事件/通用/小卡/shijian_2_神祕信件等11種",
+    "歷練/事件/通用/小卡/shijian_994_小仙茶鋪等88種",
+    "歷練/事件/通用/紫/shijiantu_5018_幻局迷夢",
+    "歷練/事件/通用/紫/shijiantu_5022_佛堂幽影",
+    "歷練/事件/通用/紫/shijiantu_9036_搖晃木橋等2種"
+   ]
+  }
+ ],
+ "反查來源": [
+  "人氣獎勵隨機箱",
+  "應援獎勵隨機箱",
+  "百草禮盒",
+  "養成自選包",
+  "上岸錦鯉歷練",
+  "佛堂幽影歷練",
+  "幻局迷夢歷練",
+  "搖晃木橋歷練",
+  "教坊樂聲歷練",
+  "派系之爭歷練"
+ ],
+ "歷練取得_說明": "歷練會產出這個東西。反查自 素材/歷練 每個事件的「獎勵」+ 檔內「獎勵池」。",
+ "引用": {
+  "名稱": "日晷",
+  "分類": "資源",
+  "子類": null,
+  "鍵": "日晷",
+  "編號": null,
+  "品質": "紫",
+  "等級": null,
+  "素材路徑": "資源/日晷",
+  "圖": "圖.png",
+  "縮圖": null,
+  "連結": {
+   "檔": "範本_資源.html",
+   "類": "資源",
+   "名": "日晷"
+  },
+  "顯示預設": {
+   "品質框": true,
+   "名稱": true,
+   "等級": false,
+   "數量": true
+  },
+  "說明": "這一區是「被別人引用時怎麼畫我」。圖的完整路徑 = 素材/<素材路徑>/<縮圖 或 圖>。沒有連結代表這一類還沒有自己的範本。"
+ },
+ "反查來源是什麼": "「哪裡拿得到這一筆」。**禮盒那一段是權威表來的**:ItemDefine.base/extend 決定禮盒內容,隨機包再展開 DropLib —— 反查只拿來對帳,不當來源。其餘(活動/歷練/設定表名)還是掃設定表獎勵欄反查出來的,那一段只能發現問題,不保證準。由 雜物/_禮盒權威表.py 產生。"
+}

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>道具 · 巡夢圖鑑</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../共用.css">
+</head><body><div class="page" id="app"></div>
+<script src="../共用.js"></script>
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   道具範本。**不帶任何資料**,全部執行時讀 素材/道具/。
+   舊的那張是「舊裝備範本的殼 + 焊死的 1.15 MB 道具資料」,連 <title> 都還寫著裝備,
+   引用全部自己畫、連結指著不存在的 範本_道具.html。整張重寫,放在 雜物/_舊道具範本_焊死版.html。
+
+   引用一律走協議引擎:
+     禮盒開出什麼   開出內容 的獎勵碼 → 解獎勵() → 引用塊
+     家族           變體 / 同階的其他種類 → 變體排()
+     來源 / 去處    名字去各類索引對 → 獲取頁();對不到的查 _來源對照.json
+                    (「商店上架」就指到商店,素材/商店 建好自動變跳轉)
+   ══════════════════════════════════════════════════════════════════ */
+
+/* 用途:開出 / 合成 / 兌換 / 拿去哪裡用 —— 四段固定,每一筆都一樣,沒有的寫「不可X」或「沒有」。 */
+async function 用途板(x, 清單){
+  let 開 = '';
+  const 明 = x.開出明細 || [];
+  if(明.length){
+    const 卡 = await Promise.all(明.filter(o => o.類).map(o => 引用塊({類:o.類, 名:o.名,
+          量:o.數量 > 1 ? o.數量 : null, 附註: o.機率 != null ? o.機率 + '%' : null})));
+    const 文 = 明.filter(o => !o.類).map(o => `<span class="way"><b class="mono">${esc(o.名)}</b></span>`);
+    開 = (卡.length ? `<div class="objs fam">${卡.join('')}</div>` : '')
+       + (文.length ? `<div class="ways">${文.join('')}</div>` : '');
+  } else 開 = await 獎勵排(x.開出內容, null);
+  const 題 = x.可選件數 ? '可選 ' + x.可選件數 + ' 件' : '開出內容';
+
+  /* 合成為不一定是道具 —— 夥伴碎片合成夥伴、珍寶合成道具合成珍寶、藏品碎片合成藏品。
+     所以名字丟給 名字排() 去索引對類別,不要硬塞 類:'道具'。
+     要幾個就疊在格子上(遊戲就是數字疊在格子裡),不另外寫一行字。 */
+  let 合 = '';
+  if(x.是否可合成 && x.合成 && x.合成.合成為)
+    合 = await 名字排([{名: x.合成.合成為.名稱}], null);
+  /* 用什麼合成:
+       需要數量 = 要幾個「自己」(夥伴碎片 50 片合一個夥伴)→ 引用自己,數字疊在格子上
+       合成材料 = 藏品精粹(曜晶)的 extend 指**下一級**,方向跟寶石相反,那是材料不是產物 */
+  const 料 = x.合成材料
+    ? [{名: x.合成材料.名稱, 量: x.合成材料.需要數量}]
+    : (合 && x.合成.需要數量 ? [{名: x.名稱, 量: x.合成.需要數量}] : []);
+  const 材 = 料.length ? await 名字排(料, '用什麼合成') : '';
+  const 換 = await 名字排(x.可用於兌換, null);
+  const 用 = await 用途頁(x);
+  return `<h3 class="grp">${esc(題)}</h3>` + (開 || '<p class="note">不可開啟</p>')
+    + 材
+    + `<h3 class="grp">合成為</h3>` + (合 || '<p class="note">不可合成</p>')
+    + `<h3 class="grp">可以換到</h3>` + (換 || '<p class="note">不可兌換</p>')
+    + (用 || `<h3 class="grp">拿去哪裡用</h3><p class="note">沒有</p>`);
+}
+
+const 空 = t => `<p class="note">${esc(t)}</p>`;
+
+開範本({
+  類別: '道具',
+  // 品質由 開範本 自己加在最前面,這裡不要再加一次
+  副標: x => [(x.類型 || {}).背包分頁, null  /* 堆疊上限設定表沒有,不顯示 */],
+  分頁: async (x, 清單) => [
+    ['資訊', rows([
+        ['品質',     x => x.品質],
+        ['說明',     x => x.說明],
+        ['背包分頁', x => (x.類型 || {}).背包分頁],
+        ['主類型',   x => (x.類型 || {}).主類型],
+        ['使用上限', x => x.使用上限],
+        /* 過期只有兩種:活動限定的跟著活動清空,其餘不會消失。
+           ItemDefine.expire 706 筆只有 1 筆非 0(而且是日文名的殘留),所以不列天數。 */
+        ['等級上限', x => x.等級上限],
+      ], x)
+      + (await 變體排('道具', x, 清單, '同一系列') || `<h3 class="grp">同一系列</h3><p class="note">沒有</p>`)
+      + (await 名字排(x.同階的其他種類, '同階的其他種類') || `<h3 class="grp">同階的其他種類</h3><p class="note">沒有</p>`)],
+    ['獲取方式', async () => (await 獲取頁(x) || '<p class="note">尚未建檔</p>')],
+    ['用途',     async () => await 用途板(x, 清單)],
+    ['其他', rows([
+        ['編號',         x => x.編號],
+        ['對應圖像編號', x => x.對應圖像編號],
+        ['請求獲取指令', x => (x.請求獲取指令 || {}).格式],
+        ['價格',         x => (x.價格 || {}).購買 || (x.價格 || {}).售出],
+        ['資料來源',     x => x.資料來源],
+        ['產生時間',     x => x.產生時間],
+        ['素材路徑',     x => '素材/道具/' + x._名],
+      ], x)],
+  ],
+});
+</script></body></html>

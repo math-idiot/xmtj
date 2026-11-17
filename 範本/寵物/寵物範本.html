@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>寵物 · 巡夢圖鑑</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../共用.css">
+</head><body><div class="page" id="app"></div>
+<script src="../共用.js"></script>
+<script>
+/* 寵物。重構成「父夾 + 稀有度子夾」,一筆一隻(使用者 2026-11-17)。
+   升級(PetLvModel,經驗→靈果貪心)/ 突破(PetStarModel,吃同品質寵物,顯示金色+N)/ 技能。寵物全部 awake_model=100(空),不做覺醒。 */
+
+const _寵={};
+async function 寵表(名){
+  if(_寵[名]===undefined)
+    _寵[名]=await fetch(window.素材基底+'寵物/_'+名+'.json').then(r=>r.ok?r.json():null).catch(()=>null);
+  return _寵[名];
+}
+/* 寵物經驗的四種靈果,大→小(貪心,使用者 2026-11-17) */
+const _靈果=[{名:'特級靈果',值:2000},{名:'高級靈果',值:1000},{名:'中級靈果',值:500},{名:'低級靈果',值:100}];
+function _貪(經驗,幣){ let T=經驗; const 需={};
+  for(const c of 幣){ const n=Math.floor(T/c.值); if(n){需[c.名]=n; T-=n*c.值;} }
+  if(T>0) 需[幣[幣.length-1].名]=(需[幣[幣.length-1].名]||0)+1; return 需; }
+
+/* 升級:經驗→靈果貪心。等級上限依稀有度(N20/R40/其他60)。 */
+async function 升級板(x){
+  const r=await 寵表('升級'); const t=r&&x.升級範本&&r.範本[String(x.升級範本)];
+  if(!t) return '<p class="note">這隻沒有升級資料</p>';
+  const 級=t.級, 上=級.length;
+  const 累=[0]; for(const l of 級) 累.push(累[累.length-1]+l.經驗);
+  return await 階梯板({
+    樣式:'拉桿', 鍵:'寵物升級', 下限:0, 上限:上, 單位:'級', 起始:0, 目標:上,
+    圖:v=>`<span class="txt">Lv.${v}</span>`,
+    材料:_靈果.map(c=>({類:'道具',名:c.名})),
+    算:(a,b)=>_貪(累[b]-累[a],_靈果),
+    附文:(a,b)=>{ const 經=累[b]-累[a]; const l=級[Math.max(0,b-1)];
+      return b>0?`共需 ${經.toLocaleString('zh-TW')} 經驗 · 攻擊${l.攻擊}/防禦${l.防禦}/氣勢${l.氣勢} · 技能 Lv.${l.技能等級}`:''; },
+  });
+}
+
+/* 突破:遊戲裡顯示成右上角金色 +N(不是星星,使用者 2026-11-17)。吃同品質寵物。
+   材料用**兩格**,兩格都引用這隻自己的意志,底下說明字不同 ——
+   一格標「本尊」、一格標「任意同等寵物」。因為寵物不像珍寶有花可以代表同階,
+   只能拿自己的意志圖來標兩種來源(使用者 2026-11-17)。心醫門檻在下面。 */
+async function 突破板(x){
+  const r=await 寵表('升星'); const t=r&&x.升星範本&&r.範本[String(x.升星範本)];
+  if(!t) return '<p class="note">這隻沒有突破資料</p>';
+  const 階=t.階, 上=Math.max(...階.map(s=>+s.星));
+  if(上<=0) return '<p class="note">這個稀有度沒有突破(N 品質寵物無突破)</p>';
+  const 寵圖=window.素材基底+'寵物/'+encodeURIComponent(x._父)+'/'+encodeURIComponent(x.稀有度)+'/圖.png';
+  /* 吃同品質寵物 —— 用這隻的意志當代表(意志有品質後綴,要 找物 解析) */
+  const 意 = await 找物((x.名稱||'')+'的意志');
+  const 意名 = 意 ? 意.名 : null;
+  /* 兩格都畫同一個意志圖,但數量分開:本尊 vs 任意同等寵物(量鍵區分)。
+     本尊=指定這隻自己、任意=任何同品質寵物,各在不同階要、數量不同(使用者 2026-11-17)。 */
+  const 料 = 意 && 意.類
+    ? [{類:意.類, 名:意.名, 附註:'本尊', 量鍵:'本尊'},
+       {類:意.類, 名:意.名, 附註:'任意同等寵物', 量鍵:'任意'}]
+    : [];
+  const 梯=await 階梯板({
+    樣式:'拉桿', 鍵:'寵物突破', 下限:0, 上限:上, 單位:'階', 起始:0, 目標:上,
+    圖:v=>突破徽(寵圖, v),
+    材料:料,
+    算:(a,b)=>{ let 本=0,任=0; for(const s of 階) if(+s.星>=a&&+s.星<b){ 本+=(s.本尊||0); 任+=(s.任意||0); }
+      return {本尊:本, 任意:任}; },
+  });
+  const 註=`<p class="note">突破吃同品質寵物:本尊(指定牠自己這條線)與任意同等寵物各在不同階要、數量不同;兩格的圖都是牠的意志。</p>`;
+  const 門=階.filter(s=>s.心醫門檻).map(s=>({到:'+'+s.星,需:s.心醫門檻}));
+  return 梯 + 註 + (門.length?心醫門檻板(門,'突破'):'');
+}
+
+
+/* 技能:夥伴式 —— 圖+名一條線、定位、逐級效果。寵物技能等級由升級/突破帶動。 */
+async function 技能板(x){
+  const a=x.技能||[]; if(!a.length) return '';
+  return (await Promise.all(a.map(async s=>{
+    const u=window.素材基底+'寵物/'+encodeURIComponent(x._父)+'/'+encodeURIComponent(x.稀有度)+'/技能/被.png';
+    const 有=await new Promise(ok=>{const im=new Image();im.onload=()=>ok(true);im.onerror=()=>ok(false);im.src=u;});
+    const n=s.等級數||0;
+    return `<h3 class="grp skrow">${有?`<img class="skico" src="${u}" alt="">`:''}<span>${esc(s.名稱||'')}</span></h3>`
+      + (x.定位?`<p class="note">${esc(x.定位)}${n?` · 共 ${n} 級`:''}</p>`:'')
+      + `<p class="desc">${rich(s.說明||'')}</p>`;
+  }))).join('');
+}
+
+開範本({
+  類別:'寵物',
+  抬頭樣式:'立繪',
+  副標:x=>[x.稀有度, x.定位],
+  分頁: async (x,清單)=>{
+    x._父 = String(x._名).split('/')[0];
+    /* 父夾摘要(立繪/動畫/說明在父夾)*/
+    const 父 = await 類資料('寵物', x._父).catch(()=>null);
+    if(父){ x.說明=x.說明||父.說明; }
+    return [
+    ['資訊', rows([
+      ['稀有度',x=>x.稀有度],['定位',x=>x.定位],
+      ['資質',x=>x.資質+(x.資質條數?`(${x.資質條數} 條)`:'')],
+      ['等級上限',x=>x.等級上限],
+      ['說明',x=>x.說明],
+    ], x)
+      + await 索引排('寵物', 清單.filter(o=>o.名稱===x.名稱&&o.名!==x._名), x._名, '這隻的其他稀有度', null, null, true)],
+    ['升級', ()=>升級板(x)],
+    ['突破', ()=>突破板(x)],
+    ['技能', ()=>技能板(x)],
+    ['獲取', (await 獲取頁(x)||'<p class="note">尚未建檔</p>')],
+    ['其他', rows([
+      ['編號',x=>x.id],['升級範本',x=>x.升級範本],['升星範本',x=>x.升星範本],
+      ['資料來源',x=>x.資料來源],['素材路徑',x=>'素材/寵物/'+x._名],
+    ], x)],
+  ]; },
+});
+</script></body></html>

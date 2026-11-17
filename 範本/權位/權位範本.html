@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>權位 · 巡夢圖鑑</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../共用.css">
+</head><body><div class="page" id="app"></div>
+<script src="../共用.js"></script>
+<script>
+/* 權位範本。**不帶任何資料** —— 全部執行時讀 素材/權位/。
+   外框(抬頭/分頁/挑選框/路由/事件)在 共用.js 的 開範本();
+   引用一律走協議引擎,包括自己引用自己。 */
+開範本({
+  類別: '權位',
+  副標: x => [x.編號 != null ? '第 ' + x.編號 + ' 階' : null],
+  分頁: async (x, 清單) => {
+    const 階 = [...清單].sort((a, b) => (a.編號 || 0) - (b.編號 || 0));
+    const 晉 = x.晉升後得到 || [];
+    return [
+      ['資訊', rows([
+        ['品質',     x => x.品質],
+        ['編號',     x => x.編號],
+        ['說明',     x => x.說明],
+        ['解鎖條件', x => x.解鎖條件],
+        ['存款說明', x => x.存款說明],
+        ['事件技能欄位', x => x.事件技能欄位],
+        ['登入廣播', x => x.登入廣播],
+      ], x)
+        /* 權位有兩張圖:名牌(宮牌/聊天頻道顯示的長條)和徽章(80×80 的小圖示)。
+           抬頭那張是名牌,徽章放資訊頁。兩張都走協議的「圖樣式」。 */
+        + `<h3 class="grp">徽章</h3><div class="objs fam">${
+            await 引用塊({類:'權位', 名:x._名, 樣式:'徽章', 顯名:false, 連結:false})}</div>`
+        + await 索引排('權位', [x.上一階 && {名: x.上一階}, x.下一階 && {名: x.下一階}].filter(Boolean),
+            null, '前後階')
+        + (晉.length ? `<h3 class="grp">晉升後得到</h3><ul class="bul">${
+            晉.map(s => `<li>${rich(String(s).replace(/^\d+、/, ''))}</li>`).join('')}</ul>` : '')
+        /* 獎勵的名字不一定是資源(權位令/擢升金冊其實在資源,但別的階會給道具),
+           所以拿名字去索引對,不要硬塞分類。 */
+        + await 名字排((x.獎勵 || []).map(a => ({名:a.名稱, 量:a.數量})), '獎勵')],
+      ['全部階級', await 索引排('權位', 階, x._名, '全部')],
+      ['其他', rows([
+        ['名牌圖號',  x => x.名牌圖號],
+        ['徽章圖號',  x => x.徽章圖號],
+        ['名牌品階',  x => x.名牌品階],
+        ['圖片來源',  x => x.圖片來源],
+        ['資料來源',  x => x.資料來源],
+        ['產生時間',  x => x.產生時間],
+        ['素材路徑',  x => '素材/權位/' + x._名],
+      ], x)],
+    ];
+  },
+});
+</script></body></html>

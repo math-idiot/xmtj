@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>能力 · 巡夢圖鑑</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../共用.css">
+</head><body><div class="page" id="app"></div>
+<script src="../共用.js"></script>
+<script>
+/* 能力範本。**不帶任何資料** —— 全部執行時讀 素材/能力/。
+   外框(抬頭/分頁/挑選框/路由/事件)在 共用.js 的 開範本();
+   引用一律走協議引擎,包括自己引用自己。 */
+/* 消耗寫成「醫界閱歷×150」,把名字抽出來走引用(對不到就照原字列) */
+/* 秒 → 「12 小時 30 分」。超過一天就寫天。 */
+function 時長(秒){
+  const d = Math.floor(秒 / 86400), h = Math.floor(秒 % 86400 / 3600),
+        m = Math.floor(秒 % 3600 / 60), s = 秒 % 60;
+  return [d && d + ' 天', h && h + ' 小時', m && m + ' 分', (!d && !h && s) ? s + ' 秒' : '']
+    .filter(Boolean).join(' ') || '0 秒';
+}
+const _消耗快 = new Map();
+async function 耗卡(字){
+  if(!字) return '';
+  if(_消耗快.has(字)) return _消耗快.get(字);
+  const m = /^(.+?)[×x](\d+)$/.exec(String(字).trim());
+  let h;
+  if(!m) h = esc(字);
+  else {
+    const 找 = await 找物(m[1]);
+    /* 跟全站一樣的格子大小、數量疊在格子裡(遊戲就是這樣),不寫名字和字
+       —— 使用者 2026-11-15:「不需要寫字,不需要醫界閱歷×N 這幾個字」「引用圖比較小」 */
+    h = 找 ? await 引用塊({類:找.類, 名:找.名, 量:+m[2], 顯名:false}) : esc(字);
+  }
+  _消耗快.set(字, h); return h;
+}
+async function 等級頁(x){
+  const L = x.等級 || [];
+  if(!L.length) return '<p class="note">沒有逐級資料</p>';
+  /* 跟裝備/夥伴同一套雙拉桿(使用者 2026-11-16:「所有有關升級的 tab 都可以改用這套系統」)。
+     只算耗材和研習時間 —— 屬性加成/能力值那些「當下的參數」不列
+     (使用者:「純計算耗材用途,不需要顯示當前效果/傷害等等參數」)。 */
+  const 拆 = t => { const m = /^(.+?)[×x]([\d,]+)$/.exec(String(t || '').trim());
+    return m ? [m[1], +m[2].replace(/,/g, '')] : null; };
+  /* 研習時間也走引用 —— 用遊戲自己那個加速道具「日晷」表示
+     (使用者 2026-11-16:「時間用那個表示」)。
+     **1 個日晷 = 1 秒**:加速面板把身上的日晷數量直接丟進
+     TimeUtil.Seconds2DataFormatStrHHMMSS2() 當秒數畫成 時:分:秒
+     (luamain/CareerAbilityMgr.lua OpenSpeedUpPanel),每日上限那個常數
+     ABILITY_STUDY_SPEED_SEC 也是拿秒跟日晷用量比。
+     素材裡的日晷只有一種(資源 110),沒有不同時長的版本 ——
+     設定表另外有 132/133/134(AbilityTimeRes1~3,綁技能書階段)但素材沒有這三個,
+     沒有就不畫。 */
+  const 名單 = [...new Set(L.map(o => (拆(o.消耗) || [])[0]).filter(Boolean))].concat(['日晷']);
+  const 料 = await Promise.all(名單.map(async n => {
+    const h = await 找物(n); return h && h.類 ? {類:h.類, 名:h.名} : null; }));
+  const 上 = L.length;
+  const 梯 = await 階梯板({
+    樣式: '拉桿', 鍵: '能力等級', 下限: 1, 上限: 上, 單位: '級', 起始: 1, 目標: 上,
+    /* 遊戲裡等級就是寫成「Lv.130」的文字,沒有獨立圖示(使用者 2026-11-16 的截圖) */
+    圖: v => `<span class="txt">Lv.${v}</span>`,
+    材料: 料.filter(Boolean),
+    算: (a, b) => { const 需 = {};
+      for(const o of L) if(o.級 > a && o.級 <= b){
+        const c = 拆(o.消耗); if(c) 需[c[0]] = (需[c[0]] || 0) + c[1];
+        需.日晷 = (需.日晷 || 0) + (+o.研習秒數 || 0);   // 1 個日晷 = 1 秒
+      }
+      return 需; },
+    /* 日晷格上的數字是秒,讀起來不直覺,所以底下再寫一行人看的時間 */
+    附文: (a, b) => { let 秒 = 0;
+      for(const o of L) if(o.級 > a && o.級 <= b) 秒 += (+o.研習秒數 || 0);
+      return 秒 ? '研習時間 ' + 時長(秒) + '(不用日晷就是等這麼久)' : ''; },
+    量格式: n => n >= 1e4 ? (n / 1e4).toFixed(2).replace(/\.?0+$/, '') + '萬' : String(n),
+  });
+  const 效 = L.filter(o => o.效果);
+  return 梯
+    + (效.length ? `<h3 class="grp">哪幾級解鎖效果</h3><ul class="bul">${
+        效.map(o => `<li><b>${o.級} 級</b> ${rich(o.效果)}</li>`).join('')}</ul>` : '');
+}
+
+開範本({
+  類別: '能力',
+  副標: x => [x.分類, x.心醫階級, x.完美等級 != null ? '完美 ' + x.完美等級 + ' 級' : null],
+  分頁: async (x, 清單) => [
+    ['資訊', rows([
+      ['品質', x => x.品質],
+      ['說明', x => x.說明],
+      ['分類',     x => x.分類],
+      /* 遊戲裡等級顯示成「204級·醫界大腕」,所以這裡寫階級 */
+      ['心醫階級', x => x.心醫階級],
+      ['解鎖等級', x => x.心醫等級 != null ? x.心醫等級 + ' 級' : null],
+      ['等級數', x => x.等級數],
+      ['完美等級', x => x.完美等級],
+    ], x)],
+    ['獲取', (await 獲取頁(x) || '<p class="note">尚未建檔</p>')],
+    /* 每一級的消耗/研習/加成 100% 都有(30 或 40 級),以前只顯示「等級數」。
+       消耗是「醫界閱歷×150」這種字串,所以走 材料欄() 畫成引用。 */
+    ['等級', async () => await 等級頁(x)],
+    /* 遊戲技能頁就是照 lv_stage 分組的(心醫萌新/助手/新秀/…),組內照解鎖等級排。
+       不要用 cond(CB_等級)分組 —— 同一組裡混著 CB_1 的技能,分出來會錯。 */
+    ['同階級', await 索引排('能力',
+        清單.filter(o => o.技能階段 != null && o.技能階段 === x.技能階段)
+            .sort((a, b) => (a.心醫等級 || 0) - (b.心醫等級 || 0)), x._名,
+        x.心醫階級 || '同階級', 120)
+      || '<p class="note">沒有</p>'],
+    ['其他', rows([
+      ['編號',     x => x.編號 ?? x.id],
+      ['資料來源', x => x.資料來源],
+      ['產生時間', x => x.產生時間],
+      ['素材路徑', x => '素材/能力/' + x._名],
+    ], x)],
+  ],
+});
+</script></body></html>
