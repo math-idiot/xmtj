@@ -1420,10 +1420,8 @@ async function 快列(類, 清單){
   if(規 && 規.等級對色 && !Object.keys(_色等).length)
     for(const [lv, col] of Object.entries(規.等級對色)) if(_色等[col] == null) _色等[col] = +lv;
   await 備妥零件();                                   // 要拿 window.格遮罩
-  const 協 = await 載協議(類);
-  const 原樣 = (協 && 協.版式) === '原樣';              // 貼圖那種:不畫框、原比例、不遮罩
-  const 罩 = (!原樣 && window.格遮罩) ? `-webkit-mask-image:url('${window.格遮罩}');mask-image:url('${window.格遮罩}');-webkit-mask-size:100% 100%;mask-size:100% 100%` : '';
-  const 候選 = (類 === '時裝') ? ['展示圖_縮圖.png','預覽圖.png'] : ['圖.png','立繪.png','縮圖.png','立繪_縮圖.png'];
+  const 罩 = window.格遮罩 ? `-webkit-mask-image:url('${window.格遮罩}');mask-image:url('${window.格遮罩}');-webkit-mask-size:100% 100%;mask-size:100% 100%` : '';
+  const 候選 = (類 === '時裝') ? ['預覽圖_方.png','展示圖_縮圖.png','預覽圖.png'] : ['圖.png','立繪.png','縮圖.png','立繪_縮圖.png'];
   const cj = esc(JSON.stringify(候選));
   const base = window.素材基底 + encodeURIComponent(類) + '/';
   const 本頁 = n => '#/' + encodeURIComponent(類) + '/' + encodeURIComponent(n);
@@ -1432,10 +1430,10 @@ async function 快列(類, 清單){
     const 路 = String(o.名).split('/').map(encodeURIComponent).join('/');
     const 夾 = base + 路 + '/';
     /* 等級:品質色優先,沒有(寵物只有稀有度)就用稀有度字母對 */
-    const 等 = 原樣 ? null : (_色等[o.品質] ?? _稀字等[o.稀有度]);
+    const 等 = _色等[o.品質] ?? _稀字等[o.稀有度];
     const 框 = (等 != null) ? _框路(等, 規) : null;
     return `<a class="obj" href="${本頁(o.名)}" title="${esc(o.名稱 || o.名)}">`
-      + `<span class="rfi${原樣 ? ' raw' : (框 ? '' : ' bare')}"${框 ? ` style="background-image:url('${框}')"` : ''}>`
+      + `<span class="rfi${框 ? '' : ' bare'}"${框 ? ` style="background-image:url('${框}')"` : ''}>`
       + `<img src="${夾}${候選[0]}" alt="" loading="lazy"${罩 ? ` style="${罩}"` : ''} data-b="${夾}" data-c="${cj}" data-i="0" onerror="快圖退(this)"></span>`
       + `<b>${esc(o.名稱 || o.名)}</b></a>`;
   }).join('') + `</div>`;
