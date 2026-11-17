@@ -1,0 +1,200 @@
+{
+ "這是什麼": "夥伴「突破」的扇形星級指示。五瓣扇,每一瓣是**預先轉好角度的獨立圖**,所以五張尺寸各不相同。",
+ "為什麼不是 coma_other_awake": "那一組(61×61 的星芒)是珍寶/寵物格那排星星,不是夥伴突破。使用者 2026-11-16:「不是,突破是扇形的」。",
+ "三套是什麼": {
+  "xingji01~05": "第一層(1~5 星)點亮的,金黃",
+  "xingji11~15": "第二層(6~10 星)點亮的,粉紅",
+  "xingji21~25": "還沒點亮的,深色、尺寸小一號"
+ },
+ "怎麼擺": {
+  "出處": "assets/game/prefabs/ui/uistyle/compcell/comphero_part_cultivate.prefab(節點 star1~star5)",
+  "容器": "128×128,原點取中心",
+  "位置": [
+   {
+    "瓣": 1,
+    "x": -18.9,
+    "y": -16.0
+   },
+   {
+    "瓣": 2,
+    "x": -18.9,
+    "y": 4.4
+   },
+   {
+    "瓣": 3,
+    "x": -0.7,
+    "y": 8.8
+   },
+   {
+    "瓣": 4,
+    "x": 18.5,
+    "y": 4.4
+   },
+   {
+    "瓣": 5,
+    "x": 22.5,
+    "y": -16.0
+   }
+  ],
+  "說明": "y 往上為正。照這組座標疊起來就是扇形,不用自己算角度。"
+ },
+ "覺醒是另一套": "scyc_icon_juexing_01/02/03/11 一起放進來了,那是覺醒不是突破(靖雪 可覺醒=false)。",
+ "升星石": "突破吃的材料是 升星石,素材在 道具/升星石。",
+ "檔案": [
+  {
+   "檔名": "scyc_icon_juexing_01.png",
+   "尺寸": [
+    52,
+    70
+   ],
+   "sha1": "db6ea9947dc3"
+  },
+  {
+   "檔名": "scyc_icon_juexing_02.png",
+   "尺寸": [
+    31,
+    50
+   ],
+   "sha1": "5e0890bc0ace"
+  },
+  {
+   "檔名": "scyc_icon_juexing_03.png",
+   "尺寸": [
+    31,
+    50
+   ],
+   "sha1": "6fdadba0f972"
+  },
+  {
+   "檔名": "scyc_icon_juexing_11.png",
+   "尺寸": [
+    52,
+    70
+   ],
+   "sha1": "75bcf62137e6"
+  },
+  {
+   "檔名": "scyc_icon_xingji01.png",
+   "尺寸": [
+    52,
+    32
+   ],
+   "sha1": "bf1d0bb7a5b5"
+  },
+  {
+   "檔名": "scyc_icon_xingji02.png",
+   "尺寸": [
+    44,
+    39
+   ],
+   "sha1": "b911e97b05ba"
+  },
+  {
+   "檔名": "scyc_icon_xingji03.png",
+   "尺寸": [
+    33,
+    44
+   ],
+   "sha1": "98f7a1474827"
+  },
+  {
+   "檔名": "scyc_icon_xingji04.png",
+   "尺寸": [
+    44,
+    39
+   ],
+   "sha1": "7b5e42312c48"
+  },
+  {
+   "檔名": "scyc_icon_xingji05.png",
+   "尺寸": [
+    50,
+    32
+   ],
+   "sha1": "499e87111de7"
+  },
+  {
+   "檔名": "scyc_icon_xingji11.png",
+   "尺寸": [
+    52,
+    32
+   ],
+   "sha1": "ed8b12dbf483"
+  },
+  {
+   "檔名": "scyc_icon_xingji12.png",
+   "尺寸": [
+    44,
+    39
+   ],
+   "sha1": "547855eafa3d"
+  },
+  {
+   "檔名": "scyc_icon_xingji13.png",
+   "尺寸": [
+    33,
+    44
+   ],
+   "sha1": "293bb7689165"
+  },
+  {
+   "檔名": "scyc_icon_xingji14.png",
+   "尺寸": [
+    44,
+    39
+   ],
+   "sha1": "44d34e15e951"
+  },
+  {
+   "檔名": "scyc_icon_xingji15.png",
+   "尺寸": [
+    50,
+    32
+   ],
+   "sha1": "a9fc2d80b9b9"
+  },
+  {
+   "檔名": "scyc_icon_xingji21.png",
+   "尺寸": [
+    49,
+    25
+   ],
+   "sha1": "cd314040ad4d"
+  },
+  {
+   "檔名": "scyc_icon_xingji22.png",
+   "尺寸": [
+    36,
+    33
+   ],
+   "sha1": "4f5a344068bd"
+  },
+  {
+   "檔名": "scyc_icon_xingji23.png",
+   "尺寸": [
+    26,
+    42
+   ],
+   "sha1": "bb598af5dcf9"
+  },
+  {
+   "檔名": "scyc_icon_xingji24.png",
+   "尺寸": [
+    36,
+    33
+   ],
+   "sha1": "74e553d76bba"
+  },
+  {
+   "檔名": "scyc_icon_xingji25.png",
+   "尺寸": [
+    43,
+    25
+   ],
+   "sha1": "f132cfe71447"
+  }
+ ],
+ "產生時間": "2026-11-16",
+ "怎麼確認的": "遊戲原始碼 luamain/ExpertToolMgr.lua 的 SetAwakeImgStar:starFloor = ceil(星 / const.ExpertAwakeStarFloorNum),ConstDefine.lua 的 ExpertAwakeStarFloorNum = 5 —— **每 5 星一層**,第 6 星起換下一層的圖。同一支函式的另一組設定 m_expertAwakeStarFloorConfig_1 用的是 scyc_icon_juexing_01(第一層)/_11(第二層)/_02(未點亮),結構一模一樣,所以 xingji 的 0N/1N/2N 就是同樣的三種狀態。使用者 2026-11-16 也記得「滿六之後是不一樣造型」。",
+ "另外那一組星星是幹嘛的": "coma_other_awake_2 / comm_awake_32 / coma_other_awake_7 是同一支函式的預設路徑(starType≠1)在用的三層亮燈,出現在別的畫面的夥伴星星,不是升星主畫面。升星主畫面走 starType=1。"
+}
