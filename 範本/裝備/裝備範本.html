@@ -25,7 +25,7 @@
 const 類別 = '裝備';
 const 基 = () => window.素材基底 + 類別 + '/';
 const _快 = new Map();
-const 讀 = 路 => { if(!_快.has(路)) _快.set(路, fetch(路).then(r => r.ok ? r.json() : null).catch(() => null)); return _快.get(路); };
+const 讀 = 路 => _讀(路);   // 走共用的 _讀:有快取,靜態頁也能預載(2026-11-22)
 const 索引 = () => 讀(基() + '_索引.json').then(d => (d && d.清單) || []);
 const 一筆 = 名 => 讀(基() + 名.split('/').map(encodeURIComponent).join('/') + '/資料.json');
 const 強化表 = () => 讀(基() + '_強化消耗.json');
