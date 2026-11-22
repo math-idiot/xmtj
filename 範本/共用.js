@@ -427,7 +427,58 @@ async function 名字排(項, 標題, 修){
    來源有四處:獲得途徑.遊戲標示(遊戲裡「可前往×××」那排)、反查來源、反查來源明細、歷練取得(事件)。
    頁面上不放「反查結論」「獎勵碼說明」這種過程說明 —— 使用者要的是結果。 */
 const 組序 = ['道具','活動','商店','歷練','夥伴','寵物','珍寶','裝備','資源','地圖'];
+/* ── 關聯板(2026-11-22):來源/用途 一律查建置好的關聯表 素材/_關聯/依目標/<類>/<名>.json
+   (雜物/_建關聯.py 從設定表+ploy解密+遊戲標示 算的,一條邊=來源→目標)。
+   有這份就用它,舊的 獲取頁 拼湊法只在沒有關聯檔時墊底。 */
+const _方式序 = ['遊戲標示','活動','戰令','時裝招募','夥伴招募','寵物招募','限定招募','招募','商店','兌換商店','兌換','禮包','直購禮包','儲值','簽到','成就','任務','成長任務','主線任務','主題活動','分解','出售'];
+function _期字(期){
+  if(!期 || !期.length) return '';
+  const f = s => String(s || '').slice(0, 10).replace(/-/g, '/');
+  return 期.slice(0, 2).map(p => f(p[0]) + (p[1] ? '～' + f(p[1]) : '')).join('、') + (期.length > 2 ? '…' : '');
+}
+async function 關聯板(類, 名, 向){
+  const d = await _讀(基底() + '_關聯/依目標/' + encodeURIComponent(類) + '/' + encodeURIComponent(String(名).replace(/\//g, '／')) + '.json');
+  if(!d || (!(d.給 || []).length && !(d.耗 || []).length)) return '';
+  const 組 = async (列, 標題) => {
+    if(!(列 || []).length) return '';
+    const g = new Map();
+    for(const r of 列){ const k = r.方式 || '其他'; if(k === '遊戲標示') continue; if(!g.has(k)) g.set(k, []); g.get(k).push(r); }
+    if(!g.size) return '';
+    const keys = [...g.keys()].sort((a, b) => { const ia = _方式序.indexOf(a), ib = _方式序.indexOf(b); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b); });
+    let h = '';
+    for(const k of keys){
+      const rs = g.get(k); const 卡 = [];
+      for(const r of rs){
+        /* 一律畫引用卡(使用者 2026-11-22:來源/用途全部用引用,不要文字)。
+           沒建的類/筆由 引用塊 自己畫成「尚未建檔」虛線框。細節(數量/機率/幾處/檔期/選項)寫在附註。 */
+        const 附 = [r.標, r.量 && r.量[0] != null ? (r.量[0] === r.量[1] ? '×' + r.量[0] : '×' + r.量[0] + '～' + r.量[1]) : null,
+                    r.機率 ? '機率 ' + Math.round(r.機率 * 1000) / 10 + '%' : null, r.次 > 1 ? r.次 + ' 處' : null, r.摺 ? r.摺 + ' 項' : null,
+                    r.例 && r.例.length ? r.例.slice(0, 3).join('、') : null, _期字(r.檔期)].filter(Boolean).join(' · ');
+        if(!r.來源) continue;
+        const ref = {類: r.來源.類, 名: r.來源.名, 附註: 附 || null};
+        if(r.來源.所屬活動) ref.所屬活動 = r.來源.所屬活動;
+        卡.push(await 引用塊(ref));
+      }
+      if(卡.length) h += `<h3 class="grp">${esc(k.replace(/^其他:/, ''))}</h3><div class="objs fam">${卡.join('')}</div>`;
+    }
+    return h;
+  };
+  if(向 === '給') return await 組(d.給, '從哪裡來');
+  if(向 === '耗') return await 組(d.耗, '拿去哪裡用');
+  if(向 === '用') return (await 組((d.出 || []).map(r => Object.assign({}, r, {方式: ({開出:'開出內容', 合成:'合成為', 招募:'卡池內容'})[r.方式] || r.方式})), '')) + (await 組(d.耗, ''));
+  return (await 組(d.給, '從哪裡來')) + (await 組(d.耗, '用在哪裡'));
+}
+const _活動在 = new Map();
+async function _有活動(名){
+  if(_活動在.has(名)) return _活動在.get(名);
+  const p = _讀(基底() + '活動/' + encodeURIComponent(名) + '/資訊.json').then(d => !!d);
+  _活動在.set(名, p); return p;
+}
 async function 獲取頁(x){
+  if(x && x._類 && x._名){
+    const h = await 關聯板(x._類, x._名, '給');
+    if(h) return h;
+  }
   const 收 = [];
   const 標 = (x.獲得途徑 && x.獲得途徑.遊戲標示) || x.獲取途徑 || x.獲取 || [];
   for(const g of 標) 收.push({名: (g && (g.名稱 || g.功能)) || g, 附: g && g.開啟條件});
@@ -516,6 +567,8 @@ async function 獲取頁(x){
    用途.前往 / 用途.被消耗於 / 活動限定資源的 用在哪。有名字的走引用,只有設定表名的列文字
    (表名對照對不到中文名的不編名字)。 */
 async function 用途頁(x){
+  /* 關聯表的「耗」邊(拿去哪裡用):有就用,沒有才走下面舊的拼湊 */
+  if(x && x._類 && x._名){ const h = await 關聯板(x._類, x._名, '用'); if(h) return h; }
   const u = (x.用途 && typeof x.用途 === 'object' && !Array.isArray(x.用途)) ? x.用途 : {};
   const 項 = [...(u.前往 || []), ...(u.被消耗於 || [])];
   const 名 = [], 表 = [], 定 = [];
@@ -1430,7 +1483,7 @@ async function 開範本(設定){
     }
     if(!x){ app.innerHTML = `<div class="bad">讀不到 <code>${esc(decodeURIComponent(讀路))}</code></div>`; return; }
     if(變){ x._變 = 變; x[變.v.條件] = x[變.v.條件] || 變.條件值; }
-    x._名 = 這.名; x._索 = 這;
+    x._名 = 這.名; x._索 = 這; x._類 = 類;
     /* 道具/寶石/精粹/碎片/花 這一系(ItemDefine 來的)品質在 `類型.品質` 底下,
        別的類是平的。範本一律讀 x.品質,所以在這裡補平,不要每張自己判。 */
     if(x.品質 == null && x.類型 && x.類型.品質 != null) x.品質 = x.類型.品質;

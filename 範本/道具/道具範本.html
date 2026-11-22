@@ -23,6 +23,8 @@
 
 /* 用途:開出 / 合成 / 兌換 / 拿去哪裡用 —— 四段固定,每一筆都一樣,沒有的寫「不可X」或「沒有」。 */
 async function 用途板(x, 清單){
+  /* 有關聯表(開出/合成為/拿去哪裡用 都在裡面、全部引用卡)就整段用它;沒有才走下面舊的四段拼湊 */
+  const 關 = await 用途頁(x); if(關) return 關;
   let 開 = '';
   const 明 = x.開出明細 || [];
   if(明.length){
@@ -48,7 +50,7 @@ async function 用途板(x, 清單){
     : (合 && x.合成.需要數量 ? [{名: x.名稱, 量: x.合成.需要數量}] : []);
   const 材 = 料.length ? await 名字排(料, '用什麼合成') : '';
   const 換 = await 名字排(x.可用於兌換, null);
-  const 用 = await 用途頁(x);
+  const 用 = '';
   return `<h3 class="grp">${esc(題)}</h3>` + (開 || '<p class="note">不可開啟</p>')
     + 材
     + `<h3 class="grp">合成為</h3>` + (合 || '<p class="note">不可合成</p>')

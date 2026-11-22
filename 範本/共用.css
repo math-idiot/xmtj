@@ -609,3 +609,12 @@ ul.bul li{margin:var(--sp1) 0;line-height:1.7;color:var(--fg2)}
 .ic{display:block}
 .ic.ys{width:26px;height:26px}
 .ic.vo{width:20px;height:30px}
+
+/* 關聯板(來源/用途)的文字片:玩法名 + 細節。有卡片可畫的(活動)走 .objs,沒有的走這個 */
+.way{font-size:13px;color:var(--fg3);margin:var(--sp3) 0 var(--sp1);font-weight:500}
+.srcs{display:flex;flex-wrap:wrap;gap:6px 8px;margin:0 0 var(--sp2)}
+.src{display:inline-flex;flex-direction:column;gap:2px;padding:6px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg2);max-width:100%}
+.src b{font-weight:500;font-size:14px}
+.src b em{font-style:normal;color:var(--fg2);margin-left:6px;font-size:13px}
+.src i{font-style:normal;font-size:12px;color:var(--fg3)}
+.src.guess b::after{content:"?";color:var(--warn,#c80);margin-left:3px}
