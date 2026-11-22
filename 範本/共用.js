@@ -30,6 +30,21 @@ const 稀排 = 清單 => (清單 || []).map((o, i) => [o, i])
   .map(p => p[0]);
 
 const 基底=()=>window.素材基底;
+
+/* ── 預載 / 錄(2026-11-22:每筆一張預先印好的頁,雜物/_印頁.py)──
+   線上每個請求固定 0.3~0.5s 延遲,慢的是「趟數」不是大小。所以建置時用無頭瀏覽器把範本跑一遍,
+   **錄下**它讀的 JSON、查全索引的鍵、每張引用卡的成品 HTML、零件路徑,印進那一頁當 window.預載;
+   正式頁讀任何東西先查預載,有就不上網 → 只剩 HTML → css/圖 兩趟。範本/協議一字不改,仍是唯一來源。
+   window.預載 = {名 | 清單模式, 讀:{路:json}, 全索引:{鍵:[…]}, 協議:{類:協議}, 引用:{refJSON:html}, 零件:{k:url}}
+   window.錄   = 錄製模式(URL ?錄=1&不上=活動,…):畫完把上面那些吐成 <script id="錄" type="application/json">。 */
+const 預載 = window.預載 || null;
+const 錄 = (() => { try{
+  const q = new URLSearchParams(location.search); if(q.get('錄') !== '1') return null;
+  return {讀:{}, 全索引:{}, 協議:{}, 引用:{}, 零件:{}, 不上:new Set((q.get('不上') || '').split(',').filter(Boolean))};
+}catch(e){ return null; } })();
+/* 靜態頁檔名:名裡的「/」換全形「／」,所有頁都平放在 範本/<類>/,相對路徑跟範本一模一樣 */
+const 靜態路 = (類, 名) => encodeURIComponent(String(名).replace(/\//g, '／')) + '.html';
+const _靜態 = () => !!(預載 || 錄);
 const 品質框=q=>{const n=typeof q==='number'?QN[q]:q; if(!n) return null;
   const m={白:'01_白',綠:'02_綠',藍:'03_藍',紫:'04_紫',橙:'05_橙',紅:'06_紅',幸運:'07_幸運'}[n];
   return m?基底()+'介面/品質框/品質框_'+m+'.png':null;};
@@ -85,6 +100,17 @@ function rows(defs,x){
 /* ── 分頁 ───────────────────────────────────────────── */
 let 選中頁籤=0;
 /* 延後算的分頁(開範本 把函式放在 window._延頁):第一次切到才算,算完就丟掉函式 */
+/* 錄製收尾:把延後的分頁全算一遍(它們的引用卡也要錄到)、等延後區塊填完,吐出錄到的東西 */
+async function _錄完(){
+  if(!錄) return;
+  const f = window._延頁 || [];
+  錄.延後 = true;                       // 從這裡起讀到的資料不印(點到那頁才抓),引用成品照錄
+  await Promise.all(f.map((fn, i) => fn ? 填頁(i) : null));
+  for(let i = 0; i < 100 && document.querySelector('[id^="lz"]'); i++) await new Promise(r => setTimeout(r, 50));
+  const s = document.createElement('script'); s.id = '錄'; s.type = 'application/json';
+  s.textContent = JSON.stringify({讀:錄.讀, 全索引:錄.全索引, 協議:錄.協議, 引用:錄.引用, 零件:錄.零件});
+  document.body.appendChild(s); document.title = '錄好';
+}
 async function 填頁(i){
   const f = (window._延頁 || [])[i];
   if(!f) return;
@@ -126,7 +152,7 @@ function 麵包(類, 中段){
   const 段 = (中段 || []).map(([n, h], i, a) =>
     `<i>/</i>${(h && i < a.length - 1) ? `<a href="${h}">${esc(n)}</a>` : esc(n)}`).join('');
   return `<span class="crumb"><a href="../首頁.html">巡夢圖鑑</a><i>/</i>`
-    + `<a href="${encodeURIComponent(類)}範本.html">${esc(類)}</a>`
+    + `<a href="${_靜態() ? '清單.html' : encodeURIComponent(類) + '範本.html'}">${esc(類)}</a>`
     + 段 + `</span>`;
 }
 /* ── 深淺色 ─────────────────────────────────────────── */
@@ -192,9 +218,16 @@ function 全索引(){
     /* 建置時預先合併好的全索引(雜物/_建索引.py 產生 素材/_全索引.json)——
        一個檔取代瀏覽器掃 33 個 _索引.json(實測一頁 101 個請求裡 34 個是這個)。
        沒有這個檔(本地沒跑建置)就退回下面原本的逐類掃描。2026-11-22。 */
-    const 預 = await fetch(基底() + '_全索引.json').then(r => r.ok ? r.json() : null).catch(() => null);
-    if(預 && 預.表){ const mm = new Map(); for(const k in 預.表) mm.set(k, 預.表[k]); return mm; }
-    const top = await fetch(基底() + '_索引.json').then(r => r.ok ? r.json() : null).catch(() => null);
+    /* 錄製時把 Map 包一層,查到的鍵記下來 → 印進頁裡的只有這頁真的用到的幾鍵,不是 634KB 全表 */
+    const _錄索 = mm => { if(!錄) return mm;
+      const g = mm.get.bind(mm), h = mm.has.bind(mm);
+      mm.get = k => { const v = g(k); if(v !== undefined) 錄.全索引[k] = v; return v; };
+      mm.has = k => { const v = h(k); if(v) 錄.全索引[k] = g(k); return v; };
+      return mm; };
+    if(預載 && 預載.全索引){ const mm = new Map(); for(const k in 預載.全索引) mm.set(k, 預載.全索引[k]); return mm; }
+    const 預 = await _讀(基底() + '_全索引.json');
+    if(預 && 預.表){ const mm = new Map(); for(const k in 預.表) mm.set(k, 預.表[k]); return _錄索(mm); }
+    const top = await _讀(基底() + '_索引.json');
     const 類表 = (((top || {}).清單) || []).map(c => c.名 || c.類 || c).filter(Boolean);
     const m = new Map();
     await Promise.all(類表.map(async 類 => {
@@ -224,14 +257,13 @@ function 全索引(){
         }
       }
     }));
-    return m;
+    return _錄索(m);
   })();
   return _全索;
 }
 let _對照檔;
 function _對照全(){
-  if(!_對照檔) _對照檔 = fetch(window.協議基底 + '_來源對照.json')
-    .then(r => r.ok ? r.json() : null).catch(() => null).then(d => d || {});
+  if(!_對照檔) _對照檔 = _讀(window.協議基底 + '_來源對照.json').then(d => d || {});
   return _對照檔;
 }
 const 來源對照 = async () => ((await _對照全()).規則) || [];
@@ -395,7 +427,58 @@ async function 名字排(項, 標題, 修){
    來源有四處:獲得途徑.遊戲標示(遊戲裡「可前往×××」那排)、反查來源、反查來源明細、歷練取得(事件)。
    頁面上不放「反查結論」「獎勵碼說明」這種過程說明 —— 使用者要的是結果。 */
 const 組序 = ['道具','活動','商店','歷練','夥伴','寵物','珍寶','裝備','資源','地圖'];
+/* ── 關聯板(2026-11-22):來源/用途 一律查建置好的關聯表 素材/_關聯/依目標/<類>/<名>.json
+   (雜物/_建關聯.py 從設定表+ploy解密+遊戲標示 算的,一條邊=來源→目標)。
+   有這份就用它,舊的 獲取頁 拼湊法只在沒有關聯檔時墊底。 */
+const _方式序 = ['遊戲標示','活動','戰令','時裝招募','夥伴招募','寵物招募','限定招募','招募','商店','兌換商店','兌換','禮包','直購禮包','儲值','簽到','成就','任務','成長任務','主線任務','主題活動','分解','出售'];
+function _期字(期){
+  if(!期 || !期.length) return '';
+  const f = s => String(s || '').slice(0, 10).replace(/-/g, '/');
+  return 期.slice(0, 2).map(p => f(p[0]) + (p[1] ? '～' + f(p[1]) : '')).join('、') + (期.length > 2 ? '…' : '');
+}
+async function 關聯板(類, 名, 向){
+  const d = await _讀(基底() + '_關聯/依目標/' + encodeURIComponent(類) + '/' + encodeURIComponent(String(名).replace(/\//g, '／')) + '.json');
+  if(!d || (!(d.給 || []).length && !(d.耗 || []).length)) return '';
+  const 組 = async (列, 標題) => {
+    if(!(列 || []).length) return '';
+    const g = new Map();
+    for(const r of 列){ const k = r.方式 || '其他'; if(k === '遊戲標示') continue; if(!g.has(k)) g.set(k, []); g.get(k).push(r); }
+    if(!g.size) return '';
+    const keys = [...g.keys()].sort((a, b) => { const ia = _方式序.indexOf(a), ib = _方式序.indexOf(b); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b); });
+    let h = '';
+    for(const k of keys){
+      const rs = g.get(k); const 卡 = [], 片 = [];
+      for(const r of rs){
+        const 附 = [r.標 && !r.來源 ? null : null, r.量 && r.量[0] != null ? (r.量[0] === r.量[1] ? '×' + r.量[0] : '×' + r.量[0] + '～' + r.量[1]) : null,
+                    r.機率 ? '機率 ' + Math.round(r.機率 * 1000) / 10 + '%' : null, r.次 > 1 ? r.次 + ' 處' : null, r.摺 ? r.摺 + ' 項' : null,
+                    r.例 && r.例.length ? r.例.slice(0, 3).join('、') : null, _期字(r.檔期)].filter(Boolean).join(' · ');
+        if(r.來源 && ((r.來源.類 === '活動' && await _有活動(r.來源.名)) || r.來源.類 === '歷練')){
+          /* 歷練事件一律畫引用卡:素材還沒建的會是「尚未建檔」虛線框,使用者之後做事件頁(流程圖)就自動接上 */
+          卡.push(await 引用塊({類: r.來源.類, 名: r.來源.名, 附註: [r.標, 附].filter(Boolean).join(' · ') || null}));
+        } else {
+          const 主 = r.來源 ? r.來源.名 : ((r.玩法 && r.玩法.replace(/\?$/, '')) || (r.表 && r.表.replace(/^其他:/, '')) || k);
+          片.push(`<span class="src${r.玩法 && /\?$/.test(r.玩法) ? ' guess' : ''}" title="${esc(r.證 || '')}"><b>${esc(主)}${r.標 && r.標 !== 主 ? '<em>' + esc(r.標) + '</em>' : ''}</b>${附 ? `<i>${esc(附)}</i>` : ''}</span>`);
+        }
+      }
+      h += `<h3 class="grp">${esc(k.replace(/^其他:/, ''))}</h3>` + (卡.length ? `<div class="objs fam">${卡.join('')}</div>` : '') + (片.length ? `<div class="srcs">${片.join('')}</div>` : '');
+    }
+    return h;
+  };
+  if(向 === '給') return await 組(d.給, '從哪裡來');
+  if(向 === '耗') return await 組(d.耗, '拿去哪裡用');
+  return (await 組(d.給, '從哪裡來')) + (await 組(d.耗, '用在哪裡'));
+}
+const _活動在 = new Map();
+async function _有活動(名){
+  if(_活動在.has(名)) return _活動在.get(名);
+  const p = _讀(基底() + '活動/' + encodeURIComponent(名) + '/資訊.json').then(d => !!d);
+  _活動在.set(名, p); return p;
+}
 async function 獲取頁(x){
+  if(x && x._類 && x._名){
+    const h = await 關聯板(x._類, x._名, '給');
+    if(h) return h;
+  }
   const 收 = [];
   const 標 = (x.獲得途徑 && x.獲得途徑.遊戲標示) || x.獲取途徑 || x.獲取 || [];
   for(const g of 標) 收.push({名: (g && (g.名稱 || g.功能)) || g, 附: g && g.開啟條件});
@@ -484,6 +567,8 @@ async function 獲取頁(x){
    用途.前往 / 用途.被消耗於 / 活動限定資源的 用在哪。有名字的走引用,只有設定表名的列文字
    (表名對照對不到中文名的不編名字)。 */
 async function 用途頁(x){
+  /* 關聯表的「耗」邊(拿去哪裡用):有就用,沒有才走下面舊的拼湊 */
+  if(x && x._類 && x._名){ const h = await 關聯板(x._類, x._名, '耗'); if(h) return h; }
   const u = (x.用途 && typeof x.用途 === 'object' && !Array.isArray(x.用途)) ? x.用途 : {};
   const 項 = [...(u.前往 || []), ...(u.被消耗於 || [])];
   const 名 = [], 表 = [], 定 = [];
@@ -581,12 +666,14 @@ const _有圖檔 = u => new Promise(r => {
 let _零件好了;
 function 備妥零件(){
   if(!_零件好了) _零件好了 = (async () => {
+    if(預載 && 預載.零件){ for(const k in 預載.零件) if(!window[k]) window[k] = 預載.零件[k]; return; }
     /* 三張一起探(以前一張等一張,線上每趟 0.3s 就是 0.9s 白等。2026-11-22) */
     await Promise.all([['格遮罩','格遮罩.png'], ['寶石孔底','寶石孔底.png'], ['珍寶等級底','珍寶等級底.png']]
       .map(async ([k, f]) => {
         if(window[k]) return;                       // 頁面自己指定過就不動
         const u = 格子零件(f);
         window[k] = (await _有圖檔(u)) ? u : null;
+        if(錄) 錄.零件[k] = window[k];
       }));
   })();
   return _零件好了;
@@ -597,17 +684,18 @@ const _協議快取 = new Map();
    跨類引用卡(夥伴頁引用碎片/資源/道具…)不用各自再等一趟協議。沒有這個檔就逐類抓。2026-11-22 */
 let _協全P = null;
 function _協議全(){
-  if(!_協全P) _協全P = fetch(基底() + '_協議全.json').then(r => r.ok ? r.json() : null)
-    .then(d => (d && d.表) || null).catch(() => null);
+  if(!_協全P) _協全P = _讀(基底() + '_協議全.json').then(d => (d && d.表) || null);
   return _協全P;
 }
 async function 載協議(類){
   if(_協議快取.has(類)) return _協議快取.get(類);
   const p = (async () => {
+    if(預載 && 預載.協議 && 預載.協議[類]) return 預載.協議[類];
     const 全 = await _協議全();
-    if(全 && 全[類]) return 全[類];
-    return fetch(window.協議基底 + encodeURIComponent(類) + '/' + encodeURIComponent(類) + '協議.json')
-      .then(r => r.ok ? r.json() : null).catch(() => null);
+    const 協 = (全 && 全[類]) ? 全[類]
+      : await _讀(window.協議基底 + encodeURIComponent(類) + '/' + encodeURIComponent(類) + '協議.json');
+    if(錄 && 協) 錄.協議[類] = 協;
+    return 協;
   })();
   _協議快取.set(類, p); return p;
 }
@@ -616,10 +704,8 @@ async function 載協議(類){
 let _格規快取 = null;
 async function 載格規(){
   if(_格規快取) return _格規快取;
-  _格規快取 = fetch(基底() + '系統/道具格.json')
-    .then(r => r.ok ? r.json() : null)
-    .then(d => (d && d.網頁端 && d.網頁端.品質框) || {})
-    .catch(() => ({}));
+  _格規快取 = _讀(基底() + '系統/道具格.json')
+    .then(d => (d && d.網頁端 && d.網頁端.品質框) || {});
   return _格規快取;
 }
 function _框路(等級, 規){
@@ -635,6 +721,7 @@ const _段 = 名 => String(名).split('/').map(encodeURIComponent).join('/');
 const _範本在 = new Map();
 async function _有範本(類, 連樣){
   if(!連樣) return false;
+  if(錄 && 錄.不上.has(類)) return false;      // 線上沒發佈這些類,印出來的頁不能連過去
   const u = String(連樣).split('#')[0];
   if(_範本在.has(u)) return _範本在.get(u);
   let ok = null;
@@ -753,6 +840,8 @@ function _取(資料, 候選, 夾, 規){
 /* 畫一塊引用。回傳 HTML 字串。 */
 async function 引用塊(ref){
   if(!ref || !ref.類 || !ref.名) return '';
+  const _K = JSON.stringify(ref);
+  if(預載 && 預載.引用 && Object.prototype.hasOwnProperty.call(預載.引用, _K)) return 預載.引用[_K];
   await 備妥零件();
   const 協 = await 載協議(ref.類);
   if(!協 || !協.夾) return _缺塊(ref, '沒有 協議_' + ref.類 + '.json');
@@ -791,7 +880,7 @@ async function 引用塊(ref){
   /* 範本存在探測(HEAD)現在就發、跟抓資料同時跑,到了要用才 await(以前是資料回來才探,多等一趟) */
   if(連樣 && 連樣.startsWith('/範本/')) 連樣 = 連樣.replace(/^\/範本\//, '../');
   const _有範P = _有範本(基類 === ref.類 ? ref.類 : 基類, 連樣);
-  const 資料 = await _讀(基 + '/' + 檔);
+  const 資料 = await _讀(基 + '/' + 檔, true);
   if(!資料) return _缺塊(ref, '素材裡還沒有這一筆');
 
   // 修飾:引用方給的優先,沒給就用協議的預設
@@ -965,16 +1054,21 @@ async function 引用塊(ref){
      (使用者 2026-11-17:線上部件頁點不開,就是這個)。各範本都在 範本/<類>/,
      從目前頁 ../<目標類>/ 一定到得了。 */
   const 有範 = await _有範P;
-  const 到 = !有範 ? null : 連樣
+  let 到 = !有範 ? null : 連樣
     ? 連樣.replace(/<([^>]+)>/g, (m, k) => k === '名' ? _段(ref.名)
         : (ref[k] != null ? _段(ref[k]) : m))
     : null;
+  /* 靜態頁:../類/類範本.html#/類/名 → ../類/名.html(變體 @… 沒有靜態頁,維持 hash 連範本) */
+  if(到 && _靜態()) 到 = 到.replace(/\/([^\/]+)範本\.html#\/\1\/([^@].*)$/,
+    (m, c, rest) => { try{ return '/' + 靜態路(c, decodeURIComponent(rest)); }catch(e){ return m; } });
   const 題 = esc(V.提示 || V.名稱 || ref.名);
   /* 建檔了、只是還沒有圖:畫成虛線框(跟缺塊同一個樣子,但**不寫「尚未建檔」**,
      因為資料是有的)。不標的話看起來會像壞掉的半成品 —— 使用者 2026-11-16 問的就是這個。 */
   const 缺圖 = (要.圖 && !V.圖) ? ' noimg' : '';
-  return 到 ? `<a class="obj${缺圖}" href="${到}" title="${題}">${h}</a>`
-            : `<span class="obj${缺圖}" title="${題}">${h}</span>`;
+  const _h = 到 ? `<a class="obj${缺圖}" href="${到}" title="${題}">${h}</a>`
+               : `<span class="obj${缺圖}" title="${題}">${h}</span>`;
+  if(錄) 錄.引用[_K] = _h;
+  return _h;
 }
 /* 等級:協議要求帶,拿不到畫 —(R7 缺的要看得見),不是不畫 */
 /* 遊戲裡顯示的是「30級」(語系鍵 common_lv_3 = "%s級"),不是 "Lv 30" */
@@ -1037,7 +1131,7 @@ const _階梯表 = {};
 let _心醫表;
 async function 心醫表(){
   if(_心醫表 === undefined)
-    _心醫表 = await fetch(window.素材基底 + '系統/_心醫等級.json').then(r => r.ok ? r.json() : null).catch(() => null);
+    _心醫表 = await _讀(window.素材基底 + '系統/_心醫等級.json');
   return _心醫表;
 }
 /* 心醫等級「查表型」上限(夥伴升級 / 裝備強化):心醫等級到哪、最高能升到幾級。
@@ -1287,9 +1381,14 @@ async function 引用排(refs, 標題){
    ══════════════════════════════════════════════════════════════════ */
 
 const _範快 = new Map();
-async function _讀(路){
+async function _讀(路, 不錄){
   if(_範快.has(路)) return _範快.get(路);
-  const p = fetch(路).then(r => r.ok ? r.json() : null).catch(() => null);
+  let p = (預載 && 預載.讀 && Object.prototype.hasOwnProperty.call(預載.讀, 路))
+    ? Promise.resolve(預載.讀[路])
+    : fetch(路).then(r => r.ok ? r.json() : null).catch(() => null);
+  /* 錄製:只錄「首屏就要」的 —— 引用卡自己讀的資料不錄(成品 HTML 已經錄了)、
+     延後分頁階段讀的不錄(點到才抓)、全索引/協議全不整包錄(各自只錄用到的鍵/類)。 */
+  if(錄 && !不錄 && !錄.延後 && !/_全索引\.json$|_協議全\.json$/.test(路)) p = p.then(d => { 錄.讀[路] = d; return d; });
   _範快.set(路, p); return p;
 }
 /* 這一類全部的東西(索引)。回陣列,讀不到回空陣列。 */
@@ -1313,7 +1412,7 @@ async function 類資料(類, 名, 資料檔){
    } */
 async function 開範本(設定){
   const 類 = 設定.類別;
-  const 本頁 = n => '#/' + encodeURIComponent(類) + '/' + encodeURIComponent(n);
+  const 本頁 = n => _靜態() ? 靜態路(類, n) : '#/' + encodeURIComponent(類) + '/' + encodeURIComponent(n);
   let KW = '';
 
   const 挑 = 清單 => {
@@ -1352,6 +1451,7 @@ async function 開範本(設定){
         <p class="note" style="margin:0 0 var(--sp4)">共 ${清單.length} 筆 · 點一個看詳情</p>
         ${grid || '<p class="note">這一類還沒有可列的內容</p>'}`;
       document.title = 類 + ' · 巡夢圖鑑';
+      _錄完();
       return;
     }
     /* 變體指向 @<另有鍵>/<條件值>/<名>(例 @活動資源/弈局萬象/演算符):
@@ -1383,7 +1483,7 @@ async function 開範本(設定){
     }
     if(!x){ app.innerHTML = `<div class="bad">讀不到 <code>${esc(decodeURIComponent(讀路))}</code></div>`; return; }
     if(變){ x._變 = 變; x[變.v.條件] = x[變.v.條件] || 變.條件值; }
-    x._名 = 這.名; x._索 = 這;
+    x._名 = 這.名; x._索 = 這; x._類 = 類;
     /* 道具/寶石/精粹/碎片/花 這一系(ItemDefine 來的)品質在 `類型.品質` 底下,
        別的類是平的。範本一律讀 x.品質,所以在這裡補平,不要每張自己判。 */
     if(x.品質 == null && x.類型 && x.類型.品質 != null) x.品質 = x.類型.品質;
@@ -1419,12 +1519,13 @@ async function 開範本(設定){
     window._延頁 = 頁.map(t => typeof t[1] === 'function' ? t[1] : null);
     填頁(選中頁籤);
     _階梯全算();     // 不是延後畫的那幾頁,階梯也要先算一次
+    _錄完();
   }
 
   function 路由(){
     let h = location.hash || ''; try{ h = decodeURIComponent(h); }catch(e){}
     const m = h.match(new RegExp('^#/' + 類 + '/(.+)$'));
-    畫(m ? m[1] : null);
+    畫(m ? m[1] : ((預載 && !預載.清單模式 && 預載.名) || null));
   }
   addEventListener('hashchange', () => { KW = ''; 選中頁籤 = 0; 路由(); scrollTo(0, 0); });
   document.addEventListener('click', e => {
@@ -1481,7 +1582,7 @@ async function 快列(類, 清單){
   const 候選 = (類 === '時裝') ? ['預覽圖_方.png','展示圖_縮圖.png','預覽圖.png'] : ['圖.png','立繪.png','縮圖.png','立繪_縮圖.png'];
   const cj = esc(JSON.stringify(候選));
   const base = window.素材基底 + encodeURIComponent(類) + '/';
-  const 本頁 = n => '#/' + encodeURIComponent(類) + '/' + encodeURIComponent(n);
+  const 本頁 = n => _靜態() ? 靜態路(類, n) : '#/' + encodeURIComponent(類) + '/' + encodeURIComponent(n);
   const 序 = 稀排(清單 || []);
   return `<div class="objs set">` + 序.map(o => {
     const 路 = String(o.名).split('/').map(encodeURIComponent).join('/');

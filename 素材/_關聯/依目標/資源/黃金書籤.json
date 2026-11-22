@@ -1,0 +1,1 @@
+{"類":"資源","名":"黃金書籤","給":[{"向":"給","方式":"書山遊記","來源":null,"表":"BookMountainJourneyProgress","玩法":"書山遊記","標":null,"次":9,"量":[5,10],"機率":null,"檔期":null,"證":"BookMountainJourneyProgress.reward","例":[]}],"耗":[{"向":"耗","方式":"消耗","來源":null,"表":"ShopDefine","玩法":"商店","標":"商店#224","次":15,"量":[1,40],"機率":null,"檔期":null,"證":"ShopDefine.cost","例":[]}]}
