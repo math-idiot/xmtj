@@ -189,6 +189,11 @@ function 獲取板(x){
 let _全索;
 function 全索引(){
   if(!_全索) _全索 = (async () => {
+    /* 建置時預先合併好的全索引(雜物/_建索引.py 產生 素材/_全索引.json)——
+       一個檔取代瀏覽器掃 33 個 _索引.json(實測一頁 101 個請求裡 34 個是這個)。
+       沒有這個檔(本地沒跑建置)就退回下面原本的逐類掃描。2026-11-22。 */
+    const 預 = await fetch(基底() + '_全索引.json').then(r => r.ok ? r.json() : null).catch(() => null);
+    if(預 && 預.表){ const mm = new Map(); for(const k in 預.表) mm.set(k, 預.表[k]); return mm; }
     const top = await fetch(基底() + '_索引.json').then(r => r.ok ? r.json() : null).catch(() => null);
     const 類表 = (((top || {}).清單) || []).map(c => c.名 || c.類 || c).filter(Boolean);
     const m = new Map();
