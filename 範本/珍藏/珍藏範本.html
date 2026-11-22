@@ -94,8 +94,8 @@ async function 傳記板(x){
       + await 索引排('珍藏', 清單.filter(o => o.品質 === x.品質 && o.名 !== x._名), x._名, '同品質')],
     ['升級', () => 升級板(x)],
     ['升星', () => 升星板(x)],
-    ['傳記', await 傳記板(x) || '<p class="note">沒有傳記</p>'],
-    ['獲取', (await 獲取頁(x) || '<p class="note">尚未建檔</p>')],
+    ['傳記', async () => (await 傳記板(x)) || '<p class="note">沒有傳記</p>'],
+    ['獲取', async () => (await 獲取頁(x)) || '<p class="note">尚未建檔</p>'],
     ['其他', rows([
       ['編號', x => x.id ?? x.編號],
       ['等級範本', x => x.等級範本],

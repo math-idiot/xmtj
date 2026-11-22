@@ -581,20 +581,34 @@ const _有圖檔 = u => new Promise(r => {
 let _零件好了;
 function 備妥零件(){
   if(!_零件好了) _零件好了 = (async () => {
-    for(const [k, f] of [['格遮罩','格遮罩.png'], ['寶石孔底','寶石孔底.png'], ['珍寶等級底','珍寶等級底.png']]){
-      if(window[k]) continue;                       // 頁面自己指定過就不動
-      const u = 格子零件(f);
-      window[k] = (await _有圖檔(u)) ? u : null;
-    }
+    /* 三張一起探(以前一張等一張,線上每趟 0.3s 就是 0.9s 白等。2026-11-22) */
+    await Promise.all([['格遮罩','格遮罩.png'], ['寶石孔底','寶石孔底.png'], ['珍寶等級底','珍寶等級底.png']]
+      .map(async ([k, f]) => {
+        if(window[k]) return;                       // 頁面自己指定過就不動
+        const u = 格子零件(f);
+        window[k] = (await _有圖檔(u)) ? u : null;
+      }));
   })();
   return _零件好了;
 }
 
 const _協議快取 = new Map();
+/* 建置時併好的全部協議(素材/_協議全.json,雜物/_建索引.py 產生):一趟抓齊,
+   跨類引用卡(夥伴頁引用碎片/資源/道具…)不用各自再等一趟協議。沒有這個檔就逐類抓。2026-11-22 */
+let _協全P = null;
+function _協議全(){
+  if(!_協全P) _協全P = fetch(基底() + '_協議全.json').then(r => r.ok ? r.json() : null)
+    .then(d => (d && d.表) || null).catch(() => null);
+  return _協全P;
+}
 async function 載協議(類){
   if(_協議快取.has(類)) return _協議快取.get(類);
-  const p = fetch(window.協議基底 + encodeURIComponent(類) + '/' + encodeURIComponent(類) + '協議.json')
-    .then(r => r.ok ? r.json() : null).catch(() => null);
+  const p = (async () => {
+    const 全 = await _協議全();
+    if(全 && 全[類]) return 全[類];
+    return fetch(window.協議基底 + encodeURIComponent(類) + '/' + encodeURIComponent(類) + '協議.json')
+      .then(r => r.ok ? r.json() : null).catch(() => null);
+  })();
   _協議快取.set(類, p); return p;
 }
 
@@ -695,13 +709,20 @@ function _能載(u){
     i.onload = () => ok(true); i.onerror = () => ok(false); i.src = u; });
   _圖快取.set(u, p); return p;
 }
-async function _挑圖(資料, 候選, 夾, 規, 解析){
+/* 圖候選:全部解析成 URL 回一串,**不探測**。畫的時候第一個當 src、其餘掛 data-c,
+   載不到由 快圖退 換下一個。以前是逐個探、探到才畫 → 每張引用卡都要先等一趟圖(線上 0.3s)
+   才有 HTML,整個分頁被圖拖住(使用者 2026-11-22:點一個夥伴要五秒)。 */
+function _圖候選(資料, 候選, 夾, 規, 解析){
+  const out = [];
   for(const c of (候選 || [])){
     let v = _取(資料, [c], 夾, 規);
-    // **先套 取基準再探測** —— 不然探到的是還沒解析的相對路徑,一定 404
-    if(typeof v === 'string' && 解析) v = 解析(v);
-    if(typeof v === 'string' && _是檔名(v) && await _能載(v)) return v;
+    if(typeof v === 'string' && 解析) v = 解析(v);     // 先套 取基準,不然是相對路徑一定 404
+    if(typeof v === 'string' && _是檔名(v) && !out.includes(v)) out.push(v);
   }
+  return out;
+}
+async function _挑圖(資料, 候選, 夾, 規, 解析){
+  for(const v of _圖候選(資料, 候選, 夾, 規, 解析)) if(await _能載(v)) return v;
   return null;
 }
 function _取(資料, 候選, 夾, 規){
@@ -767,8 +788,10 @@ async function 引用塊(ref){
   let 路 = 夾樣.replace('<名>', _段(ref.名));
   路 = 路.replace(/<([^>]+)>/g, (m,k) => ref[k] != null ? _段(ref[k]) : m);
   const 基 = (window.類基底[基類] || 基底()) + 路;
-  const 資料 = await fetch(基 + '/' + 檔)
-    .then(r => r.ok ? r.json() : null).catch(() => null);
+  /* 範本存在探測(HEAD)現在就發、跟抓資料同時跑,到了要用才 await(以前是資料回來才探,多等一趟) */
+  if(連樣 && 連樣.startsWith('/範本/')) 連樣 = 連樣.replace(/^\/範本\//, '../');
+  const _有範P = _有範本(基類 === ref.類 ? ref.類 : 基類, 連樣);
+  const 資料 = await _讀(基 + '/' + 檔);
   if(!資料) return _缺塊(ref, '素材裡還沒有這一筆');
 
   // 修飾:引用方給的優先,沒給就用協議的預設
@@ -794,8 +817,8 @@ async function 引用塊(ref){
     // 「圖」在某些類是依樣式分組的(活動:入口圖/文字/橫幅)
     const 單 = (c && !Array.isArray(c) && typeof c === 'object')
       ? (c[修.樣式] || Object.values(c)[0]) : c;
-    V[k] = (k === '圖') ? await _挑圖(資料, 單, 基, 規, _解('圖'))
-                        : _解(k)(_取(資料, 單, 基, 規));
+    if(k === '圖'){ V._圖候選 = _圖候選(資料, 單, 基, 規, _解('圖')); V.圖 = V._圖候選[0] || null; }
+    else V[k] = _解(k)(_取(資料, 單, 基, 規));
   }
 
   /* 畫哪些元件:協議的「畫」是底線,呼叫端可以逐項關掉或打開。
@@ -842,13 +865,15 @@ async function 引用塊(ref){
      寫成 CSS 變數 --比,.rfi 的高度跟著它算。 */
   const _比 = (協.圖比例 && (協.圖比例[修.樣式] != null ? 協.圖比例[修.樣式]
               : 協.圖比例[Object.keys(協.圖比例)[0]])) || null;
+  /* 沒圖時的替代(名字本來會畫在底下就留空)——也塞給 img 的 data-f,全部候選都載不到時換成它 */
+  const _無圖 = 要.名稱 ? '' : `<span class="ab">${esc(String(V.名稱 || ref.名 || '?').slice(0,10))}</span>`;
   const 內 = (要.圖 && V.圖)
-    ? `<img${罩} src="${V.圖}" alt="" loading="lazy">`
+    ? `<img${罩} src="${V.圖}" alt="" loading="lazy" data-b="" data-c="${esc(JSON.stringify(V._圖候選))}" data-f="${esc(_無圖)}" onerror="快圖退(this)">`
     /* 沒有圖:名字本來就會畫在格子底下的話,框裡就留空(虛線框自己會說「這裡還沒有圖」)——
        不然同一個名字會出現兩次。沒有要畫名字的場合才把名字寫進框裡,
        而且要切到 6 個字 + 允許換行,切 3 個字會變成「名士之」那種半截
        (使用者 2026-11-16 指出)。 */
-    : (要.名稱 ? '' : `<span class="ab">${esc(String(V.名稱 || ref.名 || '?').slice(0,10))}</span>`);
+    : _無圖;
 
   /* 疊在格子裡的東西 —— 遊戲就是疊在 128 格子裡,不是格子下面另起一行。
      使用者 2026-11-15 拿遊戲截圖對照指出來的。 */
@@ -939,8 +964,7 @@ async function 引用塊(ref){
      不只 href 壞,連 _有範本 的 HEAD 檢查也 404 → 引用被畫成不可點的 <span>
      (使用者 2026-11-17:線上部件頁點不開,就是這個)。各範本都在 範本/<類>/,
      從目前頁 ../<目標類>/ 一定到得了。 */
-  if(連樣 && 連樣.startsWith('/範本/')) 連樣 = 連樣.replace(/^\/範本\//, '../');
-  const 有範 = await _有範本(基類 === ref.類 ? ref.類 : 基類, 連樣);
+  const 有範 = await _有範P;
   const 到 = !有範 ? null : 連樣
     ? 連樣.replace(/<([^>]+)>/g, (m, k) => k === '名' ? _段(ref.名)
         : (ref[k] != null ? _段(ref[k]) : m))
@@ -1301,6 +1325,13 @@ async function 開範本(設定){
   };
 
   async function 畫(名){
+    /* 預熱:這些每頁一定會用到、又各自有快取 —— 一進來同時發出去,不要等到用時才一個接一個抓
+       (線上每趟 0.3s,以前 索引→資料→全索引→協議→格規→零件 串成一條 → 白屏好幾秒。2026-11-22)。 */
+    全索引(); 載格規(); 載協議(類); _對照全(); 備妥零件();
+    if(名 && !String(名).startsWith('@')){
+      const 檔 = (typeof 設定.資料檔 === 'function' ? 設定.資料檔(名) : 設定.資料檔) || '資料.json';
+      類資料(類, 名, 檔);           // 猜中就省一趟;猜錯(404)也只是快取一個 null
+    }
     /* 清單轉換:某些類的 _索引 是零件層(時裝部件 545 筆),但範本要用的是**套裝層**。
        範本給一個轉換把索引歸成要顯示的清單,**不改素材**(使用者 2026-11-17:不動素材)。 */
     const 清單 = 設定.清單轉換 ? await 設定.清單轉換(await 類索引(類)) : 列表清單(類, await 類索引(類));
@@ -1412,6 +1443,20 @@ async function 開範本(設定){
   路由();
 }
 
+/* 延後(promise):分頁裡不急的一塊(同系列夥伴、碎片…)先放「載入中」佔位,算好再填進去。
+   以前整個分頁的每一塊都算完才一次畫 → 抬頭和主要資訊被最慢的那塊拖住(2026-11-22)。 */
+let _延n = 0;
+function 延後(p, 佔位){
+  const id = 'lz' + (++_延n);
+  Promise.resolve(typeof p === 'function' ? p() : p).then(h => {
+    let 試 = 0;
+    const 填 = () => { const el = document.getElementById(id);
+      if(el){ el.outerHTML = h || ''; _階梯全算(); } else if(++試 < 40) setTimeout(填, 50); };
+    填();
+  }).catch(e => { const el = document.getElementById(id); if(el) el.outerHTML = `<div class="bad">${esc(e && e.message || e)}</div>`; });
+  return `<div id="${id}" class="note">${佔位 || '載入中…'}</div>`;
+}
+
 /* 一排引用,給列表頁籤用。清單是索引項,標出「這件」。 */
 const _色等 = {};
 /* 快列的圖名退路:圖.png → 立繪 → 縮圖 … 都沒有才隱藏(名字照顯示)。
@@ -1420,6 +1465,7 @@ function 快圖退(img){
   let c; try{ c = JSON.parse(img.dataset.c || '[]'); }catch(e){ c = []; }
   const i = (+img.dataset.i || 0) + 1;
   if(i < c.length){ img.dataset.i = i; img.src = img.dataset.b + c[i]; }
+  else if(img.dataset.f !== undefined) img.outerHTML = img.dataset.f;   // 引用卡:換成沒圖的樣子
   else img.style.visibility = 'hidden';
 }
 /* 快列:列表頁專用,從 _索引 直接畫(名/品質 + 預測圖路徑),**不抓每筆 資料.json**。
