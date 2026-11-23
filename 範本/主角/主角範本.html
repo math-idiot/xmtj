@@ -5,9 +5,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../共用.css?v=202611232019">
+<link rel="stylesheet" href="../共用.css?v=202611240022">
 </head><body><div class="page" id="app"></div>
-<script src="../共用.js?v=202611232019"></script>
+<script src="../共用.js?v=202611240022"></script>
 <script>async function 角等級板() {
  const t = await 心醫表();
  const a = t && t.等級 || [];
@@ -35,6 +35,17 @@
    "名": o.名
   });
  }
+ const 門 = [];
+ let 威 = 0, 影 = 0;
+ for (const r of a) {
+  const 條 = r.條件 || {};
+  if (條.威望值 != null) 威 = 條.威望值;
+  if (條.家族影響力 != null) 影 = 條.家族影響力;
+  門.push({
+   "威望值": 威,
+   "家族影響力": 影
+  });
+ }
  const 梯 = await 階梯板({
   "樣式": "拉桿",
   "鍵": 鍵,
@@ -52,13 +63,10 @@
    "名": "家族影響力"
   } ],
   "料標": "需要達到",
-  "算": (x, y) => {
-   const 條 = (級(y) || {}).條件 || {};
-   return {
-    "個人名望": 條.威望值 || 0,
-    "家族影響力": 條.家族影響力 || 0
-   };
-  },
+  "算": (x, y) => ({
+   "個人名望": (門[y - 1] || {}).威望值 || 0,
+   "家族影響力": (門[y - 1] || {}).家族影響力 || 0
+  }),
   "獲得": {
    "材料": [ ...得名.values() ],
    "標": "獲得",
