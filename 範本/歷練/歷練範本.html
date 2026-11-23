@@ -5,9 +5,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../共用.css?v=202611240137">
+<link rel="stylesheet" href="../共用.css?v=202611240220">
 </head><body><div class="page" id="app"></div>
-<script src="../共用.js?v=202611240137"></script>
+<script src="../共用.js?v=202611240220"></script>
 <script>const 歷基 = () => window.素材基底 + "歷練/";
 
 const 圖路 = p => p ? 歷基() + String(p).split("/").map(encodeURIComponent).join("/") : null;
@@ -119,10 +119,22 @@ async function 地圖頁(x) {
  const 區域tab = async () => (x.區域 || []).length ? `<div class="pics areas">${(await Promise.all(x.區域.map((async r => `<figure class="pic">${r.圖 ? `<img src="${圖路(r.圖)}" alt="" loading="lazy" onerror="this.remove()">` : ""}<figcaption><b>${esc(r.名稱)}</b>${r.介紹 ? `<p class="desc sm">${rich(r.介紹)}</p>` : ""}${r.解鎖消耗 ? await 獎排(r.解鎖消耗, "解鎖") : ""}${r.解鎖條件 ? await 條件排(r.解鎖條件) : ""}<i>${r.事件數 || 0} 個事件</i></figcaption></figure>`)))).join("")}</div>` : '<p class="note">沒有區域</p>';
  const 圖鑑類tab = L => async () => {
   const 列 = await Promise.all(L.map((async e => {
-   const 圖 = e.圖 ? `<img src="${圖路(e.圖)}" alt="" loading="lazy" onerror="this.remove()">` : "";
    const 尾 = [ e.小類, e.探索度 ? `探索度 +${e.探索度}` : null ].filter(Boolean).join(" · ");
    const 卡 = [];
    const 已 = new Set;
+   let 圖 = e.圖 ? `<img src="${圖路(e.圖)}" alt="" loading="lazy" onerror="this.remove()">` : "";
+   if (!圖 && e.事件) {
+    圖 = await 引用塊({
+     "類": "歷練",
+     "名": e.事件.名
+    });
+    已.add(e.事件.名);
+   } else if (!圖 && e.圖引用) {
+    圖 = await 引用塊({
+     "類": e.圖引用.類,
+     "名": e.圖引用.名
+    });
+   }
    for (const c of e.解鎖 || []) {
     const 名 = c.事件 && typeof c.事件 === "object" ? c.事件.名 : null;
     if (名) {
@@ -151,10 +163,6 @@ async function 地圖頁(x) {
     "類": "能力",
     "名": e.能力.名,
     "附註": "能力"
-   }));
-   if (e.圖引用 && !圖) 卡.unshift(引用塊({
-    "類": e.圖引用.類,
-    "名": e.圖引用.名
    }));
    for (const r of e.獎勵 || []) if (!不畫(r) && 卡類.has(r.類)) 卡.push(引用塊({
     "類": r.類,

@@ -161,13 +161,13 @@ async function _錄完() {
  const s = document.createElement("script");
  s.id = "錄";
  s.type = "application/json";
- s.textContent = JSON.stringify({
+ s.textContent = JSON.stringify(Object.assign({
   "讀": 錄.讀,
   "全索引": 錄.全索引,
   "協議": 錄.協議,
   "引用": 錄.引用,
   "零件": 錄.零件
- });
+ }, window._錄清單 || {}));
  document.body.appendChild(s);
  document.title = "錄好";
 }
@@ -899,17 +899,17 @@ async function _有範本(類, 連樣) {
  const u = String(連樣).split("#")[0];
  if (_範本在.has(u)) return _範本在.get(u);
  let ok = null;
+ const 鍵 = "範本在|" + (window.版本 || "") + "|" + u;
  try {
-  const c = sessionStorage.getItem("範本在|" + u);
-  if (c != null) ok = c === "1";
+  if (sessionStorage.getItem(鍵) === "1") ok = true;
  } catch (e) {}
  if (ok === null) {
   const r = await fetch(u, {
    method: "HEAD"
   }).catch((() => null));
   ok = !!(r && r.ok);
-  try {
-   sessionStorage.setItem("範本在|" + u, ok ? "1" : "0");
+  if (ok) try {
+   sessionStorage.setItem(鍵, "1");
   } catch (e) {}
  }
  _範本在.set(u, ok);
@@ -1466,6 +1466,10 @@ async function 開範本(設定) {
    return;
   }
   if (!名) {
+   if (錄) window._錄清單 = {
+    "清單名": 清單.map((o => o.名)),
+    "印子項": !!設定.印子項
+   };
    const grid = await 快列(類, 清單);
    app.innerHTML = `\n        <div class="bar">${麵包(類)}${await 挑(清單)}<button class="btn" id="th">深淺色</button></div>\n        <h1 class="title" style="margin:0 0 var(--sp3)">${esc(類)}</h1>\n        <p class="note" style="margin:0 0 var(--sp4)">共 ${清單.length} 筆 · 點一個看詳情</p>\n        ${grid || '<p class="note">這一類還沒有可列的內容</p>'}`;
    document.title = 類 + " · 巡夢圖鑑";
