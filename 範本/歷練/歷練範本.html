@@ -5,9 +5,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../共用.css?v=202611240032">
+<link rel="stylesheet" href="../共用.css?v=202611240043">
 </head><body><div class="page" id="app"></div>
-<script src="../共用.js?v=202611240032"></script>
+<script src="../共用.js?v=202611240043"></script>
 <script>const 歷基 = () => window.素材基底 + "歷練/";
 
 const 圖路 = p => p ? 歷基() + String(p).split("/").map(encodeURIComponent).join("/") : null;
@@ -142,7 +142,7 @@ async function 地圖頁(x) {
  const 資訊 = rows([ [ "類型", x => x.類型 ], [ "介紹", x => x.介紹 ], [ "事件", x => x.事件數 ? `${x.事件數} 個` : null ] ], x) + (x.所屬活動 ? `<div class="objs fam">${await 引用塊({
   "類": "活動",
   "名": x.所屬活動
- })}</div>` : "") + (x.解鎖條件 ? await 條件排(x.解鎖條件, "開放條件") : "") + (x.底圖 && x.圖 !== x.底圖 ? `<div class="pics"><figure class="pic"><img src="${圖路(x.底圖)}" alt="" loading="lazy"></figure></div>` : "");
+ })}</div>` : "") + (x.解鎖條件 ? await 條件排(x.解鎖條件, "開放條件") : "") + (x.地點卡 ? `<div class="pics"><figure class="pic"><img src="${圖路(x.地點卡)}" alt="" loading="lazy"><figcaption><i>地點卡</i></figcaption></figure></div>` : "");
  return [ [ "資訊", 資訊 ], [ "區域", 區域tab ], [ "事件", 事件tab ], [ "探索圖鑑", 圖鑑tab ], [ "其他", rows([ [ "編號", x => x.編號 ] ], x) ] ];
 }
 
