@@ -5,10 +5,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../共用.css?v=202611231625">
-<link rel="stylesheet" href="../活動/活動頁.css?v=202611231625">
+<link rel="stylesheet" href="../共用.css?v=202611231646">
+<link rel="stylesheet" href="../活動/活動頁.css?v=202611231646">
 </head><body><div class="page" id="app"></div>
-<script src="../共用.js?v=202611231625"></script>
+<script src="../共用.js?v=202611231646"></script>
 <script>
 /* 玩法範本(2026-11-23)。**跟活動/家族是同一份渲染**(../活動/活動頁.js,根類=玩法)——
    分頁固定,多一個「獎勵」分頁,裡面**固定三段**:階段獎勵(雙頭拉桿)/ 隨機獎勵 / 名次獎勵,
@@ -107,17 +107,13 @@ async function 階段梯(r, 鍵){
     for(let i = 0; i < 列.length; i++){ const 機 = (r.機率 || [])[i]; 格.push(await 卡排(列[i].得, 機 != null ? '機率 ' + Math.round(機 * 1000) / 10 + '%' : null)); }
     h += `<h4 class="way">翻牌(順序隨機)</h4><div class="objs grid9">${格.map(g => `<div class="g9">${g || '<span class="note">空</span>'}</div>`).join('')}</div>`;
   }
-  if((r.額外獎勵 || []).length){
-    for(const x of r.額外獎勵){ const m = {}; for(const y of (x.獎勵 || [])){ const ref = await 名ref(y.道具); const k = ref ? ref.名 : y.道具; m[k] = {ref, 量: (m[k] ? m[k].量 : 0) + (+y.數量 || 1), 字: y.道具}; }
-      h += `<h4 class="way">${esc(x.項目 || '額外獎勵')}</h4><div class="objs fam">${await 卡排(m)}</div>`; }
-  }
   return h;
 }
 /* 總獎勵:舊站的「全部領完總獎勵」有就用,沒有就把全部階段獎勵加總(御貓只算第 1 名) */
 async function 總獎勵卡(r){
   const m = {};
-  if(r.總獎勵 && r.總獎勵.length){ for(const y of r.總獎勵){ const ref = await 名ref(y.道具); const k = ref ? ref.名 : y.道具; m[k] = {ref, 量: (m[k] ? m[k].量 : 0) + (+y.數量 || 1), 字: y.道具}; } }
-  else { const 列 = await 階解(r); for(const x of 列) for(const [k, v] of Object.entries(x.得)){ if(!m[k]) m[k] = {ref: v.ref, 量: 0, 字: v.字}; m[k].量 += v.量; } }
+  /* 一律把全部階段的獎勵加總(額外獎勵已併進最後一階;御貓只算第 1 名)—— 舊站的「全部領完總獎勵」不含額外獎勵,不用它 */
+  const 列 = await 階解(r); for(const x of 列) for(const [k, v] of Object.entries(x.得)){ if(!m[k]) m[k] = {ref: v.ref, 量: 0, 字: v.字}; m[k].量 += v.量; }
   return 卡排(m);
 }
 async function 獎勵分頁(x, 路徑){
@@ -131,7 +127,7 @@ async function 獎勵分頁(x, 路徑){
   let h = '';
   const 來 = r.積分來源 || [];
   h += `<h3 class="grp">積分來源</h3>` + (來.length
-    ? `<div class="objs fam">${(await Promise.all(來.map(o => 引用塊({類: o.類, 名: o.名, 附註: '+' + o.積分 + ' 積分'})))).join('')}</div>` : 空('沒有'));
+    ? `<div class="objs fam">${(await Promise.all(來.map(o => o.類 === '文' ? `<span class="src"><b>${esc(o.名)}</b><i>${esc('+' + o.積分 + ' 積分' + (o.上限 ? ' · 上限 ' + o.上限 : ''))}</i></span>` : 引用塊({類: o.類, 名: o.名, 附註: '+' + o.積分 + ' 積分'})))).join('')}</div>` : 空('沒有'));
   h += `<h3 class="grp">階段獎勵</h3>` + (await 階段梯(r, '玩法階段') || 空('沒有'));
   let n = 0; const t = setInterval(() => { if(document.querySelector('[data-梯組]')){ _階梯全算(); clearInterval(t); } else if(++n > 60) clearInterval(t); }, 50);
   return [['獎勵', h]];
@@ -155,7 +151,7 @@ window.活動頁設定 = {
 <script>
 /* 目錄讀 _索引.json 再載入渲染(活動頁.js 一載入就跑,所以先等目錄) */
 (async () => {
-  const j = await fetch('../../素材/玩法/_索引.json').then(r => r.ok ? r.json() : null).catch(() => null);
+  const j = await _讀(window.素材基底 + '玩法/_索引.json');   // 走 _讀:預載/錄製/版本戳
   window.活動頁設定.目錄 = ((j && j.清單) || []).map(o => o.名);
   const s = document.createElement('script'); s.src = '../活動/活動頁.js'; document.body.appendChild(s);
 })();
