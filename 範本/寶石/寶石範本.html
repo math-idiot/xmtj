@@ -5,100 +5,66 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../共用.css?v=202611231718">
+<link rel="stylesheet" href="../共用.css?v=202611231953">
 </head><body><div class="page" id="app"></div>
-<script src="../共用.js?v=202611231718"></script>
-<script>
-/* 寶石範本。**不帶任何資料** —— 全部執行時讀 素材/寶石/。
-   外框(抬頭/分頁/挑選框/路由/事件)在 共用.js 的 開範本();
-   引用一律走協議引擎,包括自己引用自己。 */
+<script src="../共用.js?v=202611231953"></script>
+<script>const 屬 = o => (/^\d+級(.+?)寶石$/.exec(o && (o.名稱 || o.名) || "") || [])[1] || null;
 
-/* 寶石的屬性寫在名字裡(「1級增傷攻擊寶石」→ 增傷攻擊),設定表沒有獨立欄位。 */
-const 屬 = o => (/^\d+級(.+?)寶石$/.exec((o && (o.名稱 || o.名)) || '') || [])[1] || null;
-
-/* 家族兩組(使用者 2026-11-15:「家族要兩組,同屬不同等、同等不同屬」)。
-   以前那組「同階的其他種類」是照設定表 group_id 抓的,group_id 對寶石是**等級**
-   (ItemInfoVO:GetGemLv() 回傳 group_id),但別類的東西也有 group_id=1,
-   所以中級寶石箱、行動力會混進來。改成只在寶石這一類裡面比。 */
-async function 家族(x, 清單){
-  const 我屬 = 屬(x), 我級 = x.等級;
-  const 同屬 = (清單 || []).filter(o => o.名 !== x._名 && 屬(o) === 我屬);
-  const 同級 = (清單 || []).filter(o => o.名 !== x._名 && o.等級 === 我級 && 屬(o) !== 我屬)
-                 .sort((a, b) => (a.編號 || 0) - (b.編號 || 0));
-  return (await 索引排('寶石', 同屬, null, '同屬不同等') || '')
-       + (await 索引排('寶石', 同級, null, '同等不同屬') || '');
+async function 家族(x, 清單) {
+ const 我屬 = 屬(x), 我級 = x.等級;
+ const 同屬 = (清單 || []).filter((o => o.名 !== x._名 && 屬(o) === 我屬));
+ const 同級 = (清單 || []).filter((o => o.名 !== x._名 && o.等級 === 我級 && 屬(o) !== 我屬)).sort(((a, b) => (a.編號 || 0) - (b.編號 || 0)));
+ return (await 索引排("寶石", 同屬, null, "同屬不同等") || "") + (await 索引排("寶石", 同級, null, "同等不同屬") || "");
 }
 
-/* 合成:三顆同級同屬 → 一顆高一級的。
-   「三顆」是設定表常數 Constants.EQUIP_GEM_MULTIPLE = 3
-   (ItemInfoVO:GetNeedMergeNum() 對寶石就是讀這一條),不是推的。 */
 const 一顆要幾顆 = 3;
-async function 合成排(x, 清單){
-  /* 跟裝備/夥伴同一套雙拉桿(使用者 2026-11-16:「寶石合成頁面也是一樣的做法」)。
-     三顆同級同屬換一顆高一級的(Constants.EQUIP_GEM_MULTIPLE = 3),所以升 n 級
-     要 3^n 顆起始等級的 —— 跟裝備一樣,畫面上不把手上那一顆算進去,寫 3^n − 1。 */
-  const 我屬 = 屬(x), 上 = +x.等級上限 || 9;
-  const 同屬 = (清單 || []).filter(o => 屬(o) === 我屬);
-  const 由級 = new Map(同屬.map(o => [o.等級, o]));
-  if(同屬.length < 2) return '';
-  const 料名 = 同屬.sort((a, b) => a.等級 - b.等級).map(o => o.名);
-  return 階梯板({
-    樣式: '拉桿', 鍵: '寶石合成',
-    /* 寶石也不能降級,最小值就是手上這一顆 */
-    下限: x.等級, 上限: 上, 單位: '',   // 單位寫在 格式 裡了,不要再補一次
-    起始: x.等級, 目標: 上,
-    格式: v => v + ' 級',
-    圖: v => { const o = 由級.get(v);
-      return o ? `<img src="${window.素材基底}寶石/${encodeURIComponent(o.名)}/圖.png" alt="">` : ''; },
-    材料: 料名.map(n => ({類:'寶石', 名:n})),
-    算: (a, b) => { const o = 由級.get(Math.min(a, b));
-      const n = Math.abs(b - a);
-      return (o && n) ? {[o.名]: Math.pow(一顆要幾顆, n) - 1} : {}; },
-    量格式: n => n >= 1e4 ? (n / 1e4).toFixed(2).replace(/\.?0+$/, '') + '萬' : String(n),
-    註: `${一顆要幾顆} 顆同級同屬換一顆高一級的,所以升 n 級是 ${一顆要幾顆}ⁿ−1 顆 —— 跟遊戲一樣不把手上那顆算進去。`,
-  });
+
+async function 合成排(x, 清單) {
+ const 我屬 = 屬(x), 上 = +x.等級上限 || 9;
+ const 同屬 = (清單 || []).filter((o => 屬(o) === 我屬));
+ const 由級 = new Map(同屬.map((o => [ o.等級, o ])));
+ if (同屬.length < 2) return "";
+ const 料名 = 同屬.sort(((a, b) => a.等級 - b.等級)).map((o => o.名));
+ return 階梯板({
+  "樣式": "拉桿",
+  "鍵": "寶石合成",
+  "下限": x.等級,
+  "上限": 上,
+  "單位": "",
+  "起始": x.等級,
+  "目標": 上,
+  "格式": v => v + " 級",
+  "圖": v => {
+   const o = 由級.get(v);
+   return o ? `<img src="${window.素材基底}寶石/${encodeURIComponent(o.名)}/圖.png" alt="">` : "";
+  },
+  "材料": 料名.map((n => ({
+   "類": "寶石",
+   "名": n
+  }))),
+  "算": (a, b) => {
+   const o = 由級.get(Math.min(a, b));
+   const n = Math.abs(b - a);
+   return o && n ? {
+    [o.名]: Math.pow(一顆要幾顆, n) - 1
+   } : {};
+  },
+  "量格式": n => n >= 1e4 ? (n / 1e4).toFixed(2).replace(/\.?0+$/, "") + "萬" : String(n),
+  "註": `${一顆要幾顆} 顆同級同屬換一顆高一級的,所以升 n 級是 ${一顆要幾顆}ⁿ−1 顆 —— 跟遊戲一樣不把手上那顆算進去。`
+ });
 }
 
-async function 合成來源(x, 清單){
-  const 低 = (清單 || []).find(o => 屬(o) === 屬(x) && o.等級 === (x.等級 - 1));
-  return 低 ? await 引用排([{類:'寶石', 名:低.名, 量:一顆要幾顆}], '合成') : '';
+async function 合成來源(x, 清單) {
+ const 低 = (清單 || []).find((o => 屬(o) === 屬(x) && o.等級 === x.等級 - 1));
+ return 低 ? await 引用排([ {
+  "類": "寶石",
+  "名": 低.名,
+  "量": 一顆要幾顆
+ } ], "合成") : "";
 }
 
 開範本({
-  類別: '寶石',
-  副標: x => [x.等級 != null ? x.等級 + ' 級' : null, 屬(x)],
-  分頁: async (x, 清單) => {
-    return [
-      ['資訊', rows([
-        ['品質',     x => x.品質],
-        ['等級',     x => x.等級],
-        ['屬性',     x => 屬(x)],
-        ['效果',     x => x.說明],
-        /* 加成是設定表 ItemDefine.base 解出來的(屬性編號_1_1_值),
-           百分比屬性的值要除以 100。63 顆全拿「說明」裡的數字對過。 */
-        ['加成',     x => (x.屬性加成 || []).map(a => a.屬性 + ' +' + a.值 + a.單位).join('、')],
-        ['等級上限', x => x.等級上限],
-        ['使用上限', x => x.使用上限],
-      ], x)
-        /* 價格寫成「金錠×10」一串,拆開走引用 —— 金錠是資源,不是一行字。 */
-        + await 名字排([(x.價格 || {}).購買].filter(Boolean), '購買價格')
-        + await 家族(x, 清單)],
-      ['合成', await 合成排(x, 清單) || '<p class="note">不可合成</p>'],
-      /* 獲取也要有「合成」:低一級的同屬寶石 3 顆就換到這一顆。
-         設定表只有往上的那條(extend),往下這條是把它反過來 ——
-         56 條 extend 全部驗過都是「同屬性、剛好高一級」,所以反過來找同屬低一級是對的。 */
-      ['獲取', async () => (await 獲取頁(x)) || ''
-        + (await 合成來源(x, 清單) || '')
-        || '<p class="note">尚未建檔</p>'],
-      ['其他', rows([
-        ['編號',       x => x.編號],
-        ['對應圖像編號', x => x.對應圖像編號],
-        ['背包分頁',   x => (x.類型 || {}).背包分頁],
-        ['資料來源',   x => x.資料來源],
-        ['產生時間',   x => x.產生時間],
-        ['素材路徑',   x => '素材/寶石/' + x._名],
-      ], x)],
-    ];
-  },
-});
-</script></body></html>
+ "類別": "寶石",
+ "副標": x => [ x.等級 != null ? x.等級 + " 級" : null, 屬(x) ],
+ "分頁": async (x, 清單) => [ [ "資訊", rows([ [ "品質", x => x.品質 ], [ "等級", x => x.等級 ], [ "屬性", x => 屬(x) ], [ "效果", x => x.說明 ], [ "加成", x => (x.屬性加成 || []).map((a => a.屬性 + " +" + a.值 + a.單位)).join("、") ], [ "等級上限", x => x.等級上限 ], [ "使用上限", x => x.使用上限 ] ], x) + await 名字排([ (x.價格 || {}).購買 ].filter(Boolean), "購買價格") + await 家族(x, 清單) ], [ "合成", await 合成排(x, 清單) || '<p class="note">不可合成</p>' ], [ "獲取", async () => await 獲取頁(x) || "" + (await 合成來源(x, 清單) || "") || '<p class="note">尚未建檔</p>' ], [ "其他", rows([ [ "編號", x => x.編號 ], [ "對應圖像編號", x => x.對應圖像編號 ], [ "背包分頁", x => (x.類型 || {}).背包分頁 ] ], x) ] ]
+});</script></body></html>

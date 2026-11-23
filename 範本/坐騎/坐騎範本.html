@@ -5,109 +5,111 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../共用.css?v=202611231718">
+<link rel="stylesheet" href="../共用.css?v=202611231953">
 </head><body><div class="page" id="app"></div>
-<script src="../共用.js?v=202611231718"></script>
-<script>
-/* 坐騎範本。升級/技能/進階都讀 素材,範本不帶資料。
-   升級表全坐騎共用(素材/坐騎/_升級.json);技能逐級在各坐騎自己的 資料.json。 */
+<script src="../共用.js?v=202611231953"></script>
+<script>let _升;
 
-let _升;
-async function 升級表(){
-  if(_升 === undefined || _升 === null)
-    _升 = await fetch(window.素材基底 + '坐騎/_升級.json').then(r => r.ok ? r.json() : null).catch(() => null);
-  return _升;
-}
-function _攤(r){
-  const 平 = [];
-  for(const a of r.階) for(const l of a.級)
-    平.push({階: a.階, 級: l.級, 材料: l.材料 || {}, 突破: l.突破,
-             累計屬性: l.累計屬性, 技能等級: l.技能等級, 階段加成: a.階段加成});
-  return 平;
-}
-function _階映射(r){ const m = {};
-  for(const a of r.階){ const lv = a.級[0].技能等級; if(m[lv] == null) m[lv] = a.階; } return m; }
-
-/* 升級:心途式「N 階 M 級」拉桿,**材料分兩種**:升級級吃行路補給、突破級(每階第10級)吃養護行具
-   (高階再加錦繡裝飾/識途羅盤)。從 a 到 b 把每種材料各自加總。
-   使用者 2026-11-17 糾正:升級和突破是兩個不同動作、不同材料,上次我整個漏掉突破材料。 */
-async function 升級板(x){
-  const r = await 升級表(); if(!r) return '<p class="note">讀不到升級表</p>';
-  const 平 = _攤(r), 上 = 平.length, 每階 = r.階[0].級.length;
-  const 名單 = [...new Set(平.flatMap(n => Object.keys(n.材料)))];
-  const 階級 = v => v <= 0 ? '1 階 0 級' : `${Math.ceil(v / 每階)} 階 ${((v - 1) % 每階) + 1} 級`;
-  const 梯 = await 階梯板({
-    樣式: '拉桿', 鍵: '坐騎升級', 下限: 0, 上限: 上, 單位: '', 起始: 0, 目標: 上,
-    格式: 階級,
-    格式H: v => { const 階 = v <= 0 ? 1 : Math.ceil(v / 每階);
-      const 級 = v <= 0 ? 0 : ((v - 1) % 每階) + 1; return `${階}<i>階</i>${級}<i>級</i>`; },
-    圖: () => `<img src="${window.素材基底}坐騎/${encodeURIComponent(x._名)}/圖.png" alt="">`,
-    材料: 名單.map(n => ({類: '資源', 名: n})),
-    算: (a, b) => { const 需 = {};
-      for(let i = a; i < b; i++) for(const k in 平[i].材料) 需[k] = (需[k] || 0) + 平[i].材料[k];
-      return 需; },
-    量格式: n => n >= 1e4 ? (n / 1e4).toFixed(2).replace(/\.?0+$/, '') + '萬' : String(n),
-    附文: (a, b) => { const t = 平[Math.max(0, b - 1)];
-      return b > 0 ? `技能 Lv.${t.技能等級} · ${t.累計屬性}` : ''; },
-  });
-  const 階 = r.階.filter(a => a.階段加成);
-  const 表 = 階.length ? `<h3 class="grp">各階解鎖(階段加成)</h3><table class="aff"><thead><tr><th>階</th><th>加成</th></tr></thead><tbody>${
-    階.map(a => `<tr><td>${a.階}</td><td>${esc(a.階段加成)}</td></tr>`).join('')}</tbody></table>` : '';
-  return 梯 + 表 + 心醫門檻板((r.心醫門檻)||[], '突破');
+async function 升級表() {
+ if (_升 === undefined || _升 === null) _升 = await fetch(window.素材基底 + "坐騎/_升級.json").then((r => r.ok ? r.json() : null)).catch((() => null));
+ return _升;
 }
 
-/* 技能:跟夥伴 技能表 一樣 —— 圖+名一條線、類型·定位、表「階 | 技能等級 | 效果」。
-   坐騎技能等級由升級階帶動,「階」= 那一級技能從第幾階開始(使用者 2026-11-17 指定要有這欄)。 */
-async function 技能板(x){
-  const a0 = x.技能 || [];
-  if(!a0.length) return '';
-  const r = await 升級表(); const 階映 = r ? _階映射(r) : {};
-  const 併 = new Map();
-  for(const sk of a0){
-    const k = sk.名稱 + '|' + JSON.stringify((sk.階梯 || []).map(n => [n.級, n.節點效果]));
-    if(併.has(k)) 併.get(k).份++; else 併.set(k, Object.assign({份:1}, sk));
+function _攤(r) {
+ const 平 = [];
+ for (const a of r.階) for (const l of a.級) 平.push({
+  "階": a.階,
+  "級": l.級,
+  "材料": l.材料 || {},
+  "突破": l.突破,
+  "累計屬性": l.累計屬性,
+  "技能等級": l.技能等級,
+  "階段加成": a.階段加成
+ });
+ return 平;
+}
+
+function _階映射(r) {
+ const m = {};
+ for (const a of r.階) {
+  const lv = a.級[0].技能等級;
+  if (m[lv] == null) m[lv] = a.階;
+ }
+ return m;
+}
+
+async function 升級板(x) {
+ const r = await 升級表();
+ if (!r) return '<p class="note">讀不到升級表</p>';
+ const 平 = _攤(r), 上 = 平.length, 每階 = r.階[0].級.length;
+ const 名單 = [ ...new Set(平.flatMap((n => Object.keys(n.材料)))) ];
+ const 階級 = v => v <= 0 ? "1 階 0 級" : `${Math.ceil(v / 每階)} 階 ${(v - 1) % 每階 + 1} 級`;
+ const 梯 = await 階梯板({
+  "樣式": "拉桿",
+  "鍵": "坐騎升級",
+  "下限": 0,
+  "上限": 上,
+  "單位": "",
+  "起始": 0,
+  "目標": 上,
+  "格式": 階級,
+  "格式H": v => {
+   const 階 = v <= 0 ? 1 : Math.ceil(v / 每階);
+   const 級 = v <= 0 ? 0 : (v - 1) % 每階 + 1;
+   return `${階}<i>階</i>${級}<i>級</i>`;
+  },
+  "圖": () => `<img src="${window.素材基底}坐騎/${encodeURIComponent(x._名)}/圖.png" alt="">`,
+  "材料": 名單.map((n => ({
+   "類": "資源",
+   "名": n
+  }))),
+  "算": (a, b) => {
+   const 需 = {};
+   for (let i = a; i < b; i++) for (const k in 平[i].材料) 需[k] = (需[k] || 0) + 平[i].材料[k];
+   return 需;
+  },
+  "量格式": n => n >= 1e4 ? (n / 1e4).toFixed(2).replace(/\.?0+$/, "") + "萬" : String(n),
+  "附文": (a, b) => {
+   const t = 平[Math.max(0, b - 1)];
+   return b > 0 ? `技能 Lv.${t.技能等級} · ${t.累計屬性}` : "";
   }
-  const a = [...併.values()];
-  const 圖名 = (i, n) => n > 1 ? (['主','被','被1','被2'][i] || '技' + (i+1)) : '被';
-  return (await Promise.all(a.map(async (sk, i) => {
-    const u = window.素材基底 + '坐騎/' + encodeURIComponent(x._名) + '/技能/' + encodeURIComponent(圖名(i, a.length)) + '.png';
-    const 有 = await new Promise(ok => { const im = new Image(); im.onload = () => ok(true); im.onerror = () => ok(false); im.src = u; });
-    const 梯 = sk.階梯 || [];
-    return `<h3 class="grp skrow">${有 ? `<img class="skico" src="${u}" alt="">` : ''}<span>${esc(sk.名稱)}${sk.份 > 1 ? ` ×${sk.份}` : ''}</span></h3>`
-      + (sk.定位 ? `<p class="note">${esc(sk.定位)}${sk.份 > 1 ? ` · 同時有 ${sk.份} 個,升階時一起升` : ''}</p>` : '')
-      + (梯.length
-        ? `<table class="aff"><thead><tr><th>階</th><th>技能等級</th><th>效果</th></tr></thead><tbody>${
-            梯.map(n => `<tr><td>${階映[n.級] != null ? 階映[n.級] : ''}</td><td>${n.級}</td><td>${rich(n.節點效果 || '')}</td></tr>`).join('')
-          }</tbody></table>`
-        : `<p class="desc">${rich(sk.說明 || '')}</p>`);
-  }))).join('');
+ });
+ const 階 = r.階.filter((a => a.階段加成));
+ const 表 = 階.length ? `<h3 class="grp">各階解鎖(階段加成)</h3><table class="aff"><thead><tr><th>階</th><th>加成</th></tr></thead><tbody>${階.map((a => `<tr><td>${a.階}</td><td>${esc(a.階段加成)}</td></tr>`)).join("")}</tbody></table>` : "";
+ return 梯 + 表 + 心醫門檻板(r.心醫門檻 || [], "突破");
+}
+
+async function 技能板(x) {
+ const a0 = x.技能 || [];
+ if (!a0.length) return "";
+ const r = await 升級表();
+ const 階映 = r ? _階映射(r) : {};
+ const 併 = new Map;
+ for (const sk of a0) {
+  const k = sk.名稱 + "|" + JSON.stringify((sk.階梯 || []).map((n => [ n.級, n.節點效果 ])));
+  if (併.has(k)) 併.get(k).份++; else 併.set(k, Object.assign({
+   "份": 1
+  }, sk));
+ }
+ const a = [ ...併.values() ];
+ const 圖名 = (i, n) => n > 1 ? [ "主", "被", "被1", "被2" ][i] || "技" + (i + 1) : "被";
+ return (await Promise.all(a.map((async (sk, i) => {
+  const u = window.素材基底 + "坐騎/" + encodeURIComponent(x._名) + "/技能/" + encodeURIComponent(圖名(i, a.length)) + ".png";
+  const 有 = await new Promise((ok => {
+   const im = new Image;
+   im.onload = () => ok(true);
+   im.onerror = () => ok(false);
+   im.src = u;
+  }));
+  const 梯 = sk.階梯 || [];
+  return `<h3 class="grp skrow">${有 ? `<img class="skico" src="${u}" alt="">` : ""}<span>${esc(sk.名稱)}${sk.份 > 1 ? ` ×${sk.份}` : ""}</span></h3>` + (sk.定位 ? `<p class="note">${esc(sk.定位)}${sk.份 > 1 ? ` · 同時有 ${sk.份} 個,升階時一起升` : ""}</p>` : "") + (梯.length ? `<table class="aff"><thead><tr><th>階</th><th>技能等級</th><th>效果</th></tr></thead><tbody>${梯.map((n => `<tr><td>${階映[n.級] != null ? 階映[n.級] : ""}</td><td>${n.級}</td><td>${rich(n.節點效果 || "")}</td></tr>`)).join("")}</tbody></table>` : `<p class="desc">${rich(sk.說明 || "")}</p>`);
+ })))).join("");
 }
 
 開範本({
-  類別: '坐騎',
-  品質為稀有: true,
-  抬頭樣式: '立繪',
-  副標: x => [x.限定 ? '限定' : null],
-  分頁: async (x, 清單) => [
-    ['資訊', rows([
-      ['品質',     x => x.品質],
-      ['說明',     x => x.說明],
-      ['啟動屬性', x => x.啟動屬性],
-      ['取得方式', x => x.取得方式],
-      ['限定',     x => x.限定 === true ? '是' : (x.限定 === false ? '否' : null)],
-    ], x)
-      + await 索引排('坐騎', 清單.filter(o => o.品質 === x.品質 && o.名 !== x._名), x._名, '同品質')],
-    ['升級', () => 升級板(x)],
-    ['技能', () => 技能板(x)],
-    ['獲取', async () => (await 獲取頁(x)) || '<p class="note">尚未建檔</p>'],
-    ['其他', rows([
-      ['編號',     x => x.id ?? x.編號],
-      ['動畫',     x => (x.全部動作 || []).map(a => a.狀態).join('、') || null],
-      ['請求獲取指令', x => (x.請求獲取指令 || {}).格式],
-      ['資料來源', x => x.資料來源],
-      ['產生時間', x => x.產生時間],
-      ['素材路徑', x => '素材/坐騎/' + x._名],
-    ], x)],
-  ],
-});
-</script></body></html>
+ "類別": "坐騎",
+ "品質為稀有": true,
+ "抬頭樣式": "立繪",
+ "副標": x => [ x.限定 ? "限定" : null ],
+ "分頁": async (x, 清單) => [ [ "資訊", rows([ [ "品質", x => x.品質 ], [ "說明", x => x.說明 ], [ "啟動屬性", x => x.啟動屬性 ], [ "取得方式", x => x.取得方式 ], [ "限定", x => x.限定 === true ? "是" : x.限定 === false ? "否" : null ] ], x) + await 索引排("坐騎", 清單.filter((o => o.品質 === x.品質 && o.名 !== x._名)), x._名, "同品質") ], [ "升級", () => 升級板(x) ], [ "技能", () => 技能板(x) ], [ "獲取", async () => await 獲取頁(x) || '<p class="note">尚未建檔</p>' ], [ "其他", rows([ [ "編號", x => x.id ?? x.編號 ], [ "動畫", x => (x.全部動作 || []).map((a => a.狀態)).join("、") || null ] ], x) ] ]
+});</script></body></html>

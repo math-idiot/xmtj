@@ -1,8 +1,1 @@
-{
- "這是什麼": "這個活動用到的規則原文,放在活動夾裡。",
- "正本": "素材/規則/rule_milestone_activity_1091.json。這裡是副本,內容照抄未改(cmp 逐位元相同)。",
- "誰在用": "整個活動共用這一份;沒有子活動。",
- "檔案": ["rule_milestone_activity_1091 珊瑚祕境"],
- "依據": "mumu/現役lua_完整/luamain/MilestoneActivityPanel1091.lua OnBtn_DetailClick:UIPopManager.OpenRuleUI(\"rule_milestone_activity_\" .. tostring(m_id)),m_id 預設 1091(OnOpenWidget:m_id = data.id or 1091);另 MANIFEST 有 assets/game/data/txt/rule_milestone_activity_1091.txt.tw。規則鍵是程式組出來的,不是用標題同名配的。",
- "找過但沒有": ["rule_shop_<shopType>(btn_shop1 開的 OpenCommonShop(MarvellousType.MilestoneAndNewRank, aid) 商店規則):沒查規則鍵,素材/規則 也沒有能確認對應的檔,不放"]
-}
+{"正本":"素材/規則/rule_milestone_activity_1091.json。這裡是副本,內容照抄未改(cmp 逐位元相同)。","誰在用":"整個活動共用這一份;沒有子活動。","檔案":["rule_milestone_activity_1091 珊瑚祕境"],"找過但沒有":[]}

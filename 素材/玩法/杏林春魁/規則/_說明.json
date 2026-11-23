@@ -1,10 +1,1 @@
-{
- "這是什麼": "這個活動用到的規則原文,放在活動夾裡。",
- "正本": "素材/規則/rule_springtriumph.json,副本內容照抄(cmp 相同)。",
- "誰在用": "整個活動共用一份,活動沒有子活動。",
- "檔案": [
-  "rule_springtriumph 杏林春魁"
- ],
- "依據": "核心lua/luamain/SpringTriumphMainScreen.txt:478 UIPopManager.OpenRuleUI(\"rule_springtriumph\")(程式直接寫的規則鍵)",
- "找過但沒有": []
-}
+{"正本":"素材/規則/rule_springtriumph.json,副本內容照抄(cmp 相同)。","誰在用":"整個活動共用一份,活動沒有子活動。","檔案":["rule_springtriumph 杏林春魁"],"找過但沒有":[]}

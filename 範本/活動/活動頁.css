@@ -1,26 +1,19 @@
-/* 活動頁(活動範本 + 家族範本共用)的專屬樣式。共用.css 是另外 14 張在吃的,不動它。 */
-/* ───────── 活動專屬。只寫在這張,不動 共用.css(那是另外 14 張在吃的) ─────────
-   活動跟道具/裝備的差別:視覺主體是一張**橫幅**不是方形圖示,
-   而且有一張「整頁」介面圖要能點。所以抬頭不用 .top 那個 280px+1fr 的格。 */
 
-/* 抬頭:橫幅當主體,標題大字(文字.png)壓在左下角 —— 跟遊戲裡的擺法一致 */
+
+
+
 .ahero{position:relative;margin:0 0 var(--sp4);border-radius:var(--r3);overflow:hidden;
   background:var(--raise);border:1px solid var(--line);box-shadow:var(--shadow)}
-/* 主圖是**固定尺寸的槽**,不是看圖多大就畫多大 ——
-   使用者 2026-11-16:「他是有固定的,如果上傳了太大就裁剪、太小就拉伸,
-   標題大圖片的尺寸用弈局的當標準」。弈局萬象 主圖.png = 712×232,就拿它當比例。
-   object-fit:cover = 比例不同就裁掉多的、比槽小就撐滿(等比放大)。 */
+
 .ahero{aspect-ratio:712/232}
 .ahero>img.bn{display:block;width:100%;height:100%;object-fit:cover}
-/* 橫幅下緣壓一層由透明到底色的漸層,標題大字才壓得住 */
+
 .ahero .vn{position:absolute;inset:auto 0 0 0;height:58%;pointer-events:none;
   background:linear-gradient(to bottom,transparent,rgba(0,0,0,.52))}
 .ahero .tx{position:absolute;left:var(--sp4);bottom:var(--sp4);width:min(46%,320px)}
 .ahero .tx img{display:block;width:100%;height:auto;
   filter:drop-shadow(0 2px 6px rgba(0,0,0,.45))}
-/* 沒有主圖:**不要整塊消失**,畫一個佔位,有標題圖(文字.png)就放標題圖,
-   沒有就寫名字 + 「還沒有主圖」—— 使用者 2026-11-16:
-   「如果沒有圖片範本要出佔位的就是標題那張圖片」。缺什麼要看得見。 */
+
 .ahero.ph{display:grid;place-items:center;
   background:repeating-linear-gradient(135deg,var(--raise) 0 12px,transparent 12px 24px);
   border-style:dashed}
@@ -33,22 +26,20 @@
 .ahd .l{min-width:0;flex:1}
 .ahd .title{margin:0 0 var(--sp2)}
 .ahd .kind{margin:0}
-/* 入口圖:遊戲裡點進這個活動的那顆鈕,放小張就好 */
+
 .entry{flex:0 0 auto;width:96px;text-align:center}
 .entry img{width:96px;height:96px;object-fit:contain;display:block;
   border-radius:var(--r2);background:var(--raise);border:1px solid var(--line);padding:var(--sp2)}
 .entry b{display:block;margin-top:var(--sp1);font:400 11px/16px var(--mono);color:var(--fg3)}
 
-/* ── 介面圖:背景一張 + 零件照座標疊 + 熱區可點 ──────────────
-   座標是遊戲設計解析度 797×1634 的像素值,一律換成百分比,
-   這樣容器寬度隨便變、疊圖都不會跑掉。 */
+
 .scr{position:relative;width:100%;max-width:420px;margin:0 auto;
   aspect-ratio:797/1634;border-radius:var(--r2);overflow:hidden;
   background:var(--raise);border:1px solid var(--line)}
 .scr>img.bg{position:absolute;inset:0;width:100%;height:100%;display:block}
 .scr .pc{position:absolute;display:block}
 .scr .pc img{width:100%;height:100%;display:block}
-/* 熱區:平常只有很淡的邊,滑過去才亮 —— 不要把介面圖蓋成一片方格 */
+
 .scr a.hz{position:absolute;border-radius:6px;border:1px solid transparent;
   transition:border-color .14s var(--ease),background-color .14s var(--ease)}
 .scr a.hz:hover,.scr a.hz:focus-visible{border-color:var(--q);
@@ -58,8 +49,7 @@
   font:400 11px/16px var(--sans);padding:2px 6px;border-radius:5px;
   background:var(--fg);color:var(--bg);transition:opacity .14s var(--ease)}
 .scr a.hz:hover b,.scr a.hz:focus-visible b{opacity:1}
-/* 執行時填入的格子 = 遊戲跑起來才有內容的位置。**留空**,之後網頁在同座標引用真東西。
-   使用者:「所有道具格留空,網頁會在同座標引用真實的道具」。 */
+
 .scr .ph{position:absolute;border:1px dashed rgba(179,137,47,.55);border-radius:4px;
   background:rgba(179,137,47,.07)}
 .scr .ph i{position:absolute;left:1px;top:1px;font-style:normal;
@@ -74,7 +64,7 @@
 .lgd .k s.a{border:1px solid var(--q);background:rgba(179,137,47,.16)}
 .lgd .k s.b{border:1px dashed rgba(179,137,47,.55);background:rgba(179,137,47,.07)}
 
-/* ── 子活動卡:入口圖 + 名字 + 類型。整格可點 ───────────── */
+
 .subs{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:var(--sp3)}
 .sub{display:flex;flex-direction:column;align-items:center;gap:var(--sp2);
   padding:var(--sp3);border-radius:var(--r2);border:1px solid var(--line);
@@ -83,11 +73,11 @@ a.sub:hover{border-color:var(--q)}
 .sub .ic{width:72px;height:72px;display:grid;place-items:center;border:1px dashed var(--line);border-radius:12px}
 .sub .ic .ab{font:500 13px/1.3 var(--serif);color:var(--fg2);text-align:center;padding:0 4px}
 .sub>i{font-style:normal;font:400 11px/16px var(--mono);color:var(--fg3)}
-/* 引用別處的(招募卡池那兩個)標出來 —— 它不是這個活動的內容 */
+
 .sub.ref{border:0;padding:var(--sp2)}
 .sub.ref>i{color:var(--q)}
 
-/* ── 規則原文:照遊戲的三層(大標/中標/正文)排 ───────────── */
+
 .rule{max-width:64ch}
 .rule h3{margin:var(--sp5) 0 var(--sp3);padding-top:var(--sp3);
   border-top:1px solid var(--line2);
@@ -95,14 +85,14 @@ a.sub:hover{border-color:var(--q)}
 .rule h3:first-child{margin-top:0;padding-top:0;border-top:0}
 .rule h2{margin:0 0 var(--sp4);font:500 22px/1.4 var(--serif)}
 .rule p{margin:0 0 var(--sp2);font-size:14px;line-height:1.85;color:var(--fg2)}
-/* 規則內文的「（1）（2）」是接在上一句下面的細項,縮進才看得出層次 */
+
 .rule p.ind{padding-left:1.5em}
 .toc{display:flex;flex-wrap:wrap;gap:var(--sp2);margin:0 0 var(--sp5)}
 .toc a{font-size:13px;line-height:18px;padding:5px 10px;border-radius:var(--r1);
   background:var(--raise);color:var(--fg2);transition:color .14s var(--ease)}
 .toc a:hover{color:var(--fg)}
 
-/* 畫面層級:名稱 / 白話 / Type 代碼,三段一列 */
+
 .lvl{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:var(--sp1)}
 .lv{display:flex;align-items:baseline;gap:var(--sp2);padding:var(--sp2);
   border-radius:var(--r1);background:var(--raise);min-width:0}
@@ -111,7 +101,7 @@ a.sub:hover{border-color:var(--q)}
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lv .c{flex:0 0 auto;font:400 11px/16px var(--mono);color:var(--fg3)}
 
-/* 機制指標:有/沒有。沒有的壓下去,不要跟有的搶 */
+
 .mech{display:grid;grid-template-columns:repeat(auto-fill,minmax(212px,1fr));gap:var(--sp1)}
 .mech .m{display:flex;align-items:center;gap:var(--sp2);padding:var(--sp2);
   border-radius:var(--r1);font-size:14px;min-width:0}
@@ -122,7 +112,7 @@ a.sub:hover{border-color:var(--q)}
 .mech .m .nm{font:400 12px/16px var(--mono);color:var(--fg3);margin-left:auto;
   min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-/* 讀不到檔的時候要看得見,不能靜靜地空著 */
+
 .bad{padding:var(--sp4);border-radius:var(--r2);border:1px dashed var(--line);
   background:var(--raise);color:var(--fg2);font-size:14px;line-height:1.8}
 .bad b{color:var(--fg)}

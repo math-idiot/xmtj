@@ -1,11 +1,1 @@
-{
- "名稱": "避水珠",
- "名稱依據": "strings_tw MilestoneActivity1091_2 = 避水珠(CommLimitActiveMgr.lua:42 ActInnerTypeName[1091].name 引用此鍵)",
- "說明": "稀有的避水珠，收集避水珠可以探祕獲取珊瑚祕境禮物。",
- "說明來源": "strings_tw MilestoneActivity1091_3",
- "資源碼": "150_<活動aid>(const.ResNumType.InsideActIntegral = 150,ConstDefine.txt:638「内置达成活动积分 150_活动id_积分」;CommLimitActiveMgr.GetCoralRealmScoreItem(aid) 用 150_aid 取得)。lua 檔頭簡體註解寫 150_24091_11,只當線索,aid 是伺服器下發,沒查到實際值",
- "是否活動限定": "是。規則原文第 6 條:「避水珠」僅在本次活動中使用,活動結束後將會清空(rule_milestone_activity_1091)",
- "取得方式": "規則原文第 1 條:活動期間每次消耗「行動力」進行歷練,均有概率獲得避水珠。概率數值沒查到。",
- "圖": "圖.png = 圖片素材_new/item/comz_icon_res_150_24_1091.png,128x128。對應依據:版面 milestoneactivitypanel1091.json 有 UIImage comz_icon_res_150_24_1091(img/item/comz_icon_res_150_24_1091.png),放在 txt_max 進度數字旁;但沒有程式明確寫「這張圖=避水珠」,是版面位置推定。",
- "未確定": ["這張圖是不是避水珠的圖示(見上,版面位置推定)", "ResDefine.lua / PloyFixedRes.lua 用「避水珠」「珊瑚」grep 沒有列,設定表沒有這個資源的 name/desc 列"]
-}
+{"名稱":"避水珠","說明":"稀有的避水珠，收集避水珠可以探祕獲取珊瑚祕境禮物。","圖":"圖.png = 圖片素材_new/item/comz_icon_res_150_24_1091.png,128x128。對應依據:版面 milestoneactivitypanel1091.json 有 UIImage comz_icon_res_150_24_1091(img/item/comz_icon_res_150_24_1091.png),放在 txt_max 進度數字旁;但沒有程式明確寫「這張圖=避水珠」,是版面位置推定。"}

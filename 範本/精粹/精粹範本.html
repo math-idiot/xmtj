@@ -5,86 +5,40 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../共用.css?v=202611231718">
+<link rel="stylesheet" href="../共用.css?v=202611231953">
 </head><body><div class="page" id="app"></div>
-<script src="../共用.js?v=202611231718"></script>
-<script>
-/* 精粹範本。**不帶任何資料** —— 全部執行時讀 素材/精粹/。
-   外框(抬頭/分頁/挑選框/路由/事件)在 共用.js 的 開範本();
-   引用一律走協議引擎,包括自己引用自己。 */
-/* 精粹的類型寫在名字裡(「橙精粹·發冠」→ 發冠),資料沒有獨立欄位。
-   對應的裝備部位:發冠=頭、衣服=衣、護腕=腕、鞋靴=靴、配飾=飾
-   (Essence.equip_type 跟 EquipDefine.type 同一組 1~5 編號) */
-const 類型 = x => String(x.名稱 || '').split('·')[1] || null;
+<script src="../共用.js?v=202611231953"></script>
+<script>const 類型 = x => String(x.名稱 || "").split("·")[1] || null;
 
-/* 同一個名字的精粹有三筆,編號前綴 100xxx / 110xxx / 120xxx,
-   設定表裡名字、圖、說明、品質、equip_type 全部一模一樣,只有發放的地方不同:
-     110xxx ← 綠/藍/紫/橙色精粹禮袋(DropLib 63000~63003)+ 珍品/鎏金/典藏精粹寶箱
-     120xxx ← 橙色精粹寶箱(DropLib 63004)
-     100xxx ← CompanyVault / EliteSummit / Turnplate / Union* / HeartLampLevel
-   照名字列家族會變成同一個品質出現三次(使用者 2026-11-16:「變體tab被複製三次了」),
-   所以只列**跟自己同一組前綴**的那一套。 */
-const 組前綴 = x => String(x.編號 || '').slice(0, 3);
-const 部位 = o => String(o.名稱 || '').split('·')[1] || '';
-/* 部位的順序照 Essence.equip_type / EquipDefine.type 的 1~5,不照筆劃也不照字典序 */
-const 部序 = ['發冠', '衣服', '護腕', '鞋靴', '配飾'];
+const 組前綴 = x => String(x.編號 || "").slice(0, 3);
 
-/* 資訊頁底下的兩行引用(使用者 2026-11-16:「資訊頁引用垂直水平家族就好(同部位/同品質)」)。
-   精粹只有 品質 × 部位 兩軸(5 × 5,同一組前綴內不重複),固定一軸放開另一軸
-   剛好就是這兩行 —— 跟裝備那三行同一個做法。 */
-async function 家族(x, 清單){
-  const 我組 = 組前綴(x), 我部 = 類型(x), 我質 = x.品質;
-  const 同 = f => (清單 || []).filter(o => o.名 !== x._名 && 組前綴(o) === 我組 && f(o));
-  return (await 索引排('精粹', 同(o => 部位(o) === 我部), null, '同一部位,不同品質') || '')
-       + (await 索引排('精粹',
-            同(o => o.品質 === 我質 && 部位(o) !== 我部)
-              .sort((p, q) => 部序.indexOf(部位(p)) - 部序.indexOf(部位(q))),
-            null, '同一品質,不同部位', null, null, true) || '');
+const 部位 = o => String(o.名稱 || "").split("·")[1] || "";
+
+const 部序 = [ "發冠", "衣服", "護腕", "鞋靴", "配飾" ];
+
+async function 家族(x, 清單) {
+ const 我組 = 組前綴(x), 我部 = 類型(x), 我質 = x.品質;
+ const 同 = f => (清單 || []).filter((o => o.名 !== x._名 && 組前綴(o) === 我組 && f(o)));
+ return (await 索引排("精粹", 同((o => 部位(o) === 我部)), null, "同一部位,不同品質") || "") + (await 索引排("精粹", 同((o => o.品質 === 我質 && 部位(o) !== 我部)).sort(((p, q) => 部序.indexOf(部位(p)) - 部序.indexOf(部位(q)))), null, "同一品質,不同部位", null, null, true) || "");
 }
-/* 同一件精粹在設定表有三個編號(100/110/120 前綴),名字、圖、說明、品質、部位全一樣,
-   在遊戲裡就是**同一件東西**,差別只在誰發的:
-     100xxx ← 名士之爭(EliteSummit)/家族寶庫/轉盤/心燈… 110xxx ← 精粹禮袋、珍品/鎏金/典藏寶箱
-     120xxx ← 橙色精粹寶箱
-   所以獲取頁要把同名那三筆的來源**合起來**看(使用者 2026-11-16:「精粹也可以從名仕拿到」)——
-   不然看 110 那一頁的人永遠看不到名士之爭。重複的名字 獲取頁() 自己會去掉。
-   (家族那一組會出現名士之爭,是因為素材把它放在 家族/ 底下。) */
-async function 獲取合(x, 清單){
-  const 同名 = (清單 || []).filter(o => o.名稱 === x.名稱 && o.名 !== x._名);
-  const 其他 = (await Promise.all(同名.map(o =>
-    類資料('精粹', o.名).catch(() => null)))).filter(Boolean);
-  if(!其他.length) return 獲取頁(x);
-  const 併 = Object.assign({}, x), 途 = Object.assign({}, x.獲得途徑 || {});
-  for(const o of 其他){
-    const t = o.獲得途徑 || {};
-    for(const k of ['遊戲標示', '正向來源', '反查'])
-      途[k] = [...(途[k] || []), ...(t[k] || [])];
-    併.反查來源 = [...(併.反查來源 || []), ...(o.反查來源 || [])];
-    併.玩法來源 = [...(併.玩法來源 || []), ...(o.玩法來源 || [])];
-  }
-  併.獲得途徑 = 途;
-  return 獲取頁(併);
+
+async function 獲取合(x, 清單) {
+ const 同名 = (清單 || []).filter((o => o.名稱 === x.名稱 && o.名 !== x._名));
+ const 其他 = (await Promise.all(同名.map((o => 類資料("精粹", o.名).catch((() => null)))))).filter(Boolean);
+ if (!其他.length) return 獲取頁(x);
+ const 併 = Object.assign({}, x), 途 = Object.assign({}, x.獲得途徑 || {});
+ for (const o of 其他) {
+  const t = o.獲得途徑 || {};
+  for (const k of [ "遊戲標示", "正向來源", "反查" ]) 途[k] = [ ...途[k] || [], ...t[k] || [] ];
+  併.反查來源 = [ ...併.反查來源 || [], ...o.反查來源 || [] ];
+  併.玩法來源 = [ ...併.玩法來源 || [], ...o.玩法來源 || [] ];
+ }
+ 併.獲得途徑 = 途;
+ return 獲取頁(併);
 }
 
 開範本({
-  類別: '精粹',
-  副標: x => [類型(x)],
-  分頁: async (x, 清單) => [
-    ['資訊', rows([
-      ['品質', x => x.品質],
-      ['說明', x => x.說明],
-      ['類型', x => 類型(x)],
-      ['等級上限', x => x.等級上限],
-    ], x)
-      + await 家族(x, 清單)],
-    ['獲取', (await 獲取合(x, 清單) || '<p class="note">尚未建檔</p>')],
-    ['其他', rows([
-        ['編號',         x => x.編號],
-        ['對應圖像編號', x => x.對應圖像編號],
-        ['請求獲取指令', x => (x.請求獲取指令 || {}).範例 || (x.請求獲取指令 || {}).格式],
-      ['資料來源', x => x.資料來源],
-      ['產生時間', x => x.產生時間],
-      ['素材路徑', x => '素材/精粹/' + x._名],
-    ], x)],
-  ],
-});
-</script></body></html>
+ "類別": "精粹",
+ "副標": x => [ 類型(x) ],
+ "分頁": async (x, 清單) => [ [ "資訊", rows([ [ "品質", x => x.品質 ], [ "說明", x => x.說明 ], [ "類型", x => 類型(x) ], [ "等級上限", x => x.等級上限 ] ], x) + await 家族(x, 清單) ], [ "獲取", await 獲取合(x, 清單) || '<p class="note">尚未建檔</p>' ], [ "其他", rows([ [ "編號", x => x.編號 ], [ "對應圖像編號", x => x.對應圖像編號 ] ], x) ] ]
+});</script></body></html>
