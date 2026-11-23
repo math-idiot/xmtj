@@ -1,8 +1,0 @@
-{
- "依據": "ActivityFishingScreen.lua 的 m_funList bgName,經 ResPathManager.GetFishingImg(bgName,true)(ResPathManager.lua:1826)取圖",
- "檔案": {
-  "activityfishing_img1.jpg": "獨釣頁背景(bgName 大小寫不同,見 資訊.json 圖)",
-  "tj_bg_01.jpg": "魚群圖鑒背景",
-  "sxsz_bg_01.jpg": "水下拾珍背景"
- }
-}
