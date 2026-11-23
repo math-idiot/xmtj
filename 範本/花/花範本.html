@@ -5,32 +5,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../共用.css?v=202611231718">
+<link rel="stylesheet" href="../共用.css?v=202611231953">
 </head><body><div class="page" id="app"></div>
-<script src="../共用.js?v=202611231718"></script>
-<script>
-/* 花範本。**不帶任何資料** —— 全部執行時讀 素材/花/。
-   外框(抬頭/分頁/挑選框/路由/事件)在 共用.js 的 開範本();
-   引用一律走協議引擎,包括自己引用自己。 */
-開範本({
-  類別: '花',
-  副標: x => [x.等級 != null ? x.等級 + ' 級' : null],
-  分頁: async (x, 清單) => [
-    ['資訊', rows([
-      ['品質', x => x.品質],
-      ['說明', x => x.說明],
-      ['等級上限', x => x.等級上限],
-    ], x)],
-    ['獲取', async () => (await 獲取頁(x)) || '<p class="note">尚未建檔</p>'],
-    ['其他', rows([
-        ['編號',         x => x.編號],
-        ['對應圖像編號', x => x.對應圖像編號],
-        ['請求獲取指令', x => (x.請求獲取指令 || {}).範例 || (x.請求獲取指令 || {}).格式],
-      ['編號',     x => x.編號 ?? x.設定表編號],
-      ['資料來源', x => x.資料來源],
-      ['產生時間', x => x.產生時間],
-      ['素材路徑', x => '素材/花/' + x._名],
-    ], x)],
-  ],
-});
-</script></body></html>
+<script src="../共用.js?v=202611231953"></script>
+<script>開範本({
+ "類別": "花",
+ "副標": x => [ x.等級 != null ? x.等級 + " 級" : null ],
+ "分頁": async (x, 清單) => [ [ "資訊", rows([ [ "品質", x => x.品質 ], [ "說明", x => x.說明 ], [ "等級上限", x => x.等級上限 ] ], x) ], [ "獲取", async () => await 獲取頁(x) || '<p class="note">尚未建檔</p>' ], [ "其他", rows([ [ "編號", x => x.編號 ], [ "對應圖像編號", x => x.對應圖像編號 ], [ "編號", x => x.編號 ] ], x) ] ]
+});</script></body></html>
