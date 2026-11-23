@@ -1,0 +1,9 @@
+{
+ "名稱": "釣魚銀幣",
+ "res_id": 70011,
+ "ploy_type": 329,
+ "o_type": 203,
+ "說明": "通過釣魚可獲得，用於漁具升級，參與水下拾珍活動，活動結束後將會清空。",
+ "說明來源": "config/PloyResources.lua res_id=70011 desc 原文",
+ "圖": "圖.png = activityres/dyds_70011.png,128×128,1419 色"
+}

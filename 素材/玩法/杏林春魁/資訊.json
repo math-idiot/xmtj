@@ -1,0 +1,305 @@
+{
+ "名稱": "杏林春魁",
+ "狀態": "已整理",
+ "類型": "營運活動",
+ "類型依據": "伺服器下發的 ploy:ploy研究/活動總表.json 三檔 主題類型t=315;核心lua/luabasic/ConstActivity.txt:276 ActivityType.SpringTriumph = 315;核心lua/luamain/HangActionActivityMgr.txt:645 以 ActivityType 315 掛 HangActionSpringTriumphLogic(主畫面入口)。不在 config/Activity.lua(查無),config/PloyMenu.lua 也沒有 ploy_type 315 的列(那邊只有另一個 ploy 1002「杏林簽到」,不是這個)。有自己的主畫面但沒有掛多個子活動,所以不判主題活動。",
+ "檔期": "206433、213247、213248(ploy 活動id,同一活動多檔重開)",
+ "檔期依據": "ploy研究/活動總表.json:206433 2026-10-26 08:00~2026-10-31 07:59:59;213247 2026-11-09 08:00~2026-11-14 07:59:59;213248 2026-11-23 08:00~2026-11-28 07:59:59(主題類型t=315)。快照 ploy_213247.json、ploy_206433.json 的 l 欄列出 5 天 5 階段。活動總表只涵蓋 2026-10-01 之後;此前有沒有開過沒查到。",
+ "綁定角色": "沒有",
+ "綁定地圖": "沒有",
+ "綁定說明": "設定表(XinlinSpringAct/XinlinSpringStage)、語系 SpringTriumph_*、版面都沒有指到特定夥伴或地圖。",
+ "活動說明": "沒有",
+ "活動說明來源": "沒有。ploy 快照的 d/e 欄只是「杏林春魁」四字(名稱重複),語系表沒有說明句,不拿規則文字當說明。",
+ "hub畫面": "activity/springtriumph/springtriumphmainscreen(UIConfigsFPJ.txt:169 UI_CONFIGS.SpringTriumphMainScreen,path activity/springtriumph/SpringTriumphMainScreen)。另有兩個彈窗:SpringTriumphPointsGet(UIConfigsFPJ.txt:170,獲取積分)、SpringTriumphRankAward(UIConfigsFPJ.txt:176,春魁榜/階段獎勵)。",
+ "入口": "主畫面圖示入口:HangActionSpringTriumphLogic:GetEntranceIconPath 回 zjm_icon_jlck(ResPathManager.GetMainAtls,main atlas);按鈕名 GetEntranceIconBtnName = 語系 SpringTriumph_str_0「杏林春魁」;DoEntrance → SpringTriumphMgr.OpenMain()。",
+ "子活動": [],
+ "子活動說明": "主畫面版面只有 規則(btn_rule)/ 春魁榜(btn_rank)/ 獲取積分(btn_getBtn)三顆按鈕(lua SpringTriumphMainScreen.txt:34-36 綁定),是同一活動內的功能頁,不是各自獨立的子活動,所以子活動寫 []。",
+ "活動資源": [],
+ "活動資源說明": "沒有。積分是伺服器下發的活動積分,沒有對應 PloyResources/PloyFixedRes 列(未逐表 grep 驗,見 未確定)。",
+ "階段與積分任務": {
+  "說明": "ploy 快照每檔 5 天,stage 依序為 1、92、3、4、5(day 1~5)。階段名取自 config/XinlinSpringStage.lua(欄名原文就是 satge)。積分任務取自 config/XinlinSpringAct.lua(兩層索引:大類型=stage、小類型=act_id,不壓平;secondKey 表見該檔 11-17 行)。stage 2、93 在表裡有但這三檔快照沒用到(2 與 92 同名「心醫成長」,3 與 93 同名「寵物成長」)。「達到X積分可領進度獎勵」的獎勵來自 RewardTemplate id 105,client 端沒逐列整理。",
+  "階段": [
+   {
+    "stage": "1",
+    "階段名": "夥伴成長",
+    "積分任務": [
+     {
+      "act_id": 1,
+      "積分": 15,
+      "上限": 1500,
+      "說明": "消耗1張邀約帖進行夥伴招募",
+      "getway": 9
+     },
+     {
+      "act_id": 2,
+      "積分": 60,
+      "上限": 0,
+      "說明": "消耗1個SSR或UR萬能卡進行夥伴突破",
+      "getway": 508
+     },
+     {
+      "act_id": 3,
+      "積分": 2,
+      "上限": 500,
+      "說明": "通過任意養成增加1000點歷史最大戰力",
+      "getway": 487
+     }
+    ]
+   },
+   {
+    "stage": "2",
+    "階段名": "心醫成長",
+    "積分任務": [
+     {
+      "act_id": 3,
+      "積分": 2,
+      "上限": 500,
+      "說明": "通過任意養成增加1000點歷史最大戰力",
+      "getway": 487
+     },
+     {
+      "act_id": 4,
+      "積分": 40,
+      "上限": 0,
+      "說明": "消耗1張霓裳券開啟任意禮盒",
+      "getway": 495
+     },
+     {
+      "act_id": 5,
+      "積分": 1,
+      "上限": 1000,
+      "說明": "通過完成學習積累每1分鐘的學習時長",
+      "getway": 242
+     }
+    ]
+   },
+   {
+    "stage": "3",
+    "階段名": "寵物成長",
+    "積分任務": [
+     {
+      "act_id": 3,
+      "積分": 2,
+      "上限": 500,
+      "說明": "通過任意養成增加1000點歷史最大戰力",
+      "getway": 487
+     },
+     {
+      "act_id": 7,
+      "積分": 60,
+      "上限": 6000,
+      "說明": "消耗1個銀鈴鐺進行寵物招募",
+      "getway": 374
+     },
+     {
+      "act_id": 8,
+      "積分": 500,
+      "上限": 0,
+      "說明": "消耗1個SSR或UR萬能寵物意志進行寵物突破",
+      "getway": 372
+     }
+    ]
+   },
+   {
+    "stage": "4",
+    "階段名": "歷練成長",
+    "積分任務": [
+     {
+      "act_id": 9,
+      "積分": 20,
+      "上限": 0,
+      "說明": "通過歷練觸發並進行1次花籤占卜",
+      "getway": 483
+     },
+     {
+      "act_id": 10,
+      "積分": 15,
+      "上限": 0,
+      "說明": "通過歷練觸發並進行1次貼紙轉盤",
+      "getway": 483
+     },
+     {
+      "act_id": 11,
+      "積分": 2,
+      "上限": 3000,
+      "說明": "消耗1個金錠",
+      "getway": 1
+     }
+    ]
+   },
+   {
+    "stage": "5",
+    "階段名": "裝備成長",
+    "積分任務": [
+     {
+      "act_id": 3,
+      "積分": 2,
+      "上限": 500,
+      "說明": "通過任意養成增加1000點歷史最大戰力",
+      "getway": 487
+     },
+     {
+      "act_id": 12,
+      "積分": 15,
+      "上限": 1500,
+      "說明": "消耗200個珍寶星塵進行珍寶招募",
+      "getway": 472
+     },
+     {
+      "act_id": 13,
+      "積分": 80,
+      "上限": 0,
+      "說明": "通過寶石合成獲得1顆5級及以上寶石",
+      "getway": 97
+     },
+     {
+      "act_id": 14,
+      "積分": 30,
+      "上限": 0,
+      "說明": "消耗1個靈玉",
+      "getway": 464
+     }
+    ]
+   },
+   {
+    "stage": "92",
+    "階段名": "心醫成長",
+    "積分任務": [
+     {
+      "act_id": 3,
+      "積分": 2,
+      "上限": 500,
+      "說明": "通過任意養成增加1000點歷史最大戰力",
+      "getway": 487
+     },
+     {
+      "act_id": 5,
+      "積分": 1,
+      "上限": 1000,
+      "說明": "通過完成學習積累每1分鐘的學習時長",
+      "getway": 242
+     },
+     {
+      "act_id": 14,
+      "積分": 30,
+      "上限": 0,
+      "說明": "消耗1個靈玉",
+      "getway": 464
+     }
+    ]
+   },
+   {
+    "stage": "93",
+    "階段名": "寵物成長",
+    "積分任務": [
+     {
+      "act_id": 3,
+      "積分": 2,
+      "上限": 500,
+      "說明": "通過任意養成增加1000點歷史最大戰力",
+      "getway": 487
+     },
+     {
+      "act_id": 6,
+      "積分": 150,
+      "上限": 7500,
+      "說明": "消耗1個金鈴鐺進行限時寵物招募",
+      "getway": 1005
+     },
+     {
+      "act_id": 7,
+      "積分": 60,
+      "上限": 6000,
+      "說明": "消耗1個銀鈴鐺進行寵物招募",
+      "getway": 374
+     },
+     {
+      "act_id": 8,
+      "積分": 500,
+      "上限": 0,
+      "說明": "消耗1個SSR或UR萬能寵物意志進行寵物突破",
+      "getway": 372
+     }
+    ]
+   }
+  ],
+  "階段標籤": "主畫面 tab 名稱:SpringTriumph_str_3~9 一/二/三/四/五/六(str_3~7 為一~五,str_9 為六),格式 SpringTriumph_str_8「%s階段：」(SpringTriumphMgr.getTabName)",
+  "結算": "每階段持續1天,晚上22點結算(rule_springtriumph 原文);主畫面程式 SpringTriumphMainScreen.txt 以 22:00 / 8:00 判斷是否進入結算顯示"
+ },
+ "機制": {
+  "有兌換商店": false,
+  "有簽到": false,
+  "有儲值禮包": false,
+  "有排行榜": true,
+  "排行榜名": "春魁榜",
+  "有限定夥伴招募": false,
+  "有限定寵物招募": false,
+  "有限定時裝招募": false,
+  "有活動傳記": false,
+  "排行榜說明": "階段排名 + 總排名(語系 SpringTriumph_str_26/28);rank type 114(階段)、115(總)(SpringTriumphMainScreen.txt 變數 _rankType1/_rankType2);版面 排名未進入前100名(SpringTriumph_str_29)。",
+  "依據": "主畫面程式與三個版面都沒有商店、簽到、禮包、招募、傳記入口(程式沒有入口,不是沒查)。注意:活動總表把這個 ploy 的「內容類型」標成「每日簽到」,是依 ploy 內容欄位推出的標籤,client 的 SpringTriumph 程式沒有任何簽到介面,所以 有簽到 記 false;該標籤的實際含義沒查到。"
+ },
+ "圖": {
+  "主圖.png": "沒有。沒有 hangactionmain/activity_<id> 橫幅,也沒有 zjm_banner;入口是 main atlas 的 zjm_icon_jlck 圖示(圖集內的圖,MANIFEST 只有 assets/arts/ui/atlas/main/main.asset.tw,沒有單張)",
+  "文字_橫幅.png": "沒有。無橫幅",
+  "文字.png": "assets/arts/ui/img/springtriumph/xlck_ptext_title_c.png.tw(版面 springtriumphmainscreen 標題節點引用),308×96,2950 色。來源 mumu/巡夢少女_解包/巡夢少女_圖片素材_new/springtriumph/xlck_ptext_title_c.png.tw.png(與 雜物/_依活動/杏林春魁/ 同檔 cmp 相同)",
+  "入口圖.png": "沒有。zjm_icon_jlck 在 main atlas 內,沒有單張抽出,見 缺圖",
+  "元件/": {
+   "xlck_bg_tc.png": "752×1200,65618 色;主畫面背景(springtriumphmainscreen.json)",
+   "xlck_bg_wjxx.png": "680×172,3702 色;主畫面玩家資訊底(mainscreen、rankaward 都引用)",
+   "xlck_bg_phb.png": "644×736,302 色;主畫面排行底(mainscreen)",
+   "xlck_btn_yqd.png": "64×56,51 色(小圖,色少是真的);主畫面/獲取積分/春魁榜 都引用",
+   "xlck_floor_jl.png": "264×128,2402 色;主畫面獎勵底",
+   "xlck_floor_phb.png": "152×60,2435 色;主畫面春魁榜標籤底",
+   "xlck_floor_phb1.png": "212×312,1394 色;春魁榜前三名底(rankaward)",
+   "xlck_floor_phb2.png": "212×304,1389 色;同上",
+   "xlck_floor_phb3.png": "212×296,1132 色;同上",
+   "xlck_nine_paihang04.png": "480×112,784 色;春魁榜九宮格底(rankaward)"
+  }
+ },
+ "缺圖": [
+  {
+   "資產路徑": "assets/arts/ui/atlas/main/main.asset.tw 內的 sprite zjm_icon_jlck",
+   "用途": "主畫面入口圖示",
+   "MANIFEST有無": true,
+   "備註": "MANIFEST 有整個 main atlas(.tw/.cn),沒有單張;mumu 抽圖集 sprite 才有"
+  }
+ ],
+ "資料來源": {
+  "設定表": [
+   "config/XinlinSpringAct.lua(23 列,兩層索引 stage→act_id;欄位長度檢查通過)",
+   "config/XinlinSpringStage.lua(7 列:階段名)",
+   "config/RewardTemplate.lua id 105(進度獎勵模板,SpringTriumphMainScreen.txt initFun 引用,未整理)",
+   "config/Activity.lua / PloyMenu.lua:查無 315"
+  ],
+  "語系表": "雜物/原始資料/家族主畫面/strings_tw.json:SpringTriumph_str_0~39(str_0=杏林春魁、str_24=春魁榜)",
+  "規則": "rule_springtriumph(核心lua/luamain/SpringTriumphMainScreen.txt:478 UIPopManager.OpenRuleUI(\"rule_springtriumph\");規則/ 內為 素材/規則 的副本,cmp 相同)",
+  "版面": "雜物/_版面/activity/springtriumph/springtriumphmainscreen.json、springtriumphpointsget.json、springtriumphrankaward.json、item/springtriumphaward1.json",
+  "程式": "核心lua/luamain/HangActionSpringTriumphLogic.txt、SpringTriumphMainScreen.txt、SpringTriumphMgr.txt、SpringTriumphCache.txt、核心lua/luabasic/UIConfigsFPJ.txt:169-182、ConstActivity.txt:276、HangActionActivityMgr.txt:67,645、lua/ui/activity/springtriumph/*.lua",
+  "ploy": "mumu/巡夢少女_解包/ploy研究/活動總表.json(206433/213247/213248);快照庫/ployMenu_2026-11-05_766230069_*_解密/ploy_213247.json、ployMenu_2026-10-30_766230072_*_解密/ploy_206433.json",
+  "圖": {
+   "文字.png、元件/": "mumu/巡夢少女_解包/巡夢少女_圖片素材_new/springtriumph/(MANIFEST 有 assets/arts/ui/img/springtriumph/xlck_*;版面逐張引用)"
+  }
+ },
+ "拿不到": [
+  "各階段的進度獎勵內容(RewardTemplate 105 未逐列解,名次獎勵由伺服器/郵件發放)",
+  "排名獎勵分段",
+  "檔期 2026-10-01 以前的開放紀錄",
+  "活動說明文字"
+ ],
+ "未確定": [
+  "ploy 活動總表把內容類型標成「每日簽到」,但 client 程式沒有簽到介面;含義沒查到",
+  "stage 2、93 在表裡有、近三檔快照沒用;是否曾使用沒查到",
+  "活動資源:沒逐表 grep PloyResources/PloyFixedRes 確認有無活動限定資源",
+  "語系鍵 SpringTriumph_str_34「春」、_35「魁榜1」是版面上的美術拆字,用途沒細查",
+  "ConstActivity 的簡體註解寫「吉林春魁」,台版名為「杏林春魁」,以語系 SpringTriumph_str_0 為準"
+ ],
+ "關聯": [
+  "杏林茶會",
+  "杏林簽到",
+  "杏林饋贈·金錠",
+  "杏林饋贈·體力",
+  "杏林漫步"
+ ],
+ "關聯說明": "清單裡同為「杏林」開頭的名稱,是否同系統沒有證據(只是名字相近,不當證據);_依活動 另有 杏林茶會/杏林饋贈/杏林之星 夾,資產前綴不同(xlch/xlkz/xlzx),沒有確認跟本活動的關係。"
+}

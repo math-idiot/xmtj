@@ -1,0 +1,14 @@
+{
+ "名稱": "積分",
+ "類型": "活動積分(內置達成活動)",
+ "所屬活動": "回輪竹語",
+ "資源碼": "150_<InsideTaskTime.id>_<數量>,這一檔是 150_24022_<數量>",
+ "名稱依據": "核心lua/luamain/AwardUtil.txt:1080-1096:ret.name = string.format(ResDefine[150].res_name, CommLimitActiveMgr.ActTaskTypeName[InsideTaskTime.type])。config/ResDefine.lua firstKey=150 的 res_name = \"%s積分\";核心lua/luamain/CommLimitActiveMgr.txt:36-38 的 ActTaskTypeName 只配了 CostumeParty(9),type=24(里程碑)沒有對應值 → 代入空字串 → 名字就是「積分」。不是這一檔專屬的資源名,所有里程碑活動都叫「積分」。",
+ "說明": "積分可用於兌換積分達成獎勵。",
+ "說明來源": "config/ResDefine.lua firstKey=150 的 res_des = \"%s積分可用於兌換積分達成獎勵。\",同樣代入空字串。",
+ "怎麼拿": "歷練事件:花圃尋芳 +12、花籤占卜 +6、歷練成功 +2(config/InsideJudgeTopic.lua tid=1021 的 conf = \"24#12|32#6|4#2\",事件名查 config/DiceEvent.lua)。",
+ "圖": "圖.png = assets/arts/ui/img/item/comz_icon_res_150_24_1021.png.tw,256×256,RGBA,顏色數 6176。檔名由 AwardUtil.txt:1093 string.format(res_icon, type)..\"_\"..extend 算出 = comz_icon_res_150_24_1021;版面 /…/go_slider/img_1/img_res_icon 與 /…/go_slider/UIText/img_res_icon 兩個節點用的就是這張。來源:巡夢少女_解包/巡夢少女_圖片素材_new/item/comz_icon_res_150_24_1021.png.tw.png。",
+ "拿不到": [
+  "活動結束後積分怎麼處理(沒有規則檔,client 查不到)"
+ ]
+}

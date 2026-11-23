@@ -1,0 +1,12 @@
+{
+ "這是什麼": "這個活動用到的規則原文,放在活動夾裡。",
+ "正本": "素材/規則/rule_milestone_activity_1061.json。這裡是副本,內容照抄未改(cmp 逐位元相同)。",
+ "誰在用": "整個活動共用這一份(畫面上 btn_detail / btn_detail2 都開它)。",
+ "檔案": [
+  "rule_milestone_activity_1061 織夢成卷"
+ ],
+ "依據": "lua/ui/milestoneactivity/milestoneactivitypanel1061.lua:114 UIPopManager.OpenRuleUI(\"rule_milestone_activity_1061\")(規則鍵是程式直接寫的,不是從名字配的)",
+ "找過但沒有": [
+  "沒有找到織夢成卷商店專屬的 rule_shop_* 規則(因為商店型態未確定)"
+ ]
+}

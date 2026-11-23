@@ -1,0 +1,235 @@
+{
+ "名稱": "杏林饋贈·體力",
+ "清單名稱說明": "清單這一筆寫「杏林饋贈·體力」,但「·體力」不在任何權威來源。設定表正本名只有「杏林饋贈」(config/InsideJudgeTopic.lua tid=1031 的 name 欄)。體力/金錠是同一個活動(tid 1031)的獎勵版本差異:config/InsideTaskTime.lua type=24 extend=1031 的五列檔期裡,24031/24033/24035 的 judge_reward 全是 2_3000_N(ItemDefine item_id 3000 = 行動力),24032/24034 全是 13_N(ResDefine 大類型 13 = 金錠)。清單第 99 筆「杏林饋贈·金錠」是同一個活動的另一種獎勵版本,不是另一個活動。遊戲裡這個資源叫「行動力」,「體力」是清單/舊整理的用詞。",
+ "狀態": "已整理",
+ "類型": "營運活動",
+ "類型依據": "config/InsideJudgeTopic.lua tid=1031 name=杏林饋贈,是「內置活動/里程碑」那張表的一列;config/InsideActive.lua big_type=24 name=里程碑活动 activeType=564,對上 核心lua/luabasic/ConstActivity.txt:368 ConstActivity.ActivityType.Milestone = 564;檔期列在 config/InsideTaskTime.lua type=24(extend=1031);入口是 config/GetWay.lua func_id=481 func_name=里程碑活動 → 核心lua/luabasic/ConstDefine.txt:4344 GetWayID.MilestoneActive = 481 → 核心lua/luabasic/GetWayToUI.txt:1947 開 UI_CONFIGS.MilestoneActivityPanel。限時、每檔 48 小時、獎勵與商店由伺服器下發 → 類型表裡最接近的是「營運活動」。但要注意:它不在 config/PloyMenu.lua(13 列只有 ploy_type 221 杏林簽到),也不在 ploy 快照(ploy研究/活動總表.json 313 筆,2026-10-01 之後)裡,所以沒有 ploy 編號 —— 嚴格講它是 client 設定表驅動的內置活動,不是 ploy 活動。見 未確定 第 3 條。",
+ "檔期": "沒有",
+ "檔期依據": "沒有 ploy 編號、沒有 Activity.lua id、沒有 ActivityMatchId。client 側的檔期設定是 config/InsideTaskTime.lua type=24、extend=1031 的五列:id 24031(open_time 3, continue_hour 48)、24032、24033、24034、24035,五列 open_type 都是 2、open_time 都是 3、continue_hour 都是 48(48 小時一檔)。實際開哪一列由伺服器下發的 aid 決定(核心lua/luamain/CommLimitActiveMgr.txt:31 Milestone = 24;lua/ui/milestoneactivity/milestoneactivityscreen.lua:20-25 CommLimitActiveMgr.GetActiveTimeInfo(ActivityType.Milestone, index) → ConfigMgr.GetInsideTaskTimeCfgVo(aid) → GetExtend() 取回 1031)。另外 核心lua/luabasic/ConstActivity.txt:138 MarvellousType.MilestoneAndNewRank = 10008 (陸版註解「在运营活动中的o」)是整個里程碑+每日排行家族共用的 o 值,不是這一檔的檔期號,所以沒有填進 檔期。",
+ "綁定角色": "沒有",
+ "綁定地圖": "沒有",
+ "綁定說明": "設定表(InsideJudgeTopic 1031 / InsideTaskTime 24031~24035)沒有角色或地圖欄位;1031 的版面(雜物/_版面/milestoneactivity/1031/milestoneactivitypanel.json)沒有立繪節點、沒有 ptext_name 類圖;MANIFEST 的 milestoneactivity/1031/ 10 筆資產裡也沒有人物圖。積分來源是歷練事件(config/DiceEvent.lua type 21/25/4),那三種事件不綁單一地圖,表裡跨多個 place 都有。",
+ "活動說明": "沒有",
+ "活動說明來源": "config/InsideJudgeTopic.lua tid=1031 的 desc 欄是空字串;語系表 strings_tw.json 沒有「杏林饋贈」這個值、也沒有 1031 專屬鍵。畫面上的說明文字全是里程碑通用鍵,見 畫面文字。",
+ "hub畫面": "沒有",
+ "畫面": {
+  "這不是主題活動": "沒有 hub,只有一個活動面板(2 級全屏彈窗)。",
+  "畫面": "核心lua/luabasic/UIConfigs.txt:2970 MilestoneActivityPanel = {path = \"milestoneactivity/milestoneactivityscreen\", type = Type_1_2_1}",
+  "1031 專屬版面": "核心lua/luabasic/UIConfigs.txt:3492 MilestoneActivityPanel1031 = {path = \"milestoneactivity/1031/milestoneactivitypanel\"}",
+  "怎麼挑到 1031 的版面": "lua/ui/milestoneactivity/milestoneactivityscreen.lua:28-33 —— WIDGET_CONFIGS[\"MilestoneActivityPanel\"..id],id = InsideTaskTime 的 extend = 1031",
+  "面板 lua": "lua/ui/milestoneactivity/milestoneactivitypanel2.lua / 3.lua / 4.lua 之一(見 未確定 第 2 條);三支的 btn_detail、btn_shop 行為一致",
+  "入口": "歷練主畫面的活動入口(核心lua/luamain/HangActionActivityMgr.txt:212-219 ActivityType.Milestone=22 → class ui.hangaction.activity.HangActionMilestoneLogic;HangActionMilestoneLogic.txt:72-74 DoEntrance → UIPanelManager.OpenID(const.GetWayID.MilestoneActive))",
+  "入口按鈕上的字": "HangActionMilestoneLogic.txt:77-87 GetEntranceIconBtnName() 回傳 InsideJudgeTopic 的 name 欄 —— 也就是「杏林饋贈」(不是「杏林饋贈·體力」)",
+  "開啟條件": "核心lua/luamain/UnlockManager.lua:191 UnlockEnum.MilestoneActive = 3008(HangActionMilestoneLogic.txt:29 IsUnlockById 檢查);審核模式下不顯示(同檔 24-27 行 AppConfigMgr.IsInReview)"
+ },
+ "子活動": [],
+ "子活動說明": "1031 版面上的 UIButton 只有 9 顆:btn_detail(事件明細)、btn_milestone_1005、btn_close、img_res_icon、ItemReward2、img_canReward、clickBtn(都是進度條上的獎勵格/資源圖示)、coma_btn_hd2(完成彈窗的「好耶！」鈕,go_finish 預設關閉)、btn_shop(禮包)。沒有子活動入口,所以 子活動 是空的。",
+ "活動資源": [],
+ "活動資源說明": "活動內的計量單位是「內置達成活動積分」:核心lua/luabasic/ConstDefine.txt:638 ResNumType.InsideActIntegral = 150,註解寫格式是「150_活动id_积分」;lua/ui/newrankactivity/newrankactivityeventpanel.lua:57 ResPathManager.StrThrSplice(const.ResNumType.InsideActIntegral, \"_\", m_aid) 就是在組這個碼。config/ResDefine.lua 大類型 150 的 res_name 是格式字串「%s積分」,沒有台版固定名稱,所以 活動資源 寫空、不開 資源/ 夾。1031 專屬的積分圖示是 assets/arts/ui/img/item/comz_icon_res_150_24_1031.png(版面節點 go_reward/UIText/img_res_icon 與 go_reward/go_slider/img_1/img_res_icon 引用 comz_icon_res_150_24_1031),本機 /srv/share/mumu/巡夢少女_解包/巡夢少女_圖片素材_new/item/ 有抽出來,但因為沒有資源名,這次沒放進成品夾(見 待使用者確認)。",
+ "機制": {
+  "有兌換商店": false,
+  "有簽到": false,
+  "有儲值禮包": true,
+  "儲值禮包名": "沒有(名稱由伺服器下發;版面按鈕上的字只有通用鍵 weekgame_1「禮包」)",
+  "有排行榜": false,
+  "有限定夥伴招募": false,
+  "有限定寵物招募": false,
+  "有限定時裝招募": false,
+  "有活動傳記": false,
+  "依據": "版面(_版面/milestoneactivity/1031/milestoneactivitypanel.json)上唯一的商店類入口是 btn_shop,節點路徑 /MilestoneActivityPanel/root/btn_shop,m_IsActive=true,底圖 xg_bg_hdd + 圖示 cflb_icon_xstg(都在 atlas/generalbutton_circle/primarybutton 通用圖集),按鈕文字的在地化鍵是 weekgame_1 = 「禮包」。程式:lua/ui/milestoneactivity/milestoneactivitypanel2.lua:74-76(3.lua:67-69、4.lua:75-77 同)OnBtn_ShopClick → UIPanelManager.OpenCommonShop(ConstActivity.MarvellousType.MilestoneAndNewRank, m_aid, endTime);核心lua/luabasic/UIPopManager.txt:1416-1431 OpenCommonShop 先用 RacingCatMgr.CheckShopOpen 查有沒有開,核心lua/luamain/RacingCatMgr.txt:201-213 CheckShopOpen 是去讀伺服器的 ActivityType.ImprestPloy 資料(按 o 與 insideId=aid 過濾)。所以這顆鈕通的是「ImprestPloy 禮包商城」,不是兌換商店 → 有兌換商店 = false、有儲值禮包 = true。按鈕要不要顯示也是伺服器決定(milestoneactivitypanel2.lua:265 / 3.lua:226 / 4.lua:219 SafeSetUtil.SetActiveSafe(btn_shop, RacingCatMgr.CheckShopOpen(MarvellousType.MilestoneAndNewRank, m_aid)))。簽到、排行榜、夥伴/寵物/時裝招募、活動傳記:版面上沒有這些節點、面板 lua 也沒有對應程式入口 → 全部 false(是「版面/程式沒有入口」,不是「沒查到」)。排行榜另有一條旁證:InsideJudgeTopic 的 reward_type 欄,走每日排行的 遊園爭霸=2001、杏林之星=2002,而 tid 1031 的 reward_type 是 0。"
+ },
+ "玩法": {
+  "事件積分": {
+   "原碼": "config/InsideJudgeTopic.lua tid=1031 conf = \"21#4|25#5|4#2\"",
+   "怎麼讀": "lua/ui/newrankactivity/newrankactivityeventpanel.lua:60-84 —— 用 \"|\" 切列、\"#\" 切成 [事件type, 積分],事件名用 ConfigMgr.GetLastDiceEventCfgVoByType(type) 取 config/DiceEvent.lua 該 type 最後一列的 name 欄",
+   "事件": [
+    {
+     "事件": "派發俸祿",
+     "事件type": 21,
+     "積分": 4,
+     "依據": "config/DiceEvent.lua type=21 共 21 列,最後一列 event_id 21100020 name=派發俸祿"
+    },
+    {
+     "事件": "錦市裁衣",
+     "事件type": 25,
+     "積分": 5,
+     "依據": "config/DiceEvent.lua type=25 共 21 列,最後一列 event_id 25100021 name=錦市裁衣"
+    },
+    {
+     "事件": "歷練成功",
+     "事件type": 4,
+     "積分": 2,
+     "依據": "config/DiceEvent.lua type=4 共 858 列,最後一列 event_id 4307020 name=歷練成功"
+    }
+   ],
+   "事件每日上限": "沒有。InsideJudgeTopic/InsideTaskTime 沒有上限欄位;DiceEvent 的 day_limit 是歷練事件自己的,沒有查證跟這個活動的關係"
+  },
+  "檔期與階段獎勵": {
+   "說明": "config/InsideTaskTime.lua type=24、extend=1031 共五列。judge_reward 的格式是「累積積分#獎勵碼」用 \"|\" 串起來,每一列都是 10 階。獎勵碼照抄,只標了兩種已經查到權威表的:2_3000_N = 道具 3000(ItemDefine name=行動力)數量 N;13_N = ResDefine 大類型 13(res_name=金錠)數量 N。",
+   "體力(行動力)版": [
+    {
+     "id": 24031,
+     "全拿累積": 3100,
+     "judge_reward": "40#2_3000_20|100#2_3000_30|200#2_3000_60|350#2_3000_90|550#2_3000_120|800#2_3000_120|1100#2_3000_120|1500#2_3000_120|2100#2_3000_120|3100#2_3000_500"
+    },
+    {
+     "id": 24033,
+     "全拿累積": 1500,
+     "judge_reward": "40#2_3000_20|100#2_3000_30|200#2_3000_60|300#2_3000_90|450#2_3000_90|600#2_3000_120|800#2_3000_120|1000#2_3000_120|1250#2_3000_120|1500#2_3000_500"
+    },
+    {
+     "id": 24035,
+     "全拿累積": 1850,
+     "judge_reward": "40#2_3000_20|100#2_3000_30|200#2_3000_60|300#2_3000_90|450#2_3000_90|600#2_3000_120|800#2_3000_120|1050#2_3000_120|1350#2_3000_120|1850#2_3000_500"
+    }
+   ],
+   "金錠版(屬於清單第 99 筆 杏林饋贈·金錠,列在這裡只為說明兩版同一個 tid)": [
+    {
+     "id": 24032,
+     "全拿累積": 3100,
+     "judge_reward": "40#13_20|100#13_30|200#13_60|350#13_90|550#13_120|800#13_120|1100#13_120|1500#13_120|2100#13_120|3100#13_500"
+    },
+    {
+     "id": 24034,
+     "全拿累積": 1500,
+     "judge_reward": "40#13_20|100#13_30|200#13_60|300#13_90|450#13_120|600#13_120|800#13_120|1000#13_120|1250#13_120|1500#13_500"
+    }
+   ],
+   "all_step_reward / ploy_judge_reward": "五列都是空字串(沒有全階段額外獎勵、沒有 ploy 覆蓋獎勵)",
+   "哪一列是哪一期": "拿不到。由伺服器下發的 aid 指定"
+  },
+  "畫面上的進度": "go_reward 底下是一條進度條(commUISlider_3)+ 10 個獎勵格(ItemReward2 / img_canReward / img_rewarded / xlkz_bg_dj 影子),完成彈窗 go_finish 預設 m_IsActive=false"
+ },
+ "畫面文字": {
+  "這是什麼": "1031 版面上 UIText 的在地化鍵 → strings_tw.json 的台版值。沒有一條是 1031 專屬鍵,全是里程碑/通用鍵。",
+  "milestone_active_3": "後活動結束",
+  "milestone_active_4": "積攢愛心值贏取進度大獎",
+  "milestone_active_8": "完成以下事件可賺取積分，獲得積分獎勵。(btn_detail 開 NewRankActivityEventPanel 時當說明文字傳進去,見 milestoneactivitypanel2.lua:70-72)",
+  "new_rank_active_2": "已領取獎勵<color=#6FFFB6>%s</color>/%s",
+  "weekgame_1": "禮包(btn_shop 的字)",
+  "petguidestr_5": "大獎預覽",
+  "MilestoneActivity_2": "活動完成(完成彈窗標題)",
+  "MilestoneActivity_5": "恭喜你收集齊了所有獎勵，完成了杏林探索！下次見！(完成彈窗內容 —— 這是 1031 版面裡唯一提到「杏林」的字)",
+  "MilestoneActivity_4": "好耶！(完成彈窗的按鈕)",
+  "MilestoneActivity_10": "收集       贏取額外的活動積分！",
+  "佔位字": "pure_time/normal_time/warning_time/increment_time 是「00:00:00」「7天20小时」這種寫死的佔位(tw 查不到),txt_multiple/txt_min/txt_max/txt_value 是「1」「100」「200」「999」,都是設計師留的,不是台版內容"
+ },
+ "圖": {
+  "主圖.png": "沒有。這個活動沒有入口橫幅 —— lua/ui/hangaction/hangactionmainbannerwidget.lua 的橫幅表沒有這一列,MANIFEST 也沒有 banner/zjm_banner_xlkz* 或 hangactionmain/activity_1031/。入口是歷練主畫面的小圖示(見 入口圖.png)。",
+  "文字_橫幅.png": "沒有。沒有橫幅,就沒有橫幅小字圖(MANIFEST 的 milestoneactivity/1031/ 只有 9 張圖 + 1 個 prefab,沒有 ptext_banner 類)。",
+  "文字.png": "來源資產 assets/arts/ui/img/milestoneactivity/1031/xlkz_ptext_title_c.png.tw,484×200 RGBA,顏色數 10610。複製自 /srv/share/xm/雜物/_依活動/杏林饋贈/xlkz_ptext_title_c.png.tw.png(mumu 依活動交付)。版面節點 /MilestoneActivityPanel/root/img_milestone_1011/img_title 的 UIImage 就是這張(SizeDelta 484×200,與圖等大)。",
+  "入口圖.png": "沒有。入口圖示是圖集內的 sprite「milestone_1031」:核心lua/luamain/HangActionMilestoneLogic.txt:57-64 GetEntranceIconPath() → ResPathManager.GetMainAtls(\"milestone_\"..extend),核心lua/luabasic/ResPathManager.txt:753 atl_mainPath = \"assets/arts/ui/atlas/main/\"。允許的三個圖來源都沒有抽出這張 → 記在 缺圖。",
+  "子活動入口圖": "沒有(沒有子活動)。",
+  "元件/xlkz_bg_tc.png": "752×1200 RGBA,顏色數 165621。面板底圖,版面節點 /MilestoneActivityPanel/root/img_milestone_1011。",
+  "元件/xlkz_bg_bx.png": "512×512 RGBA,顏色數 42880。進度大獎寶箱(go_finish/img_active 與 go_reward 底下各一處引用)。",
+  "元件/xlkz_bg_bx02.png": "512×512 RGBA,顏色數 40384。寶箱第二態(go_finish/img_gold)。",
+  "元件/xlkz_bg_dj.png": "80×28 RGBA,顏色數 146(< 150:它是獎勵格下面的小影子條,本來就只有幾階半透明灰,不是空圖 —— 版面 10 個獎勵格各引用一次,SizeDelta 80×28 與圖等大)。",
+  "元件/xlkz_nine_bk.png": "112×112 RGBA,顏色數 531。九宮格底板(go_finish/img_bg,版面把它拉成 561×198)。"
+ },
+ "缺圖": [
+  {
+   "資產路徑": "assets/arts/ui/atlas/main/main.asset.tw 裡的 sprite milestone_1031",
+   "用途": "入口圖(歷練主畫面上這個活動的入口圖示)",
+   "MANIFEST有無": true,
+   "備註": "MANIFEST_full.json 只到圖集檔(assets/arts/ui/atlas/main/main.asset.tw 與 .cn 都在,共 4 筆 atlas/main 項),單張 sprite 不是 MANIFEST 的鍵。允許的三個圖來源(_依活動/杏林饋贈、圖片素材_new/、點名抓/)都沒有這張。/srv/share/mumu/舊版APK/1.0.3 與 1.0.4 的 全部拆開/sprite/assets/arts/ui/atlas/main/milestone_1031.png 有同名檔,但舊版APK 不在允許來源內,沒有拿也沒有當證據。"
+  }
+ ],
+ "已抽出但沒放進來的1031資產": [
+  {
+   "資產路徑": "assets/arts/ui/img/milestoneactivity/1031/xlkz_bg_bxyy.png",
+   "在哪": "/srv/share/mumu/巡夢少女_點名抓/活動全套UI/milestoneactivity/1031/xlkz_bg_bxyy.png",
+   "為什麼沒放": "1031 版面 json 沒有任何節點引用它(可能是特效 prefab 用的),沒查證過參與畫面繪製 → 照「元件寧缺勿濫」沒放。"
+  },
+  {
+   "資產路徑": "assets/arts/ui/img/milestoneactivity/1031/xlkz_light_djlq.png",
+   "在哪": "/srv/share/mumu/巡夢少女_點名抓/活動全套UI/milestoneactivity/1031/xlkz_light_djlq.png",
+   "為什麼沒放": "同上,版面沒引用。"
+  },
+  {
+   "資產路徑": "assets/arts/ui/img/item/comz_icon_res_150_24_1031.png",
+   "在哪": "/srv/share/mumu/巡夢少女_解包/巡夢少女_圖片素材_new/item/comz_icon_res_150_24_1031.png",
+   "為什麼沒放": "它是這一檔的活動積分圖示,但積分沒有台版名稱(ResDefine 150 是「%s積分」),開不了 資源/<名>/ 夾。見 待使用者確認。"
+  }
+ ],
+ "資料來源": {
+  "設定表": [
+   "config/InsideJudgeTopic.lua tid=1031:name=杏林饋贈、conf=21#4|25#5|4#2、desc=\"\"(空)、reward_type=0、ploy_reward_type=0、broadcast=1、conf_two=\"\"、conf_three=\"\"(全表 16 列,欄位長度檢查通過)",
+   "config/InsideTaskTime.lua type=24、extend=1031 五列:id 24031/24032/24033/24034/24035(全表 38 列,欄位長度檢查通過)",
+   "config/InsideActive.lua big_type=24:name=里程碑活动、activeType=564、rule=\"\"、style=1(全表 13 列)",
+   "config/DiceEvent.lua:type=21 最後一列 21100020 name=派發俸祿;type=25 最後一列 25100021 name=錦市裁衣;type=4 最後一列 4307020 name=歷練成功(全表 3288 列)",
+   "config/ItemDefine.lua item_id=3000:name=行動力(獎勵碼 2_3000_N 的 3000)",
+   "config/ResDefine.lua 兩層索引表:大類型 13 = 金錠、大類型 150 = \"%s積分\"(firstKey 61 個 × secondKey 展開後 72 列,與 res_name 72 筆相等)",
+   "config/GetWay.lua func_id=481:func_name=里程碑活動、func_icon=hqtj_icon_zxrw、desc=前往參與活動獲得、close_desc=活動未開啟",
+   "config/PloyMenu.lua:全表 13 列,沒有這個活動(只有 ploy_id 1002 / ploy_type 221 / ploy_name 杏林簽到)"
+  ],
+  "語系表": "雜物/原始資料/家族主畫面/strings_tw.json(22063 筆):沒有「杏林饋贈」這個值,也沒有 1031 專屬鍵。值反查「杏林」只有 7 筆(screenPlotAnim_9、talent_new_189、hangincome_upgrade_10、ConstActivity_15、Convert_596、MilestoneActivity_5、SpringTriumph_str_0),「饋贈」8 筆(recordbook_str32、workcard_64、activityfashionpicture_20、fortuneplate_2、fortuneplate_8、business_fight_96、dispatch_gift_5、dispatch_gift_6),都不是這個活動的名稱鍵。1031 版面用到的鍵見 畫面文字。",
+  "規則": "沒有。素材/規則/ 只有 rule_milestone_activity_1061/1071/1081/1091/1101(_索引.json 的標題分別是 織夢成卷/杏林茶會/夢境錦鯉/珊瑚祕境/珍珠傳說),沒有 1031;索引裡也沒有標題叫「杏林饋贈」的規則(「饋贈」只有 藥田饋贈/派遣饋贈/會武饋贈)。程式面:只有 milestoneactivitypanel1061/1071/1081.lua 會 OpenRuleUI(\"rule_milestone_activity_...\"),1031 走的 generic panel(milestoneactivitypanel2/3/4.lua)沒有任何 OpenRuleUI → 規則/ 不建,也沒有規則候選。",
+  "版面": "雜物/_版面/milestoneactivity/1031/milestoneactivitypanel.json(155 節點;46 個 UIImage、18 個 UIText、9 個 UIButton)。/tmp/claude-1000/版面/milestoneactivity/1031/ 有同一份。",
+  "程式": [
+   "lua/ui/milestoneactivity/milestoneactivityscreen.lua:19-33(GetActiveTimeInfo → InsideTaskTime → extend → WIDGET_CONFIGS[\"MilestoneActivityPanel\"..id])",
+   "lua/ui/milestoneactivity/milestoneactivitypanel2.lua:39-40、70-77 / 3.lua:43-44、63-69 / 4.lua:47-48、71-77(btn_detail → NewRankActivityEventPanel、btn_shop → OpenCommonShop)",
+   "lua/ui/newrankactivity/newrankactivityeventpanel.lua:55-84(conf 怎麼解、事件名怎麼取、積分資源碼怎麼組)",
+   "核心lua/luamain/HangActionMilestoneLogic.txt:1-87(入口顯示條件、入口圖 milestone_<extend>、入口按鈕名 = InsideJudgeTopic.name)",
+   "核心lua/luamain/HangActionActivityMgr.txt:39、212-219(HangActionActivityMgr.ActivityType.Milestone = 22)",
+   "核心lua/luamain/CommLimitActiveMgr.txt:31(Milestone = 24)、750-760、834-840",
+   "核心lua/luamain/RacingCatMgr.txt:201-213(CheckShopOpen 讀伺服器 ImprestPloy)",
+   "核心lua/luabasic/UIPopManager.txt:1416-1431(OpenCommonShop)",
+   "核心lua/luabasic/UIConfigs.txt:2970、3492;核心lua/luabasic/GetWayToUI.txt:1947;核心lua/luabasic/ConstDefine.txt:638、4344;核心lua/luabasic/ConstActivity.txt:138、270、368;核心lua/luabasic/ResPathManager.txt:753、2210-2212、3294-3296;核心lua/luamain/UnlockManager.lua:191"
+  ],
+  "圖": {
+   "MANIFEST(assets/arts/ui/img/milestoneactivity/1031/ 共 9 張圖 + 1 prefab)": [
+    "xlkz_bg_bx.png",
+    "xlkz_bg_bx02.png",
+    "xlkz_bg_bxyy.png",
+    "xlkz_bg_dj.png",
+    "xlkz_bg_tc.png",
+    "xlkz_light_djlq.png",
+    "xlkz_nine_bk.png",
+    "xlkz_ptext_title_c.png.cn",
+    "xlkz_ptext_title_c.png.tw",
+    "assets/game/prefabs/ui/milestoneactivity/1031/milestoneactivitypanel.prefab"
+   ],
+   "這次複製的來源": "/srv/share/xm/雜物/_依活動/杏林饋贈/(mumu 依活動交付,6 檔:xlkz_bg_bx.png、xlkz_bg_bx02.png、xlkz_bg_dj.png、xlkz_bg_tc.png、xlkz_nine_bk.png、xlkz_ptext_title_c.png.tw.png)",
+   "同一批圖的其他兩處(沒用但對得上)": "/srv/share/mumu/巡夢少女_解包/巡夢少女_圖片素材_new/milestoneactivity/1031/(同 6 檔)、/srv/share/mumu/巡夢少女_點名抓/活動全套UI/milestoneactivity/1031/(8 檔,多了 xlkz_bg_bxyy.png 與 xlkz_light_djlq.png,但那邊的標題圖檔名是 xlkz_ptext_title_c.png 沒有 .tw 標記,分不出是 tw 還是 cn,所以標題圖取 _依活動 那份 .tw)",
+   "沒有的": "banner/zjm_banner_* 與 hangactionmain/activity_* 底下都沒有這個活動的圖(MANIFEST 查無)"
+  }
+ },
+ "拿不到": [
+  "檔期起訖日期(伺服器下發 aid;client 只有 continue_hour=48)",
+  "這一期開的是 24031~24035 哪一列",
+  "禮包商城的名稱、商品、價格(ImprestPloy,伺服器下發)",
+  "活動的文字說明/介紹(設定表 desc 空、語系表無專屬鍵)",
+  "積分有沒有每日上限(client 設定表沒有這個欄位)"
+ ],
+ "未確定": [
+  "清單名稱「杏林饋贈·體力」的「·體力」沒有權威來源:設定表正本名是「杏林饋贈」(InsideJudgeTopic tid 1031),體力/金錠是同一個 tid 的獎勵版本(2_3000=行動力 vs 13=金錠)。要不要把這一筆和第 99 筆「杏林饋贈·金錠」合成一個「杏林饋贈」夾,請使用者決定。",
+  "1031 的面板實際綁哪一支 lua 沒釘死:milestoneactivitypanel2.lua / 3.lua / 4.lua 三支都有 btn_detail / btn_shop / go_finish / go_reward 這組節點,版面 json 沒有 script 欄可以對。三支的 btn_detail、btn_shop 行為完全一樣,所以不影響機制結論;另一支 milestoneactivitypanel.lua 沒有 btn_detail/go_finish,應該不是這個版面。",
+  "類型判「營運活動」是類型表裡最接近的,但它嚴格講是 client 設定表驅動的「內置活動/里程碑」(InsideActive big_type 24):不在 PloyMenu、也不在 ploy 快照(313 筆,2026-10-01 之後)裡,沒有 ploy 編號。要不要另立類型請使用者決定。",
+  "btn_shop 記成「有儲值禮包」是照「版面有節點 + 程式有綁定」判的:它開的是 ImprestPloy 禮包商城,按鈕字是通用鍵 weekgame_1「禮包」,名稱與商品 client 查不到,顯不顯示也由伺服器決定。叫它「兌換商店」會不準,所以兌換商店記 false。",
+  "活動積分沒有台版名稱(ResDefine 大類型 150 的 res_name 是格式字串「%s積分」),所以 活動資源 是空的;1031 專屬的積分圖示 comz_icon_res_150_24_1031.png 有抽出來但沒放進成品夾。"
+ ],
+ "關聯": [
+  "杏林饋贈·金錠",
+  "里程碑活動",
+  "尋寶之旅",
+  "杏林漫步",
+  "回輪竹語",
+  "蘭台問心",
+  "醫心一意",
+  "織夢成卷",
+  "杏林茶會",
+  "夢境錦鯉",
+  "珊瑚祕境",
+  "珍珠傳說",
+  "遊園爭霸",
+  "御貓疾行"
+ ],
+ "關聯說明": "「杏林饋贈·金錠」= 同一個 tid 1031 的另一個獎勵版本。「里程碑活動」= 這個系統本身(GetWay func_id 481 的 func_name,清單裡也有這一筆)。其餘都是 config/InsideJudgeTopic.lua 同一張表的其他列(tid 1001 尋寶之旅、1002 杏林漫步、1011 曲水流觴(不在清單)、1021 回輪竹語、1041 蘭台問心、1051 醫心一意、1061 織夢成卷、1071 杏林茶會、1081 夢境錦鯉、1091 珊瑚祕境、1101 珍珠傳說、2001 遊園爭霸、2002 杏林之星(不在清單)、2011 御貓疾行、2021 寶藏亂鬥(不在清單));其中 2001/2002/2011/2021 的 reward_type 不是 0,走的是每日排行活動的畫面。「杏林簽到」(清單第 97 筆)只是名字裡也有「杏林」,它是 ploy_type 221,跟這個活動沒有程式或設定表關係,沒有列進關聯。",
+ "待使用者確認": [
+  "體力版與金錠版要不要合併成一個「杏林饋贈」夾?(同 tid 1031,差別只在 judge_reward 的獎勵碼)",
+  "積分圖示 comz_icon_res_150_24_1031.png 要不要收進來(例如放 元件/ 或 資源/積分/)?積分沒有台版名稱。",
+  "要不要請 mumu 抽 atlas/main 的 sprite milestone_1031(入口圖)?舊版APK 有同名檔,但那不是允許來源。",
+  "面板底圖 xlkz_bg_tc.png(752×1200)現在放在 元件/。這個活動沒有入口橫幅,主圖.png 空著 —— 要不要拿底圖當主圖?"
+ ],
+ "參考(只當線索,沒當證據)": "雜物/活動表格/整理/12_杏林饋贈_體力/(使用者舊整理:48小時、個人積分、10 階、全拿 1500、獎勵行動力、事件 派發俸祿4/錦市裁衣5/歷練成功2、血月週體力/巔峰週金錠)。這次所有結論都另外回到設定表落地了:階段與獎勵對上 InsideTaskTime id 24033,事件與積分對上 InsideJudgeTopic 1031 的 conf + DiceEvent。舊整理裡的「分類=積分活動」「48小時」「血月週/巔峰週輪替」在權威來源查不到(continue_hour=48 有,週次輪替沒有),沒有寫進上面的欄位。"
+}

@@ -1,0 +1,162 @@
+{
+ "名稱": "御貓疾行",
+ "狀態": "已整理",
+ "類型": "營運活動",
+ "類型依據": "ploy(伺服器下發)活動:ploy 快照 ploy_213194.json / ploy_213197.json 的 t=\"303\",對上 核心lua/luabasic/ConstActivity.txt:267 ActivityType.RacingCat = 303;config/PloyResources.lua res_id 53031 的 ploy_type 也是 303。客戶端這一側只有邏輯與畫面:核心lua/luamain/HangActionRacingCatLogic.txt(繼承 HangActionActivityBaseLogic,_thisActivityType = ConstActivity.ActivityType.RacingCat)掛在歷練主畫面的活動入口。不是主題活動:config/Activity.lua 7 列沒有這一筆,核心lua/luamain/ConstActivityMatch.txt 沒有 RacingCat,也沒有主畫面輪播橫幅(lua/ui/hangaction/hangactionmainbannerwidget.lua 整支沒有 racingcat / ymjx)。",
+ "檔期": "ploy 213194、213197",
+ "檔期依據": "ploy 快照(/srv/share/mumu/巡夢少女_解包/ploy研究/):ploy 213194 = 2026-11-13 08:00:00 ~ 2026-11-15 07:59:59、ploy 213197 = 2026-11-27 08:00:00 ~ 2026-11-29 07:59:59,兩筆 t=303、名稱都是「御貓疾行」(ployMenu_766230069_解密/_活動名.json、活動總表.json)。另一組 213196 / 213199 是 t=6 的「御猫疾行-拍脸图」(開始結束時間與 213194 / 213197 相同)。另有客戶端常數 ConstActivity.txt:139 MarvellousType.RacingCat = 10010(程式用 menuVo.o 取,快照解出來的欄位裡沒有 o,沒驗證到實際下發值)。config/PloyMenu.lua 只有 13 列,沒有 ploy_type 303。",
+ "綁定角色": "沒有",
+ "綁定地圖": "沒有",
+ "綁定說明": "設定表、語系表、prefab 版面都沒有指到特定夥伴或外地圖。積分來自歷練(strings_tw RacingCat_16「御貓疾行活動當前未開始，此時歷練不會獲得活動積分哦，是否前往開始」、RacingCat_3「前往歷練」),但沒有綁定哪一張歷練地圖的依據。",
+ "活動說明": "與大家一起參與貓貓賽跑，到底是誰可以獲得冠軍呢！",
+ "活動說明來源": "語系表 strings_tw.json 的 RacingCat_15(原文照抄)。這句是畫面上的說明字:現役lua_完整/cdn_ui/ui/activity/racingcat/racingcatscreen.lua:282 SetTextSafe(txt_continue_tip, _GetGameString(\"RacingCat_15\"))(同處 284 行在還沒打完所有場次時改用 RacingCat_6)。設定表沒有這個活動的 desc 欄(它不在 config/Activity.lua,config/PloyMenu.lua 也沒有這筆);GetWay.lua func_id 564 的 desc 是獲取途徑用語「前往參與活動獲得」,不是活動說明。",
+ "hub畫面": "activity/racingcat/racingcatscreen(核心lua/luabasic/UIConfigs.txt:2980 RacingCatPanel,type Type_1_2_1)。這個活動只有這一個畫面,沒有掛子活動的 hub。",
+ "入口": "歷練主畫面的活動入口:核心lua/luamain/HangActionRacingCatLogic.txt:121-132(GetEntranceIconPath 回 ResPathManager.GetMainAtls(\"zjm_icon_ymjx\")、GetEntranceIconBtnName 回語系鍵 racingCat_activity_name、DoEntrance → RacingCatMgr.OpenMain),由 lua/ui/hangaction/hangactionentrance.lua:40-41 畫出來。另一條路是獲取途徑:config/GetWay.lua func_id 564 → 核心lua/luabasic/ConstDefine.txt:4404 GetWayID.RacingCat = 564 → GetWayToUI.txt:2229-2234 _this[const.GetWayID.RacingCat] = {UIConfig = UI_CONFIGS.RacingCatPanel, replaceCb = RacingCatMgr.OpenMain}。開啟條件:核心lua/luamain/UnlockManager.lua:236 UnlockEnum.RacingCat = 6008 → config/FuncOpen.lua func_id 6008(active_con \"4_15,439_2\"、unlock_content「15級且開服第2天開啟」)。",
+ "畫面": [
+  "activity/racingcat/racingcatscreen — 主畫面(UIConfigs.txt:2980,Type_1_2_1)",
+  "activity/racingcat/reward_tip — 名次獎勵 tip(UIConfigs.txt:2981 RewradTipPanel,Type_3_0_0)",
+  "activity/racingcat/get_box_reward — 寶箱獎勵(UIConfigs.txt:2982 GetBoxRewradPanel,Type_1_1_2)",
+  "prefabs/ui/activity/racingcat/item/racingitem.prefab — 單一賽道格(MANIFEST 有)",
+  "prefabs/ui/hangaction/hangactionscoreadd3_racingcat.prefab — MANIFEST 有,但 HangActionRacingCatLogic.txt:134-136 的 AddWidget 整段被註解掉,現在沒在用"
+ ],
+ "子活動": [],
+ "子活動說明": "沒有。主畫面的按鈕只有 btn_home(回歷練)、btn_detail(事件積分說明)、btn_get_reward(領獎)、btn_start(開始下一場)、btn_close / btn_close2、btn_shop(條件顯示的禮包/商店彈窗)、btn_reward1~3(名次獎勵 tip),全部是這個畫面自己的功能,沒有獨立的子活動畫面或子活動語系名(按鈕綁定 racingcatscreen.lua:46-54、114-118,處理函式 86-112)。",
+ "活動資源": [
+  "美味小魚乾"
+ ],
+ "活動資源說明": "config/PloyResources.lua res_id 53031(ploy_type 303)。程式端 核心lua/luamain/RacingCatMgr.txt:12 RacingCatMgr.Score = \"20_53031\" 當積分物品,RacingCatMgr.CheckPlayEffect 也是比對 resId 53031。放在本夾 資源/美味小魚乾/。",
+ "機制": {
+  "有兌換商店": false,
+  "有簽到": false,
+  "有儲值禮包": false,
+  "有排行榜": false,
+  "有限定夥伴招募": false,
+  "有限定寵物招募": false,
+  "有限定時裝招募": false,
+  "有活動傳記": false,
+  "依據": "全部寫 false,原因逐項:(1) 商店/禮包 — 主畫面有 btn_shop(racingcatscreen.lua:54 綁 OnBtn_ShopClick、110-112 開 UIPanelManager.OpenCommonShop(menuVo.o, m_tid)、211 SetActiveSafe(btn_shop, RacingCatMgr.CheckShopOpen(menuVo.o, m_tid))),但它是條件顯示:CheckShopOpen 去查 ConstActivity.ActivityType.ImprestPloy(=4,超值禮包)那一型的 ploy,開的畫面是通用的 CommonShopPanel(UIConfigsFPJ.txt:255 commonfpj/shop/commonshoppanel)。ploy 快照(2026-10-01 之後)裡跟這個活動有關的只有 t=303 兩筆和 t=6 拍臉圖兩筆,沒有對應的禮包/商店 ploy,所以它賣什麼、叫什麼名字查不到 → 不寫 true、也不寫名字。(2) 排行榜 — 核心lua/luamain/ConstRank.txt 沒有 RacingCat 條目;畫面裡的名次是單場賽道 5 名(MyItem + Item1~4、btn_reward1~3、rank1~5),是一場比賽的名次不是排行榜系統。(3) 簽到、夥伴/寵物/時裝招募、活動傳記 — prefab 版面與 racingcatscreen.lua 都沒有入口(版面 91 個節點裡只有 btn_home / btn_detail / btn_get_reward / btn_start / btn_close / btn_shop / btn_reward1~3 這 9 顆按鈕)。查核補:btn_shop 的版面節點是 /RacingCatScreen/root/btn_shop,prefab 上的靜態字是語系鍵 weekgame_1 =「禮包」(點名抓/御貓疾行/版面/racingcatscreen.json;strings_tw.json weekgame_1 = 禮包),但它開的 CommonShopPanel 內容靠另一筆 ImprestPloy 型 ploy 下發、名字查不到,所以維持 false。",
+  "商店按鈕_未確定": "見 未確定 第 1 條"
+ },
+ "玩法": {
+  "一句話": "賽跑型積分活動:一場(round)同賽道 5 位(自己 + 4 位),積分到門檻就能領該場名次獎勵,再進下一場。",
+  "場次設定表": "config/BoatRicing.lua。兩層索引:t.firstKey = {1}(大類型,就是 ploy 下發的 tid,ploy_213194.json 的 l[1].tid = \"1\")、t.secondKey1 = {1..10}(場次 round)。所以是 tid 1 × 10 場。",
+  "場次": [
+   {"場": 1, "need_score": 100, "difficult": 1, "event_score": "32#8|25#8|7#4", "rank_reward": "1#2_3000_30,2_714_100,2_851_1|2#2_3000_20,2_714_50|3#2_3000_10|4#2_3000_5|5#2_3000_5", "judge_reward": ""},
+   {"場": 2, "need_score": 150, "difficult": 2, "event_score": "", "rank_reward": "1#2_3000_40,2_13013_1,2_706_3|2#2_3000_30,2_13008_1,2_706_2|3#2_3000_20,2_13008_1|4#2_3000_10|5#2_3000_10", "judge_reward": "2_3000_30"},
+   {"場": 3, "need_score": 200, "difficult": 3, "event_score": "", "rank_reward": "1#2_3000_60,2_3502_1,2_851_3|2#2_3000_40,364_20,2_851_1|3#2_3000_30,2_851_1|4#2_3000_20|5#2_3000_10", "judge_reward": ""},
+   {"場": 4, "need_score": 200, "difficult": 1, "event_score": "", "rank_reward": "1#2_3000_80,2_851_3,2_706_3|2#2_3000_60,2_851_1|3#2_3000_40|4#2_3000_30|5#2_3000_20", "judge_reward": ""},
+   {"場": 5, "need_score": 350, "difficult": 2, "event_score": "", "rank_reward": "1#2_3000_80,2_13013_1,2_706_3|2#2_3000_60,2_13008_1,2_706_2|3#2_3000_40,2_13008_1|4#2_3000_30|5#2_3000_20", "judge_reward": "2_3000_50"},
+   {"場": 6, "need_score": 500, "difficult": 3, "event_score": "", "rank_reward": "1#2_3000_80,2_3503_1,2_851_5|2#2_3000_60,2_3502_1,2_851_3|3#2_3000_40,364_20|4#2_3000_30|5#2_3000_20", "judge_reward": ""},
+   {"場": 7, "need_score": 500, "difficult": 1, "event_score": "", "rank_reward": "1#2_3000_80,2_851_3,2_3503_1|2#2_3000_60,2_851_1|3#2_3000_40|4#2_3000_30|5#2_3000_20", "judge_reward": "2_3503_1"},
+   {"場": 8, "need_score": 600, "difficult": 2, "event_score": "", "rank_reward": "1#2_3000_80,2_851_3,2_3503_1|2#2_3000_60,2_851_1,2_3502_1|3#2_3000_40,2_851_1|4#2_3000_30|5#2_3000_20", "judge_reward": ""},
+   {"場": 9, "need_score": 600, "difficult": 2, "event_score": "", "rank_reward": "1#2_3000_100,2_706_5,2_3503_1|2#2_3000_80,2_706_3,2_3502_1|3#2_3000_60,2_706_1|4#2_3000_40|5#2_3000_20", "judge_reward": "2_16506_1"},
+   {"場": 10, "need_score": 800, "difficult": 3, "event_score": "", "rank_reward": "1#2_3000_100,2_851_5,2_3503_1|2#2_3000_80,2_851_3,2_3502_1|3#2_3000_60,2_851_1,364_20|4#2_3000_40,364_20|5#2_3000_20", "judge_reward": ""}
+  ],
+  "欄位怎麼用": {
+   "need_score": "這一場的目標積分。racingcatscreen.lua:160 畫在 txt_target_value;RacingCatMgr.txt:143-145 領獎前比 積分 < need_score 就擋下並跳 RacingCat_13「%s 不足」。",
+   "rank_reward": "名次獎勵原碼,以 | 分 5 段、每段 名次#獎勵碼。racingcatscreen.lua:162 string.split(vo:GetRank_reward(), \"|\"),btn_reward1~3 開 RewradTipPanel 顯示第 N 名獎勵(409-417 OpenRewardTip,標題用 RacingCat_4「第%s名獎勵」)。獎勵碼原樣照抄,沒解讀。",
+   "judge_reward": "輪數(進度)獎勵原碼,只有第 2、5、7、9 場有值;racingcatscreen.lua:71-83 把有值的場收成 m_judge_reward,領取走 RacingCatMgr.JudgeReward → PLOY_BOAT_RICING_JUDGE_REWARD。獎勵碼原樣照抄,沒解讀。",
+   "event_score": "只有第 1 場有值。racingcatscreen.lua:86-92 OnBtn_DetailClick(第 88 行) 把 vo:GetEvent_score() 當 eventConst 傳給 NewRankActivityEventPanel,說明字是 milestone_active_8「完成以下事件可賺取積分，獲得積分獎勵。」。事件編號(32 / 25 / 7)沒解讀。",
+   "difficult": "1/2/3,對得上 config/BoatRicingRobot.lua 的 difficult 欄(1 有 7 列、2 有 7 列、3 有 7 列);怎麼挑機器人是伺服器的事,沒查到客戶端程式。"
+  },
+  "對手": "config/BoatRicingRobot.lua 21 列(id 1001~1007 / 2001~2007 / 3001~3007,欄位 difficult、score_period、score_add、max_score、open_chase、start_chase、end_chase、chase_ration)。grep 全專案只有 BoatRicingRobotCfgProxy.lua / …Comp / ConfigMgr 這三處(就是讀表的框架自己),沒有畫面或 Mgr 呼叫它 → 客戶端沒在用,推測是伺服器算的。",
+  "積分物品": "美味小魚乾(res_id 53031),RacingCatMgr.txt:12 寫成 \"20_53031\";開頭的 20 是什麼類型代號沒查證。",
+  "協定": "PLOY_BOAT_RICING_QUERY(查詢,回 Msg_6067)、BOAT_RICING_NEXT_ROUND(進下一場,回 Msg_6068)、PLOY_BOAT_RICING_DRAW(領名次獎)、PLOY_BOAT_RICING_JUDGE_REWARD(領輪數獎)— 核心lua/luamain/RacingCatMgr.txt"
+ },
+ "圖": {
+  "主圖.png": "沒有。這個活動沒有入口橫幅:MANIFEST 沒有 assets/arts/ui/img/hangactionmain/activity_<id>/ 對應這一筆,也沒有 banner 目錄的 ymjx 檔;lua/ui/hangaction/hangactionmainbannerwidget.lua 整支沒有 racingcat / ymjx。入口是歷練主畫面的圖示型活動入口。",
+  "文字_橫幅.png": "沒有。沒有橫幅,所以沒有橫幅小字。",
+  "文字.png": "assets/arts/ui/img/racingcat/ymjx_bg_title_c.png.tw,440×136(PIL 實測 440×136、RGBA、4358 色)。prefab 節點 /RacingCatScreen/root/img_bg/imt_title(點名抓/御貓疾行/版面圖/_抓取報告.json)。有 .tw 與 .cn 兩個變體,取的是 .tw(img_racingcat/_manifest.json 的 來源 欄寫 ….png.tw)。",
+  "入口圖.png": "沒有。入口圖示是 main 圖集裡的 sprite zjm_icon_ymjx(HangActionRacingCatLogic.txt:122 + ResPathManager.txt:753 atl_mainPath = \"assets/arts/ui/atlas/main/\"),允許複製的三個來源都沒有抽出這張 → 記在 缺圖。",
+  "子活動入口圖": "沒有(沒有子活動)。",
+  "元件/": "27 張 assets/arts/ui/img/racingcat/ 的圖,每張都有 prefab 節點依據,見 元件/_說明.json。",
+  "資源圖": "資源/美味小魚乾/圖.png = assets/arts/ui/img/activityres/53031.png,128×128(PIL 實測 128×128、RGBA、4072 色)。"
+ },
+ "缺圖": [
+  {
+   "資產路徑": "assets/arts/ui/atlas/main/main.asset.tw(sprite zjm_icon_ymjx)",
+   "用途": "歷練主畫面的活動入口圖示",
+   "MANIFEST有無": true,
+   "備註": "MANIFEST 有這個圖集檔(assets/arts/ui/atlas/main/main.asset.tw 與 .cn),但 zjm_icon_ymjx 是圖集裡的 sprite、不是獨立檔案;三個允許的圖片來源(雜物/_依活動/、巡夢少女_圖片素材_new/、巡夢少女_點名抓/)都沒有這張。程式依據:HangActionRacingCatLogic.txt:122 iconName = \"zjm_icon_ymjx\" + ResPathManager.GetMainAtls。"
+  },
+  {
+   "資產路徑": "assets/arts/ui/img/getway/hqtj_icon_ymjx.png(推定路徑;MANIFEST 沒有這一筆)",
+   "用途": "獲取途徑清單的小圖示(config/GetWay.lua func_id 564 的 func_icon = hqtj_icon_ymjx)",
+   "MANIFEST有無": false,
+   "備註": "MANIFEST 的 assets/arts/ui/img/getway/ 有 28 張 hqtj_icon_*,裡面沒有 hqtj_icon_ymjx,全份 MANIFEST 搜 ymjx 也只有 racingcat 目錄那 29 筆。可能是設定表指到一張還沒做/沒上的圖,不是漏抽 —— 列在這裡只是點名,不要去找替代品。"
+  }
+ ],
+ "資料來源": {
+  "設定表": [
+   "config/GetWay.lua func_id 564(func_name 御貓疾行、func_icon hqtj_icon_ymjx、type 1、order 500、close_desc 活動未開啟、desc 前往參與活動獲得、funcopen_id 0)",
+   "config/FuncOpen.lua func_id 6008(func_name 御貓疾行、active_con 4_15,439_2、unlock_content 15級且開服第2天開啟、icon/show_icon hqdj_icon_ly)",
+   "config/BoatRicing.lua(兩層索引 firstKey {1} × secondKey {1..10} = 10 場;欄位長度檢查通過)",
+   "config/BoatRicingRobot.lua(21 列對手設定;客戶端沒有呼叫處)",
+   "config/PloyResources.lua res_id 53031(ploy_type 303、name 美味小魚乾、icon 53031、quality 5)",
+   "config/PloyMenu.lua(13 列,沒有 ploy_type 303 —— 這個活動不在客戶端的 ploy 選單表裡)",
+   "config/InsideJudgeTopic.lua tid 2011(name 御貓疾行、conf 31#10|24#20|25#30、desc 是未在地化的「測試測試…」)—— 跟 t=303 這個活動的關係沒查到程式依據,見 未確定"
+  ],
+  "語系表": "雜物/原始資料/家族主畫面/strings_tw.json:racingCat_activity_name(御貓疾行,活動名正本)、RacingCat_1~RacingCat_16、另外用到通用鍵 milestone_active_8、activity_time_1",
+  "規則": "沒有。現役lua_完整/cdn_ui/ui/activity/racingcat/ 三支(racingcatscreen / reward_tip / get_box_reward)與 核心lua/luamain/RacingCatMgr.txt、RacingCatCache.txt、RacingCatParse.txt、HangActionRacingCatLogic.txt 全部 grep rule_ / OpenRule / CONST_RULE_FILE_PATH 都沒有命中;素材/規則/_索引.json 也沒有檔名或標題含 御貓 / 疾行 / racing / ricing / boat(只有無關的 rule_dragonboat 天燈祈願)。所以本夾沒有 規則/,也沒有「規則候選(僅標題同名)」。",
+  "版面": "雜物/_版面/ 底下沒有 racingcat(找過 _版面/ 與 /tmp/claude-1000/版面/)。改用 mumu 的 prefab 解析:/srv/share/mumu/巡夢少女_點名抓/御貓疾行/版面圖/_抓取報告.json(以 path_id 比對解名,racingcatscreen 90 筆引用全解、get_box_reward 20 筆、racingitem 8 筆、reward_tip 3 筆,未解 0)、同夾 _pid對名.json、_sprite_geometry.json",
+  "程式": [
+   "核心lua/luabasic/ConstDefine.txt:4404 GetWayID.RacingCat = 564",
+   "核心lua/luabasic/GetWayToUI.txt:2228-2234",
+   "核心lua/luabasic/UIConfigs.txt:2980-2982(三支畫面)、UIConfigsFPJ.txt:255(CommonShopPanel)",
+   "核心lua/luabasic/ConstActivity.txt:139(MarvellousType.RacingCat = 10010)、:267(ActivityType.RacingCat = 303)、:170(ActivityType.ImprestPloy = 4)",
+   "核心lua/luabasic/UIPopManager.txt:1416-1433(OpenCommonShop)",
+   "核心lua/luabasic/ResPathManager.txt:753、2210-2212(GetMainAtls)",
+   "核心lua/luamain/HangActionRacingCatLogic.txt(全檔)、RacingCatMgr.txt(全檔)、RacingCatCache.txt、RacingCatParse.txt",
+   "核心lua/luamain/UnlockManager.lua:236(UnlockEnum.RacingCat = 6008)",
+   "lua/ui/hangaction/hangactionentrance.lua:40-41(畫活動入口)",
+   "現役lua_完整/cdn_ui/ui/activity/racingcat/racingcatscreen.lua(479 行,主畫面;雜物/巡夢少女_遊戲資料/lua 裡沒有這支)"
+  ],
+  "ploy快照": "/srv/share/mumu/巡夢少女_解包/ploy研究/ployMenu_766230069_解密/ploy_213194.json、ploy_213197.json、_活動名.json;活動總表.json(213194 / 213196 / 213197 / 213199 四筆)",
+  "圖": {
+   "文字.png、元件/": "/srv/share/mumu/巡夢少女_點名抓/御貓疾行/img_racingcat/(mumu 點名抓,附 _manifest.json 寫每張的來源資產路徑、尺寸、path_id;與同層 活動全套UI/racingcat/ 的副本 cmp 相同)",
+   "資源/美味小魚乾/圖.png": "/srv/share/mumu/巡夢少女_點名抓/活動全套UI/activityres/53031.png"
+  }
+ },
+ "拿不到": [
+  "每一期實際開幾場、下發哪個 tid(ploy 下發;快照只看到 l = [{a, tid:\"1\"}])",
+  "同場 4 位對手是誰、怎麼挑(伺服器算;BoatRicingRobot 客戶端沒在用)",
+  "btn_shop 那個禮包/商店的商品、價格、名字(ImprestPloy 型 ploy 下發,快照裡沒有)",
+  "名次獎勵、輪數獎勵的實際道具名(設定表只有獎勵原碼,沒解讀)",
+  "2026-10-01 之前的檔期(ploy 快照只涵蓋之後)",
+  "活動拍臉圖(彈窗大圖):ploy 213196 / 213199(t=6「御猫疾行-拍脸图」,欄位 relatedAid=\"564\"、picCdn=\"3001\"、showEnd=\"120\")是伺服器 CDN 下發的圖,不是 bundle 資產 —— MANIFEST 沒有、三個允許的圖片來源也沒有,所以不列進 缺圖"
+ ],
+ "未確定": [
+  "btn_shop(racingcatscreen.lua:54 / 110-112 / 211)開的 CommonShopPanel 是哪一個禮包或商店、叫什麼名字:它要有一筆 ImprestPloy(ActivityType 4)且 o / insideId 對得上的 ploy 才會顯示,ploy 快照裡沒有這種 ploy,所以 機制 的 有兌換商店 / 有儲值禮包 都寫 false 而不是 true。",
+  "config/InsideJudgeTopic.lua tid=2011 的 name 就是「御貓疾行」(conf 31#10|24#20|25#30,desc 是未在地化的測試字),這張表由 InsideJudgeTopicCfgProxy 讀;沒查到有程式把它跟 ploy t=303 的御貓疾行接起來(同表還有 遊園爭霸、杏林之星、寶藏亂鬥 等清單裡的名字)。另外提醒:config/Activity.lua 也有 id 2011(搶佔藥田),跟這個 tid 2011 不是同一張表,不要混。",
+  "ploy 快照裡這兩筆的 d / e 欄位都是簡體「锦标赛」,台版名仍以語系表 racingCat_activity_name = 御貓疾行 為準。這個活動跟清單裡的「錦標賽活動」(GetWay func_id 482)、「里程碑活動」(func_id 481)是不是同一個系統沒查到程式依據 —— 只看到畫面借用了 NewRankActivityEventPanel、milestone_active_8 語系鍵和 milestoneactivity 圖集的零件。",
+  "積分寫法 \"20_53031\"(RacingCatMgr.txt:12)開頭的 20 是什麼類型代號沒查證;53031 本身對得上 PloyResources 的 res_id。event_score \"32#8|25#8|7#4\" 的事件編號也沒解讀。",
+  "racingcatscreen 的 /root/Gaming/round/left/txt_target/UIImage 用了 assets/arts/ui/img/item/16009.png(128×128),16009 是哪個道具沒查(目標積分旁邊的圖示,推測就是美味小魚乾以外的另一個道具圖,沒證據所以不寫)。",
+  "mumu 的 點名抓/御貓疾行/資料/活動.json(線索,非權威)寫「BoatRicingCfgProxy 的 GetEvent_score() 全專案沒有呼叫處」,這條是錯的:現役lua_完整/cdn_ui/ui/activity/racingcat/racingcatscreen.lua:88 有呼叫。那份檔案裡的分類(積分活動/排名積分)、全拿總需求 15750 等數字來自使用者舊整理,沒有落到設定表,本夾沒有採用。"
+ ],
+ "關聯": [
+  "進行歷練",
+  "錦標賽活動"
+ ],
+ "關聯說明": "「進行歷練」(GetWay func_id 483):積分是歷練拿的(RacingCat_16、RacingCat_3),活動入口也長在歷練主畫面(hangactionentrance.lua)。「錦標賽活動」(GetWay func_id 482):只有 ploy 的簡體 d/e 欄位寫「锦标赛」和畫面借用 NewRankActivityEventPanel / milestone 語系鍵這兩個線索,沒有程式把兩者接起來,列為待確認的關聯(見 未確定 第 3 條)。清單裡其他貓相關的名字(招財貓貓、喵喵小鋪、心與喵窩、靈貓銜玉…)查不到任何關聯依據,沒有列。",
+ "查核": {
+  "改了什麼": [
+   "拿不到 補一條:活動拍臉圖是 ploy 213196 / 213199(t=6)下發的 CDN 圖(relatedAid 564、picCdn 3001),不在 MANIFEST、也不在三個允許來源,所以不進 缺圖(我自己讀 ployMenu_766230069_解密/ploy_213196.json、ploy_213199.json 確認)。",
+   "機制.依據 補上 btn_shop 的版面依據:節點 /RacingCatScreen/root/btn_shop、prefab 靜態字是語系鍵 weekgame_1 =「禮包」;並補記版面 91 個節點裡只有 9 顆按鈕。結論不變(全部機制維持 false)。"
+  ],
+  "逐項重查結果": {
+   "名稱": "御貓疾行 = strings_tw.json racingCat_activity_name 的值,且 config/GetWay.lua func_id 564 的 func_name 一字不差;資源名 美味小魚乾 = config/PloyResources.lua res_id 53031 的 name 欄。都對。",
+   "類型與狀態": "營運活動對:ploy 快照 213194 / 213197 t=\"303\" 對上 ConstActivity.txt:267 ActivityType.RacingCat = 303;config/Activity.lua 只有 7 列(2003/2010/1006/10010/2011/10013/10014)確實沒有這一筆,ConstActivityMatch.txt grep RacingCat = 0 筆,hangactionmainbannerwidget.lua grep racingcat/ymjx = 0 筆。清單 184 筆裡沒有別筆是同一個東西(搜 疾行/貓/歷練/錦標/里程碑;招財貓貓 497、貓貓遊商、靈貓銜玉 都是別的)。",
+   "子活動": "[] 對:版面 racingcatscreen.json 的 91 個節點只有 9 顆按鈕,全部對得上 racingcatscreen.lua 的綁定(btn_close2 只在 lua,版面上是 CloseTip 底下的節點),沒有任何一顆指向別的畫面或別的語系名。沒有多列也沒有少列。",
+   "規則": "「沒有」對:cdn_ui/ui/activity/racingcat/ 三支與 RacingCatMgr / Cache / Parse / HangActionRacingCatLogic grep rule_ / OpenRule / RULE_FILE 全部 0 筆;素材/規則/_索引.json 搜 御貓/疾行/racing/ricing/boat 只有無關的 rule_dragonboat。本夾不該有 規則/,也確實沒有。",
+   "文字": "活動說明「與大家一起參與貓貓賽跑，到底是誰可以獲得冠軍呢！」逐字等於 strings_tw.json RacingCat_15(racingcatscreen.lua:282 用它);資源說明「貓咪最愛的魚乾，用於御貓疾行活動中」逐字等於 PloyResources res_id 53031 的 desc。沒有改寫。",
+   "設定表數字": "BoatRicing.lua 自己重讀:firstKey={1}、secondKey1={1..10},10 列的 need_score / difficult / event_score / rank_reward / judge_reward 與 玩法.場次 逐格相同;BoatRicingRobot.lua 21 列(1001~1007/2001~2007/3001~3007)、difficult 各 7 列、欄位 9 個都對,全專案引用確實只有 BoatRicingRobotCfgProxy(.lua/Comp)與 ConfigMgr 三處。",
+   "圖": "文字.png 與 元件/ 27 張逐張 cmp 過:與 點名抓/御貓疾行/img_racingcat/ 的原檔位元組相同;每張的 path_id 都能在 點名抓/御貓疾行/版面/*.json(racingcatscreen / get_box_reward / racingitem)裡找到引用,所以歸屬不是靠同目錄猜;PIL 實測 27 張的尺寸與色數跟 元件/_說明.json 一字不差,最低色數 170(ymjx_floor_zj),沒有低於 150 的空圖;文字.png 440×136、4358 色,來源取 .png.tw(img_racingcat/_manifest.json 的 來源 欄);資源圖 128×128、4072 色,MANIFEST 有 assets/arts/ui/img/activityres/53031.png(沒有 .tw 變體)。主圖/文字_橫幅/入口圖 寫「沒有」是對的:MANIFEST 全份搜 ymjx 只有 29 筆、全在 assets/arts/ui/img/racingcat/,banner 目錄沒有 ymjx,hangactionmain 底下只有 activity_10000/10001/10003/10004/10005/10006/10008/10012/10015(沒有 10010)。",
+   "漏掉的": "三個允許來源(雜物/_依活動/、巡夢少女_圖片素材_new/、巡夢少女_點名抓/)全樹搜 ymjx 只有 28 個檔(27 零件 + 標題字),全部已收;圖片素材_new 沒有 racingcat 目錄,_依活動 沒有這個活動的夾。沒有抽好卻沒收的橫幅或標題字。缺圖 兩筆重查都成立(main 圖集檔在 MANIFEST、sprite zjm_icon_ymjx 沒抽出來;getway 目錄 28 張 hqtj_icon_* 裡沒有 hqtj_icon_ymjx)。",
+   "格式": "三個 JSON 都 json.load 通過,必有欄位齊全、順序照工作說明,沒有佔位空檔,沒有 整頁.jpg、沒有 圖層/。"
+  },
+  "仍存疑": [
+   "機制「有儲值禮包」要不要改成 true:btn_shop 確實有按鈕(/RacingCatScreen/root/btn_shop)也有程式(racingcatscreen.lua:54/110-112/211 → RacingCatMgr.CheckShopOpen,現役lua_完整/luamain/RacingCatMgr.lua:201 查 ActivityType.ImprestPloy 的 ploy),按工作說明「有按鈕+程式才算 true」的字面會算 true;但它開的是通用 CommonShopPanel、商品與名字都由另一筆 ImprestPloy ploy 下發(ploy 快照裡沒有這種 ploy),名字編不出來,所以維持前一輪的 false。要改判請使用者決定。",
+   "跟「錦標賽活動」/「里程碑活動」的關係仍沒有程式依據(未確定 第 3 條):查核時多查到一條線索 —— lua/ui/newrankactivity/newrankactivityeventpanel.lua:32 的註解寫 eventConst 是「非内置活动直接传入数据」、第 39 行 eventData = data.eventConst,而御貓疾行就是直接傳 event_score 進去(racingcatscreen.lua:88),所以它走的是「非內置」那條路,沒有經過 InsideJudgeTopic;config/InsideJudgeTopic.lua tid 2011 名字雖然叫御貓疾行,仍然接不起來。"
+  ]
+ }
+}
