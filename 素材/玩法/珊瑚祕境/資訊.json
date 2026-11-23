@@ -1,0 +1,113 @@
+{
+ "名稱": "珊瑚祕境",
+ "狀態": "子活動(見所屬)",
+ "類型": "子活動",
+ "所屬活動": "里程碑活動",
+ "所屬活動夾": "雜物/_待進素材/活動/里程碑活動/(同批次另一代理整理,我只讀;它的 資訊.json 子活動欄也有列珊瑚祕境、清單索引 119)",
+ "類型依據": "config/InsideJudgeTopic.lua tid=1091 name=珊瑚祕境(台版繁體);config/InsideTaskTime.lua id=24091 type=24 open_type=2 open_time=\"2\" continue_hour=48 extend=\"1091\"(type 24 = 里程碑,同表其他 extend 1001/1041/1061... 是同一框架的各檔期);現役 lua CommLimitActiveMgr.lua:42 ActInnerTypeName[1091]、:758 `GetExtend() == \"1091\"` 走珊瑚祕境專屬紅點、CommLimitActiveCache.lua:196 同。畫面 MilestoneActivityPanel1091 是 MilestoneActivityPanel(milestoneactivity/milestoneactivityscreen)這個 hub 底下按 extend 疊上去的 widget(UIConfigs.txt:3498),不是自己的 hub。所以它是里程碑活動底下的一個檔期主題。",
+ "檔期": "沒有",
+ "檔期依據": "沒有單一日期:client 只有 InsideTaskTime id=24091 的 continue_hour=48(持續 48 小時)。ploy 快照 ploy研究/快照庫/ployMenu_2026-10-30_766230072_4da97edc73_解密/ploy_206452.json 有 tid 24091 dayConfig='9_9|18_18|31_31'(a=2884505);ploy_213259.json(同快照與 2026-11-05、2026-11-14 快照)有 tid 24091 dayConfig='8_8|21_21'(a=3018012)。dayConfig 的「第幾天」是哪個天數基準(sibling 里程碑活動夾寫開服第幾天)我沒獨立驗證,原樣記錄、不換算成日期。",
+ "綁定角色": "沒有",
+ "綁定地圖": "沒有",
+ "綁定說明": "設定表(InsideJudgeTopic / InsideTaskTime)、語系表 MilestoneActivity1091_*、規則原文、版面都沒有指到特定夥伴或外地圖。MANIFEST 有 assets/arts/audio/voice/10910~10913 與 drama_10910~10913 等,但沒有證據說它們屬於這個活動(只是檔名含 1091 前綴,且 10910~10913 是別的編碼),不採用。",
+ "活動說明": "沒有",
+ "活動說明來源": "InsideJudgeTopic tid=1091 的 desc 欄是空字串;語系表沒有對應鍵。規則原文第一段「活動主題」文字在 規則/rule_milestone_activity_1091.json,不當作設定表說明。",
+ "hub畫面": "MilestoneActivityPanel1091(核心lua/luabasic/UIConfigs.txt:3498 path=\"milestoneactivity/1091/milestoneactivitypanel1091\");上層容器是 MilestoneActivityPanel(UIConfigs.txt:2970)。程式 mumu/現役lua_完整/luamain/MilestoneActivityPanel1091.lua。版面 雜物/_版面/milestoneactivity/1091/milestoneactivitypanel1091.json。領獎彈窗 MilestoneActivity1091_GetRward(UIConfigs.txt:2978)。",
+ "入口": "歷練主畫面活動列的里程碑入口,按鈕圖是主畫面 atlas 的 sprite milestone_1091(HangActionMilestoneLogic.lua:63 \"milestone_\"..extend),名稱取 InsideJudgeTopic 的 name。詳見里程碑活動夾。",
+ "子活動": [],
+ "活動資源": [
+  "避水珠"
+ ],
+ "活動資源說明": "避水珠:strings_tw MilestoneActivity1091_2/_3;規則原文說活動結束後清空,放在 資源/避水珠/。",
+ "規則鍵": "rule_milestone_activity_1091",
+ "語系key": {
+  "MilestoneActivity1091_1": "珊瑚祕境探險完成啦！(版面 go_finish 區塊文字)",
+  "MilestoneActivity1091_2": "避水珠",
+  "MilestoneActivity1091_3": "稀有的避水珠，收集避水珠可以探祕獲取珊瑚祕境禮物。",
+  "MilestoneActivity1091_4": "每探祕1次可獲得1份獎勵(原文含 <color=#079219> 標籤)",
+  "MilestoneActivity1091_5": "消耗行動力有概率獲得避水珠",
+  "MilestoneActivity1091_6": "探祕(按鈕字)",
+  "依據": "strings_tw.json 鍵前綴 MilestoneActivity1091_ 共 6 筆;其中 _1/_4/_5/_6 在版面 milestoneactivitypanel1091.json 的 UIText 在地化鍵;_2/_3 在 CommLimitActiveMgr.lua:42。"
+ },
+ "玩法": {
+  "摘要": "收集避水珠(資源 150_aid),累計值達階段門檻就可「探祕」:隨機點亮 9 張貼紙中尚未點亮的一張,並自動得 1 份獎勵;9 檔全點亮即完成(go_finish)。依據:MilestoneActivityPanel1091.lua ShowInfo / CoralRealmDraw、規則原文第 2~4 條。",
+  "階段門檻": "config/Constants.lua INSIDE_PLOY_CORAL_REALM_STAGE_SCORE = 1#10|2#25|3#45|4#75|5#115|6#160|7#210|8#270|9#370(名稱欄:積分為累計值)。lua 實際用法:每階段顯示 nowValue - 上階段分數 / 本階段差值。",
+  "階段獎勵原碼": "config/Constants.lua INSIDE_PLOY_CORAL_REALM_STAGE_REWARD(格式 獎勵序號#權重#獎勵字符串):1#3100#2_3000_50|2#2050#2_851_1|3#1030#2_851_2|4#1000#2_3502_1|5#1000#2_3000_100|6#1000#2_3000_200|7#400#2_3503_1|8#400#2_851_3|9#20#2_851_5。原碼照抄,不解讀成道具名(類型 2 道具編號要跨類查,這次沒查)。",
+  "主題id": "config/Constants.lua INSIDE_PLOY_CORAL_REALM_THEME_ID = 1091",
+  "InsideJudgeTopic原列": {
+   "tid": 1091,
+   "conf_two": "1#20|0#80",
+   "說明": "conf_two 欄的用途沒查到,原樣記錄"
+  }
+ },
+ "機制": {
+  "有兌換商店": true,
+  "兌換商店名": "沒有(按鈕沒有文字鍵)",
+  "有簽到": false,
+  "有儲值禮包": false,
+  "有排行榜": false,
+  "有限定夥伴招募": false,
+  "有限定寵物招募": false,
+  "有限定時裝招募": false,
+  "有活動傳記": false,
+  "依據": "程式 MilestoneActivityPanel1091.lua 有 btn_shop1 → OnBtn_ShopClick → UIPanelManager.OpenCommonShop(ConstActivity.MarvellousType.MilestoneAndNewRank, m_aid),且按 RacingCatMgr.CheckShopOpen 決定顯示。這是里程碑與錦標賽共用的商店入口,不是珊瑚祕境專屬商店,商店名與商品沒查(版面上 btn_shop1 的按鈕文字節點沒有在地化鍵),所以「兌換商店名」不填名字。簽到/禮包/排行榜/招募/傳記:版面與程式 btn 只有 close / detail / shop1 / goto / get_reward / preview 六顆,沒有這些入口。btn_goto 開 UIMgr.GoHome(回家園),btn_preview 開獎勵預覽 OpenRewardPreview3。"
+ },
+ "圖": {
+  "主圖.png": "沒有。珊瑚祕境沒有橫幅:MANIFEST 沒有 activity_1091 的 hangactionmain 目錄,入口是里程碑的主畫面 atlas sprite。",
+  "文字_橫幅.png": "沒有。沒有橫幅。",
+  "文字.png": "圖片素材_new/milestoneactivity/1091/shmj_title_1_c.png.tw.png(MANIFEST assets/arts/ui/img/milestoneactivity/1091/shmj_title_1_c.png.tw),400x120,3067 色。版面 milestoneactivitypanel1091.json 的 UIImage shmj_title_1_c 引用 img/milestoneactivity/1091/shmj_title_1_c.png.tw。與 _依活動/珊瑚祕境/ 那張 cmp 相同。",
+  "入口圖.png": "沒有。入口 sprite milestone_1091 在 assets/arts/ui/atlas/main/main.asset.tw 裡,三處可複製的目錄都沒有單張 PNG(見 缺圖)。",
+  "資源/避水珠/圖.png": "圖片素材_new/item/comz_icon_res_150_24_1091.png,128x128,4013 色(MANIFEST assets/arts/ui/img/item/comz_icon_res_150_24_1091.png)。版面位置推定,見資源夾說明。",
+  "元件/": "shmj_bg_1~6(版面 UIImage 引用:bg_1 824x1148、bg_2 180x44 311色、bg_3 416x124、bg_4 1024x512(版面用到 14 個節點)、bg_5 824x512、bg_6 744x744)與 shmj_tiezhi_1~9_1/_2(9 貼紙各一組未點亮/已點亮;程式 MilestoneActivityPanel1091.lua _GetStageImgPath 組路徑 .../1091/<m_id>/shmj_tiezhi_<stage>_<state>.png,state 1=bgImg、2=showImg)。共 24 張。來源皆為 圖片素材_new/milestoneactivity/1091/(.. /1091/ 子夾放貼紙),MANIFEST 皆有鍵,且同名檔與 _依活動/珊瑚祕境/ 的 cmp 相同。",
+  "整頁": "沒有做螢幕合成"
+ },
+ "缺圖": [
+  {
+   "資產路徑": "assets/arts/ui/atlas/main/main.asset.tw(sprite: milestone_1091)",
+   "用途": "歷練主畫面里程碑活動列的珊瑚祕境入口圖",
+   "MANIFEST有無": true,
+   "備註": "MANIFEST 只有 atlas 本體,沒有 sprite 層級鍵;sprite 名依據是 HangActionMilestoneLogic.lua:63。"
+  },
+  {
+   "資產路徑": "assets/arts/ui/img/milestoneactivity/1071/tea/2.png 與 xlch_floor_08.png、atlas/slimming/10016/10016.asset.tw(js02_bg_2)",
+   "用途": "領獎彈窗 milestoneactivity1091_getreward 版面引用的圖(版面引用的是 1071 的資產,疑似沿用 1071 的複製版面)",
+   "MANIFEST有無": false,
+   "備註": "沒逐一查 MANIFEST;不屬於 1091 專屬資產,不放進本夾,不算缺。列在這裡只是讓使用者知道領獎彈窗圖沒拿。"
+  }
+ ],
+ "資料來源": {
+  "設定表": [
+   "config/InsideJudgeTopic.lua tid=1091",
+   "config/InsideTaskTime.lua id=24091",
+   "config/Constants.lua INSIDE_PLOY_CORAL_REALM_STAGE_SCORE / _STAGE_REWARD / _THEME_ID"
+  ],
+  "語系表": "雜物/原始資料/家族主畫面/strings_tw.json:MilestoneActivity1091_1~6",
+  "規則": "素材/規則/rule_milestone_activity_1091.json(程式 MilestoneActivityPanel1091.lua OnBtn_DetailClick 組出鍵)",
+  "版面": "雜物/_版面/milestoneactivity/1091/milestoneactivitypanel1091.json、milestoneactivity1091_getreward.json、tea_item.json",
+  "程式": "/srv/share/mumu/現役lua_完整/luamain/MilestoneActivityPanel1091.lua;luamain/CommLimitActiveMgr.lua:42,359-380,654-740,758;luamain/CommLimitActiveCache.lua:196,495-533;luamain/HangActionMilestoneLogic.lua:63;核心lua/luabasic/UIConfigs.txt:2970,2978,3498",
+  "ploy": "mumu/巡夢少女_解包/ploy研究/快照庫/ployMenu_2026-10-30_766230072_4da97edc73_解密/ploy_206452.json、ploy_213259.json;ployMenu_2026-11-14_766230069_e659d204e4_解密/ploy_213259.json",
+  "圖": {
+   "文字.png / 元件 / 資源圖": "/srv/share/mumu/巡夢少女_解包/巡夢少女_圖片素材_new/(來源2)",
+   "交叉比對": "/srv/share/xm/雜物/_依活動/珊瑚祕境/(來源1),24 張同名 cmp 相同,只用來比對"
+  }
+ },
+ "拿不到": [
+  "實際檔期日期(伺服器下發,只有 dayConfig)",
+  "避水珠掉落概率",
+  "階段獎勵道具名(只有獎勵碼)",
+  "商店商品清單",
+  "活動 aid"
+ ],
+ "未確定": [
+  "清單舊來源是「活動表格(既有整理)」,我沒打開該資料(屬禁用衍生副本);名稱「珊瑚祕境」以 strings_tw/InsideJudgeTopic 為準",
+  "dayConfig 的天數基準沒獨立驗證",
+  "InsideJudgeTopic.conf_two '1#20|0#80' 的用途沒查",
+  "避水珠圖示是版面位置推定",
+  "里程碑與錦標賽共用商店 btn_shop1 的商店名與內容沒查",
+  "MANIFEST 有 assets/arts/ui/img/plotevent/1091.png、stamp/stamp_1091.png、mahjong/queshensanqueyi_1091.png 等含 1091 的資產,沒有程式證據屬於珊瑚祕境(1091 可能只是編號撞號),不採用"
+ ],
+ "關聯": [
+  "里程碑活動(父,清單內)",
+  "珍珠傳說(tid 1101)、杏林茶會(1071)、夢境錦鯉(1081)等同框架其他檔期,清單內有"
+ ]
+}

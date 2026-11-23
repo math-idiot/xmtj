@@ -1,0 +1,13 @@
+{
+ "這是什麼": "這個活動用到的規則原文,放在活動夾裡。",
+ "正本": "素材/規則/rule_doctor.json。這裡是副本,內容照抄未改(cmp 逐位元相同)。",
+ "誰在用": "整個活動共用這一份。子活動 行動力助力 沒有自己的規則鍵(CommonShopPanel 沒有 OpenRuleUI 呼叫)。",
+ "檔案": [
+  "rule_doctor 醫心一意"
+ ],
+ "依據": "/srv/share/mumu/現役lua_完整/cdn_ui/ui/milestoneactivity/milestoneactivitypanel1051.lua:79 `UIPopManager.OpenRuleUI(\"rule_doctor\")`,在 OnClickDetail 裡,接 btn_detail 與 btn_rule2 兩顆鈕(:69,:72)。milestoneactivitypanel1051 = 這個活動的畫面(核心lua/luabasic/UIConfigs.txt:3494),所以是程式引用不是標題同名。素材/規則/_索引.json 清單[69] 的標題也是「醫心一意」,兩邊對得上。",
+ "規則鍵候選(僅標題同名、未見程式引用)": [],
+ "找過但沒有": [
+  "行動力助力(CommonShopPanel)的商店規則 —— 程式沒有 OpenRuleUI,素材/規則 也沒有對應檔"
+ ]
+}

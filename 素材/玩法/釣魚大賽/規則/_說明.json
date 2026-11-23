@@ -1,0 +1,17 @@
+{
+ "這是什麼": "這個活動用到的規則原文。",
+ "正本": "素材/規則/rule_fishing.json(標題 釣魚技巧),cmp 逐位元相同",
+ "誰在用": "獨釣頁的規則按鈕(FishingWidget.lua:193)",
+ "檔案": [
+  "rule_fishing 釣魚技巧"
+ ],
+ "依據": "FishingWidget.lua:193 UIPanelManager.Open(UI_CONFIGS.ActivityFishingRuleUI, {filePath = \"rule_fishing\"})",
+ "找過但沒有": [
+  "rule_fishing_supply",
+  "rule_fishing_guide"
+ ],
+ "程式有引用但沒複製": [
+  "rule_viplife(心願禮遇)",
+  "rule_yiqihuanian(弈棋化念)——內容是別的活動,見 資訊.json 資料來源"
+ ]
+}

@@ -1,0 +1,222 @@
+{
+ "名稱": "醫心一意",
+ "狀態": "已整理",
+ "類型": "營運活動",
+ "類型依據": "伺服器下發的 ploy。ploy 快照 /srv/share/mumu/巡夢少女_解包/ploy研究/ployMenu_1105_069_解密/ploy_213259.json 的父活動「里程碑&錦標賽」(t=308, o=10008) 底下第 15 個細項 {a:3018013, dayConfig:\"13_13|22_22\", tid:\"24052\"};tid 24052 = config/InsideTaskTime.lua id 24052(extend=\"1051\"),extend 1051 = config/InsideJudgeTopic.lua tid 1051 name=\"醫心一意\"。活動資源 config/PloyResources.lua res_id 70109~70114 的 ploy_type=308、o_type=10008 也落在同一個運營活動類型上(現役lua_完整/luabasic/ConstActivity.lua:270 ActivityType.MilestoneAndNewRank=308、:138 MarvellousType.MilestoneAndNewRank=10008)。它不是主題活動:沒有自己的 hub,是掛在共用的 里程碑活動 畫面底下的一個 widget。",
+ "檔期": "24052",
+ "檔期依據": "config/InsideTaskTime.lua id=24052(type=24, open_type=2, open_time=\"2\", continue_hour=48, extend=\"1051\");config/Constants.lua key=INSIDE_PLOY_DOCTOR_THEME_ID value=\"1051\" name=\"【醫心一意】醫心一意活動主題id\"。對應的 ploy 編號:2026-11 檔 ploy 213259 細項 a=3018013(dayConfig \"13_13|22_22\");2026-10 檔 ploy 206452 細項 a=2884506(dayConfig \"10_10|23_23\")。起訖日期是伺服器下發的,只有 ploy 快照涵蓋的 2026-10-01 之後兩檔。config/InsideTaskTime.lua 另有一列 id=24051 也是 extend=\"1051\",兩份快照都沒排到它(見 未確定)。",
+ "綁定角色": "沒有",
+ "綁定地圖": "沒有",
+ "綁定說明": "設定表、語系表、程式都沒有把這個活動指到特定夥伴或外地圖。資產目錄 milestoneactivity/1051/ 裡有 yxyy_role_1~5,但沒有任何設定表或程式把它們對到夥伴編號,不當綁定角色的依據。病人 NPC(config/PatientNpcDefine.lua npc_id 3001~3010)是活動自己的 NPC,不是夥伴。",
+ "活動說明": "沒有",
+ "活動說明來源": "config/InsideJudgeTopic.lua tid=1051 的 desc 欄是空字串,語系表 strings_tw 也查不到「醫心一意」這個值(值反查 0 筆)。活動背景的原文只存在規則檔 規則/rule_doctor.json 的「功能背景」段,那是規則不是活動說明,沒有搬到這一欄。",
+ "hub畫面": "沒有自己的 hub。畫面是 milestoneactivity/1051/milestoneactivitypanel1051(核心lua/luabasic/UIConfigs.txt:3494 MilestoneActivityPanel1051),它是 widget,掛在共用的里程碑活動畫面 milestoneactivity/milestoneactivityscreen(UIConfigs.txt:2970 MilestoneActivityPanel, Type_1_2_1)底下 —— milestoneactivityscreen.lua:24 `_Open(tonumber(m_insideTaskTimeCfgVo:GetExtend()), data.index)`、:31 `WIDGET_CONFIGS[ResPathManager.StrTwoSplice(\"MilestoneActivityPanel\", id)]`,也就是用 InsideTaskTime 的 extend(1051)去選 widget。",
+ "子活動": [
+  {
+   "名稱": "行動力助力",
+   "類型": "禮包/商城",
+   "規則鍵": null,
+   "語系key": null,
+   "引用": "ploy 213268(t=4 超值禮包, o=10008, parentId=213259),四個品項的 insideId 全是 \"24052\";2026-10 檔是 ploy 206461。名稱取自 ploy 快照的 n 欄,strings_tw 查不到這個字串(見 未確定)。"
+  }
+ ],
+ "子活動說明": "panel1051 的按鈕只有七顆:btn_detail / btn_rule2(都開 rule_doctor)、btn_look(獎勵預覽彈窗)、btn_goto(回主畫面)、btn_confirm(關閉)、btn_reward(領莊主大獎)、btn_shop。只有 btn_shop 會跳到另一個獨立的活動面板,所以子活動只記 行動力助力 一個。btn_look 開的是通用彈窗 OpenCommonRank_FPJ(標題語系鍵 MilestoneActivity_21 =「獎勵預覽」),不是子活動。治療流程的兩支畫面 TreatPatientTipScreen / TreatSuccessScreen 是這個活動自己的彈窗,記在 畫面 不記成子活動。",
+ "活動資源": [
+  "霜桑葉",
+  "苦蔘根",
+  "桂枝",
+  "茯苓塊",
+  "炙甘草",
+  "陳皮"
+ ],
+ "活動資源說明": "六味藥材,config/PloyResources.lua res_id 70109~70114,ploy_type=308、o_type=10008、quality=4、get_way=\"483\"(config/GetWay.lua func_id 483 = 進行歷練)。icon 欄分別是 yxyy_70109~yxyy_70114,yxyy 前綴與活動資產目錄 milestoneactivity/1051/ 的 yxyy_* 一致。綁到這個活動的硬依據是 config/Constants.lua 的 INSIDE_PLOY_DOCTOR_STAGE_REWARD,九個階段的消耗字串只用到 20_70109 ~ 20_70114 這六個編號。各資源放在 資源/<名>/。",
+ "機制": {
+  "有兌換商店": false,
+  "有簽到": false,
+  "有儲值禮包": true,
+  "儲值禮包名": "行動力助力",
+  "有排行榜": false,
+  "有限定夥伴招募": false,
+  "有限定寵物招募": false,
+  "有限定時裝招募": false,
+  "有活動傳記": false,
+  "依據": "panel1051 上唯一的面板跳轉入口是 btn_shop:milestoneactivitypanel1051.lua:35 `RacingCatMgr.CheckShopOpen(ConstActivity.MarvellousType.MilestoneAndNewRank, m_activeTimeInfo.aid)` 決定顯不顯示、:121-123 `UIPanelManager.OpenCommonShop(MarvellousType.MilestoneAndNewRank, aid, endTime)`。CheckShopOpen(現役lua_完整/luamain/RacingCatMgr.lua:201,註解「礼包是否开启」)查的是 ConstActivity.ActivityType.ImprestPloy(=4 超值禮包),再用 insideId 過濾到本活動;OpenCommonShop(現役lua_完整/luabasic/UIPopManager.lua:1416-1432)開 CommonShopPanel。所以這顆是儲值禮包/商城,不是兌換商店 —— 六味藥材在 PloyResources 的 buy_price 是空的、page=0,規則原文也只說藥材用來治病,沒有兌換。簽到、排行榜、夥伴/寵物/時裝招募、活動傳記在 panel1051 與 milestoneactivityscreen 都沒有入口(程式沒有,不是沒查)。"
+ },
+ "玩法": {
+  "一句話": "歷練消耗行動力機率掉藥材,用藥材治好義莊裡的病人,全部治完領莊主大獎。",
+  "病人數": "規則原文寫 9 位;config/Constants.lua INSIDE_PLOY_DOCTOR_STAGE_REWARD 也是 9 個階段。資產目錄有 patient_3001~3010 共 10 張圖、config/PatientNpcDefine.lua type=3 也有 10 列,實際每檔用哪幾位由伺服器下發(panel1051.lua:31 `m_npcList = StringConverterUtil.ToNumberArray(\"_\")(m_activeTimeInfo.npcInfo)`)。",
+  "病人名單(PatientNpcDefine type=3,10 列)": [
+   {
+    "npc_id": 3001,
+    "name": "老秀才"
+   },
+   {
+    "npc_id": 3002,
+    "name": "獵戶"
+   },
+   {
+    "npc_id": 3003,
+    "name": "小乞丐"
+   },
+   {
+    "npc_id": 3004,
+    "name": "豆腐西施"
+   },
+   {
+    "npc_id": 3005,
+    "name": "鐵匠"
+   },
+   {
+    "npc_id": 3006,
+    "name": "茶樓說書人"
+   },
+   {
+    "npc_id": 3007,
+    "name": "採藥老翁"
+   },
+   {
+    "npc_id": 3008,
+    "name": "逃荒婦人"
+   },
+   {
+    "npc_id": 3009,
+    "name": "鏢師"
+   },
+   {
+    "npc_id": 3010,
+    "name": "小和尚"
+   }
+  ],
+  "藥材取得": "config/GetWay.lua func_id 483「進行歷練」(PloyResources 的 get_way 欄);語系 treat_4 =「消耗行動力有概率獲得藥材」。",
+  "畫面": {
+   "主面板": "milestoneactivity/1051/milestoneactivitypanel1051(UIConfigs.txt:3494,widget)",
+   "治療確認彈窗": "milestoneactivity/1051/treatpatienttipscreen(UIConfigsFPJ.txt:302 TreatPatientTipScreen, Type_3_1_0;panel1051.lua:249 開啟)",
+   "治療成功畫面": "milestoneactivity/1051/treatsuccessscreen(UIConfigsFPJ.txt:301 TreatSuccessScreen, Type_1_2_0)",
+   "母畫面": "milestoneactivity/milestoneactivityscreen(UIConfigs.txt:2970, Type_1_2_1)"
+  },
+  "入口": "config/GetWay.lua func_id 481「里程碑活動」→ 核心lua/luabasic/ConstDefine.txt:4344 GetWayID.MilestoneActive = 481 → GetWayToUI.txt:1947-1948 `_this[const.GetWayID.MilestoneActive] = {UIConfig = UI_CONFIGS.MilestoneActivityPanel}` → UIConfigs.txt:2970。這個入口是整個里程碑活動共用的,不是醫心一意專屬的。",
+  "語系鍵": "treat_1~treat_10(救治大獎 / 居民治療清單 / 已治癒 / 消耗行動力有概率獲得藥材 / 本次治療已結束！/ 恭喜完成%s個清單，下次見 / 感謝醫官宅心仁厚，救死扶傷！請收下謝禮！/ 完成獎勵 / 治療%s獲得 / 治癒獎勵);另用通用鍵 MilestoneActivity_21(獎勵預覽)、activity_time_16。"
+ },
+ "原碼": {
+  "這是什麼": "照抄,沒有解讀成道具名(坑 3)。",
+  "INSIDE_PLOY_DOCTOR_STAGE_REWARD": "1#20_70110_2,20_70114_5#2_3000_30,2_13009_1|2#20_70109_2,20_70111_8#2_3000_50,364_10|3#20_70112_7,20_70113_9#2_3000_30,2_13009_1|4#20_70109_2,20_70110_8#2_3000_50,364_20|5#20_70109_2,20_70111_10#2_3000_50,364_30|6#20_70110_20,20_70112_15#2_3000_60,2_3502_1|7#20_70113_15,20_70114_20#2_3000_60,2_13016_1,364_30|8#20_70109_15,20_70111_30#2_3000_60,2_13020_1,364_50|9#20_70109_15,20_70110_30#2_3000_60,2_3503_1",
+  "INSIDE_PLOY_DOCTOR_STAGE_REWARD 格式": "config/Constants.lua 的 name 欄原文:「階段序號#消耗字符串(多個用逗號連接）#獎勵字符串」",
+  "INSIDE_PLOY_DOCTOR_ROLL_REWARD": "9_40001",
+  "INSIDE_PLOY_DOCTOR_ROLL_REWARD 格式": "config/Constants.lua 的 name 欄原文:「醫心一意骰子擲出固定產出獎勵字符串（資源格式同通用資源字符串，如9_掉落庫ID）」。40001 是掉落庫 ID,沒去查內容。panel1051 沒有骰子,骰子在共用的里程碑母畫面,沒查證。",
+  "InsideTaskTime.all_step_reward": {
+   "24052": "2_3000_100,217_10,2_3503_1",
+   "24051": "2_3000_200,2_858_2,2_3503_1"
+  },
+  "行動力助力 ploy 品項(ploy 213268,insideId 24052)": [
+   {
+    "order": "1",
+    "name": "免费福利",
+    "reward": "2_3000_10",
+    "type": "10",
+    "numLimit": "1_1",
+    "a": 3017971
+   },
+   {
+    "order": "2",
+    "name": "廣告助力",
+    "reward": "2_3000_10,13_30",
+    "type": "10",
+    "numLimit": "1_1",
+    "adFlag": "1",
+    "a": 3017972
+   },
+   {
+    "order": "3",
+    "name": "行動力特惠",
+    "reward": "2_3000_100,2_90046_5,110_900",
+    "type": "10",
+    "numLimit": "1_5",
+    "itemId": "7615006",
+    "a": 3017973
+   },
+   {
+    "order": "4",
+    "name": "行動力助力",
+    "reward": "2_3000_300,2_90043_1,110_3600",
+    "type": "10",
+    "numLimit": "1_5",
+    "itemId": "7615008",
+    "a": 3017974
+   }
+  ]
+ },
+ "圖": {
+  "主圖.png": "沒有。里程碑活動的主畫面橫幅在 assets/arts/ui/img/hangactionmain/activity_10008/(floor_banner01.png、ptext_banner01_c.png.tw、ptext_name_c.png.tw、bg_01.jpg、ty_img_01.png,MANIFEST 有)。10008 = MarvellousType.MilestoneAndNewRank,是「里程碑&錦標賽」整個檔位共用的,17 個主題(含錦標賽)都走它,不是醫心一意的圖(坑 6),沒有拿。lua/ui/hangaction/hangactionmainbannerwidget.lua 裡也沒有 Milestone 這一列,沒有 zjm_banner。",
+  "文字_橫幅.png": "沒有。沒有醫心一意專屬的橫幅小字圖;activity_10008/ptext_banner01_c.png.tw 是共用檔位的,理由同上。",
+  "文字.png": "來源 assets/arts/ui/img/milestoneactivity/1051/yxyy_title_1_c.png.tw(MANIFEST 有 .cn 與 .tw 兩版),576×220 RGBA,顏色數 26403。複製自 /srv/share/mumu/巡夢少女_點名抓/活動全套UI/milestoneactivity/1051/yxyy_title_1_c.png —— 那個夾的檔名把 .tw/.cn 後綴去掉了,無法從檔名判斷版本,改用開圖確認:圖上是繁體「醫心一意」(醫不是医),所以是 .tw 版。注意:1051 的 prefab 版面沒有抽出來,沒有逐節點確認這張掛在哪個節點,依據是 MANIFEST 路徑 + 活動專屬資產目錄 + 圖上的字。",
+  "入口圖.png": "沒有。入口是共用的里程碑活動入口(GetWay func_id 481),func_icon 是 hqtj_icon_zxrw,那是獲取途徑清單用的通用小圖,不是這個活動的入口圖示,沒有拿。",
+  "子活動入口圖": "沒有。行動力助力走通用 CommonShopPanel,沒有自己的入口圖資產。",
+  "整頁.jpg": "沒有。不做螢幕合成。"
+ },
+ "元件說明": "元件/ 只放了 10 張 patient_3001~3010(128×128 RGBA,顏色數 2298~4173)。依據是程式直接取圖:現役lua_完整/luabasic/ResPathManager.lua:1463 `ResPathManager.GetMilestone1051Img`,呼叫點 milestoneactivitypanel1051.lua:231、treatpatienttipscreen.lua:17、treatsuccessscreen.lua:48 都是 `GetMilestone1051Img(\"patient_\" .. npcId)`,npcId 來自 config/PatientNpcDefine.lua。同一個資產目錄還有 13 張沒放進來:yxyy_bg_1~8、yxyy_icon_baoxiang、yxyy_icon_gou、yxyy_role_1~5 —— 它們在 MANIFEST 有、也在 milestoneactivity/1051/ 這個活動專屬目錄下,但 1051 的 prefab 版面沒抽出來,無法確認是哪個節點在畫,照「寧缺勿濫」沒放。原檔在 /srv/share/mumu/巡夢少女_點名抓/活動全套UI/milestoneactivity/1051/。",
+ "缺圖": [],
+ "資料來源": {
+  "設定表": [
+   "config/InsideJudgeTopic.lua tid=1051 name=\"醫心一意\"(16 列,欄位長度檢查通過;desc/conf 都是空字串)",
+   "config/Constants.lua key=INSIDE_PLOY_DOCTOR_THEME_ID / INSIDE_PLOY_DOCTOR_STAGE_REWARD / INSIDE_PLOY_DOCTOR_ROLL_REWARD(三列的 name 欄都以【醫心一意】開頭)",
+   "config/InsideTaskTime.lua id=24051、24052(extend=\"1051\" 的只有這兩列;type=24, open_type=2, open_time=\"2\", continue_hour=48)",
+   "config/PloyResources.lua res_id 70109~70114(六味藥材;ploy_type=308, o_type=10008, icon=yxyy_7010x, get_way=\"483\")",
+   "config/PatientNpcDefine.lua npc_id 3001~3010(type=3,10 位病人)",
+   "config/GetWay.lua func_id 481「里程碑活動」(入口,共用)、func_id 483「進行歷練」(藥材 get_way)"
+  ],
+  "語系表": "雜物/原始資料/家族主畫面/strings_tw.json:treat_1~treat_10、MilestoneActivity_21、activity_time_16。「醫心一意」這四個字在 strings_tw 值反查 0 筆 —— 活動名只存在設定表 name 欄與標題圖上。",
+  "規則": "rule_doctor(標題「醫心一意」)。程式引用:/srv/share/mumu/現役lua_完整/cdn_ui/ui/milestoneactivity/milestoneactivitypanel1051.lua:79 `UIPopManager.OpenRuleUI(\"rule_doctor\")`,而 milestoneactivitypanel1051 就是這個活動的畫面(UIConfigs.txt:3494),所以不是只靠標題同名。",
+  "版面": "沒有。/srv/share/xm/雜物/_版面/milestoneactivity/ 與 /tmp/claude-1000/版面/milestoneactivity/ 底下有 1001/1002/1011/1021/1031/1041/1061/1071/1081/1091,就是沒有 1051。MANIFEST 有 assets/game/prefabs/ui/milestoneactivity/1051/milestoneactivitypanel1051.prefab(另有 treatpatientnpcitem / treatpatienttipscreen / treatsuccessscreen 三個 prefab),但還沒抽成版面 json。",
+  "程式": [
+   "/srv/share/mumu/現役lua_完整/cdn_ui/ui/milestoneactivity/milestoneactivitypanel1051.lua(318 行;:31 npcInfo、:35+:121-123 btn_shop、:79 rule_doctor、:129 STAGE_REWARD、:137 all_step_reward、:231 患者頭像、:249 TreatPatientTipScreen)",
+   "/srv/share/mumu/現役lua_完整/cdn_ui/ui/milestoneactivity/milestoneactivityscreen.lua:24,31,33(用 InsideTaskTime 的 extend 選 widget)",
+   "/srv/share/mumu/現役lua_完整/cdn_ui/ui/milestoneactivity/treat/treatpatienttipscreen.lua、treatsuccessscreen.lua",
+   "/srv/share/mumu/現役lua_完整/luabasic/ResPathManager.lua:1463 GetMilestone1051Img",
+   "/srv/share/mumu/現役lua_完整/luabasic/ConstActivity.lua:138(MarvellousType.MilestoneAndNewRank=10008)、:270(ActivityType.MilestoneAndNewRank=308)、:368(ActivityType.Milestone=564)、:170(ActivityType.ImprestPloy=4)",
+   "/srv/share/mumu/現役lua_完整/luamain/RacingCatMgr.lua:201 CheckShopOpen、/srv/share/mumu/現役lua_完整/luabasic/UIPopManager.lua:1416-1432 OpenCommonShop",
+   "雜物/巡夢少女_遊戲資料/核心lua/luabasic/UIConfigs.txt:2970,3494、UIConfigsFPJ.txt:301-302、ConstDefine.txt:4344、GetWayToUI.txt:1947-1948"
+  ],
+  "ploy快照": [
+   "/srv/share/mumu/巡夢少女_解包/ploy研究/活動總表.json:活動id 213259 與 206452,名稱「里程碑&錦標賽」,主題類型t=308,細項數 15",
+   "ployMenu_1105_069_解密/ploy_213259.json 細項 {a:3018013, dayConfig:\"13_13|22_22\", tid:\"24052\"}(檔期 2026-11-01 08:00 ~ 2026-12-01 07:59)",
+   "ployMenu_766230072_解密/ploy_206452.json 細項 {a:2884506, dayConfig:\"10_10|23_23\", tid:\"24052\"}(檔期 2026-10-01 08:00 ~ 2026-11-01 07:59)",
+   "ployMenu_1105_069_解密/ploy_213268.json(t=4 行動力助力,四個品項 insideId 全是 24052)、ployMenu_766230072_解密/ploy_206461.json(同,2026-10 檔)"
+  ],
+  "圖": {
+   "文字.png": "/srv/share/mumu/巡夢少女_點名抓/活動全套UI/milestoneactivity/1051/yxyy_title_1_c.png",
+   "元件/": "/srv/share/mumu/巡夢少女_點名抓/活動全套UI/milestoneactivity/1051/patient_30xx.png",
+   "資源/*/圖.png": "/srv/share/mumu/巡夢少女_點名抓/活動全套UI/activityres/yxyy_7010x.png",
+   "MANIFEST對照": "每一張都在 /srv/share/mumu/巡夢少女_解包/MANIFEST_full.json 有對應鍵(assets/arts/ui/img/milestoneactivity/1051/*、assets/arts/ui/img/activityres/yxyy_7010x.png)"
+  }
+ },
+ "拿不到": [
+  "檔期的實際起訖日期(伺服器下發;只有 ploy 快照涵蓋的 2026-10 與 2026-11 兩檔的 dayConfig:\"10_10|23_23\" 與 \"13_13|22_22\",怎麼換算成日期沒查證)",
+  "每一檔實際出現哪 9 位病人(panel1051.lua:31 從 m_activeTimeInfo.npcInfo 下發)",
+  "行動力助力四個品項的售價(ploy 的 money/cost 欄是空的,itemId 7615006 / 7615008 是計費點,沒去查)",
+  "各階段獎勵碼對應的道具名(原碼留在 原碼 欄,沒解讀)",
+  "骰子/里程碑進度那一層的規則(INSIDE_PLOY_DOCTOR_ROLL_REWARD 提到骰子,但 panel1051 裡沒有骰子,應該在共用的里程碑母畫面,沒查)"
+ ],
+ "未確定": [
+  "1051 的 prefab 版面沒抽出來(MANIFEST 有 assets/game/prefabs/ui/milestoneactivity/1051/milestoneactivitypanel1051.prefab,_版面/ 與 /tmp/claude-1000/版面/ 都只到 1091 其他編號,沒有 1051)。所以 文字.png 掛在哪個節點、yxyy_bg_1~8 / yxyy_role_1~5 / yxyy_icon_* 這 13 張有沒有參與繪製,都沒有逐節點驗證。",
+  "config/InsideTaskTime.lua 有兩列 extend=\"1051\"(24051 與 24052),all_step_reward 不同。兩份 ploy 快照排到的都只有 24052,24051 是另一種強度的同主題檔期還是舊版,查不到。",
+  "ploy 快照裡 行動力助力 的四個品項名(免费福利 / 廣告助力 / 行動力特惠 / 行動力助力)在 strings_tw 全部查不到,而且「免费福利」是簡體 —— 台版實際顯示的字可能不是這些,原碼照抄沒改。",
+  "規則原文說義莊有 9 位病人,但 config/PatientNpcDefine.lua type=3 與資產目錄都是 10 位(patient_3001~3010)。多出來的那一位是備用還是輪替,沒查到依據。",
+  "btn_shop 開的 CommonShopPanel 走的是 ImprestPloy(超值禮包),我判成「儲值禮包」而不是「兌換商店」。如果使用者認為活動商城應該算兌換商店,這一欄要改。"
+ ],
+ "關聯": [
+  "里程碑活動",
+  "錦標賽活動",
+  "尋寶之旅",
+  "杏林漫步",
+  "回輪竹語",
+  "蘭台問心",
+  "織夢成卷",
+  "杏林茶會",
+  "夢境錦鯉",
+  "珊瑚祕境",
+  "珍珠傳說",
+  "遊園爭霸",
+  "御貓疾行"
+ ],
+ "關聯說明": "里程碑活動(清單 index 163,GetWay func_id 481)是這個活動的共用入口與母畫面。錦標賽活動(清單 index 166,func_id 482)和它同屬 ploy「里程碑&錦標賽」(t=308, o=10008)這一個檔位。其餘 11 筆是 config/InsideJudgeTopic.lua 裡的其他主題(tid 1001/1002/1021/1041/1061/1071/1081/1091/1101/2001/2011 等),跟醫心一意是同一套系統的不同檔期,各自有自己的 milestoneactivity/<tid>/ 面板。InsideJudgeTopic 還有 曲水流觴(1011)、杏林饋贈(1031)、杏林之星(2002)、寶藏亂鬥(2021) 四個主題不在活動名清單裡。"
+}

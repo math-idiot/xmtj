@@ -1,0 +1,23 @@
+{
+ "名稱": "水下拾珍",
+ "類型": "子活動(見所屬)",
+ "所屬活動": "釣魚大賽",
+ "子活動類型": "轉盤抽獎",
+ "檔期": "203",
+ "規則鍵": "沒有(畫面有規則鈕 btn_CommonBtn_rule,開哪個鍵沒查到)",
+ "語系key": "ActivityFishing_4",
+ "畫面": "FishingPickupWidget(UIConfigs.txt:3670),hub 頁籤 pos4/tog4(ActivityFishingScreen.lua:54-62)",
+ "入口": "ActivityFishingScreen 頁籤",
+ "依據": [
+  "語系 ActivityFishing_4 = 水下拾珍;ActivityFishing_22/_23 拾珍一次/十次",
+  "轉盤資料 config/FishingPloyWheel.lua id=2 共 13 列(原碼不解讀);第一列 cost 20_70011_500",
+  "FishingPickupWidget.lua:84 提示 ActivityFishing_81:漁具總等級達標才能參與;ActivityFishing_89 說明消耗釣魚銀幣"
+ ],
+ "圖": {
+  "入口圖.png": "沒有",
+  "文字.png": "sxsz_ptext_01_c.png.tw 448×212(圖面讀作『水下拾珍』;沒有版面節點佐證)"
+ },
+ "拿不到": [
+  "轉盤實際機率與保底(伺服器)"
+ ]
+}

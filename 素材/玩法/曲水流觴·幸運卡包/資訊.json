@@ -1,0 +1,91 @@
+{
+ "名稱": "曲水流觴·幸運卡包",
+ "狀態": "子活動(見所屬)",
+ "所屬活動": "里程碑活動(營運活動;已整理於 雜物/_待進素材/活動/里程碑活動/資訊.json,其子活動清單有「曲水流觴」= panel 1011)",
+ "類型": "子活動",
+ "類型依據": "「曲水流觴」是里程碑活動的一個檔期主題:config/InsideJudgeTopic.lua tid=1011 name=曲水流觴(台版);config/InsideTaskTime.lua 有 5 列 extend='1011'(id 24011~24015,type 24,open_type 2,open_time '1',continue_hour 48);milestoneactivityscreen.lua:17-32 以 InsideTaskTime 的 extend 當 id → WIDGET_CONFIGS['MilestoneActivityPanel1011'](UIConfigs.txt:3490);版面 _版面/milestoneactivity/1011/milestoneactivitypanel.json 的 img_title 用 lsqs_title_1_c.png.tw,圖上字是「曲水流觴」。 「·幸運卡包」這個後綴在 設定表/語系表/lua/ploy 快照 全部查不到(見 未確定),不能確認它對應 24011~24015 哪一列。",
+ "檔期": "沒有",
+ "檔期依據": "InsideTaskTime 的 5 列(24011~24015)只有 open_time(開服第幾天型態 '1')與 continue_hour=48,沒有日期。ploy 快照庫(2026-10-30/11-05/11-14 三份)對「曲水」「流觴」「卡包」搜尋 0 筆,活動總表.json 同樣 0 筆;里程碑 ploy(t=308,id 213259)的 tid 清單裡沒有 24011~24015(父夾已記),所以 2026-10-01 後的快照沒有這個主題的檔期。",
+ "綁定角色": "沒有",
+ "綁定地圖": "沒有",
+ "活動說明": "沒有",
+ "活動說明來源": "沒有。InsideJudgeTopic tid=1011 的 desc 欄為空;語系表值反查「曲水」「流觴」0 筆(只在 CollectStickersAlbum album_id 201 name=曲水流觴宴 的設定表值裡出現,那是畫冊名,不是這個活動)。",
+ "hub畫面": "milestoneactivity/milestoneactivityscreen(UIConfigs.txt:2970)→ widget MilestoneActivityPanel1011(UIConfigs.txt:3490 path=milestoneactivity/1011/milestoneactivitypanel)",
+ "畫面台版文字": "版面 1011 panel 上的按鈕/文字鍵:MilestoneActivity_1 最終大獎、_2 活動完成、_3 恭喜你獲得河流上全部獎勵！下次見！、_4 好耶！、milestone_active_4 積攢愛心值贏取進度大獎、petguidestr_5 大獎預覽、weekgame_1 禮包(值皆取自 strings_tw)",
+ "子活動": [],
+ "活動資源": [],
+ "機制": {
+  "有兌換商店": false,
+  "有簽到": false,
+  "有儲值禮包": false,
+  "有排行榜": false,
+  "有限定夥伴招募": false,
+  "有限定寵物招募": false,
+  "有限定時裝招募": false,
+  "有活動傳記": false,
+  "依據": "panel 1011 版面沒有商店/簽到/禮包/排行榜/招募/傳記按鈕(版面節點只有進度階梯、最終大獎預覽、獎勵領取);這是版面查證,沒有逐行讀 milestoneactivitypanel.lua 的所有邏輯,panel 外的入口(如 CommonShop 以 MarvellousType.MilestoneAndNewRank 開的商店,milestoneactivitypanel.lua:51)屬於里程碑框架,不算本主題的機制。"
+ },
+ "獎勵概況": {
+  "說明": "InsideTaskTime.judge_reward 欄原碼(積分#獎勵碼|…),獎勵碼不解讀。2_3501~3505 在 config/ItemDefine.lua 是 藍/紫/橙/紅色貼紙包、幸運貼紙包。",
+  "extend=1011 的 5 列": {
+   "24011": "22 階,最後一階 4330 積分 → 2_3503_1(含 2_3501/3502/3503 貼紙包)",
+   "24012": "22 階,最後一階 4330 積分 → 2_3505_1(2_3505=幸運貼紙包)",
+   "24013": "30 階,最後一階 5980 積分 → 2_3504_1(2_3504=紅色貼紙包)",
+   "24014": "30 階,最後一階 5980 積分 → 2_3505_1(2_3505=幸運貼紙包),第 3880 積分階也是 2_3505_1",
+   "24015": "30 階,最後一階 6930 積分 → 2_3504_1;獎勵含 364_xx"
+  },
+  "與名稱的對應": "沒有確定:名稱後綴「幸運卡包」「紅卡包」可能對應 含幸運貼紙包(2_3505)的列 與 含紅色貼紙包(2_3504)的列,但這是名字聯想,沒有表格依據,不寫成結論。"
+ },
+ "圖": {
+  "主圖.png": "沒有。這個檔期主題的入口圖是 atlas sprite milestone_1011(HangActionMilestoneLogic.txt:63 ResPathManager.StrTwoSplice('milestone_', extend) 取),MANIFEST 沒有單檔 milestone_1011,mumu 抽出的圖片素材裡也沒有;沒有橫幅型主圖。",
+  "文字_橫幅.png": "沒有",
+  "文字.png": "圖片素材_new/milestoneactivity/1011/lsqs_title_1_c.png.tw.png(MANIFEST 鍵 assets/arts/ui/img/milestoneactivity/1011/lsqs_title_1_c.png.tw),364×132 RGBA,5548 色;與 雜物/_依活動/曲水流觴/ 同名檔 cmp 相同。版面 1011 panel 的 img_title 節點引用此圖,圖上字是「曲水流觴」(不含「幸運卡包」)。",
+  "入口圖.png": "沒有(見 缺圖:milestone_1011)",
+  "其他": "panel 1011 還用了 lsqs_bg_1~6、lsqs_bg_lanzi、lsqs_bg_lanzi1、lsqs_bg_shui、lsqs_icon_libao(禮包圖)等,MANIFEST 都有,mumu 已抽在 _依活動/曲水流觴/。它們屬於整個「曲水流觴」檔期主題(5 個變體共用同一 panel),不屬於「幸運卡包」這個名稱,沒有複製進本夾,也沒有放 元件/;可由父/主題夾處理。"
+ },
+ "缺圖": [
+  {
+   "資產路徑": "atlas sprite milestone_1011(ResPathManager.GetMainAtls 的主 atlas 內,具體 bundle 路徑沒查到)",
+   "用途": "里程碑活動入口圖(歷練活動列)",
+   "MANIFEST有無": false,
+   "備註": "MANIFEST 以 'milestone_1011' 搜尋 0 筆;同族 atlas 圖片沒有單檔,可能在合併 atlas 內,未確認"
+  },
+  {
+   "資產路徑": "assets/arts/ui/img/milestoneactivity/1011/lsqs_mask_lanzi.png、lsqs_bg_shui1.png",
+   "用途": "panel 1011 的零件(prefab 引用狀況未逐一核)",
+   "MANIFEST有無": true,
+   "備註": "MANIFEST 有,但 mumu 抽出的 milestoneactivity/1011 夾和 _依活動 都沒有這兩張"
+  }
+ ],
+ "資料來源": {
+  "設定表": [
+   "config/InsideJudgeTopic.lua 列 index 2:tid=1011 name=曲水流觴 conf='32#6|27#12|7#4'",
+   "config/InsideTaskTime.lua:id 24011~24015 extend='1011'(欄位長度檢查通過,38 列)",
+   "config/ItemDefine.lua:item_id 3501~3505 貼紙包",
+   "config/CollectStickersAlbum.lua album_id 201 name=曲水流觴宴(僅關聯線索,畫冊名,不當作本活動)"
+  ],
+  "語系表": "strings_tw.json:MilestoneActivity_1~4、milestone_active_3/4、petguidestr_5、weekgame_1;值反查「曲水」「流觴」「幸運卡包」「紅卡包」皆 0 筆",
+  "規則": "沒有。素材/規則/ 沒有 rule_milestone_activity_1011,程式也沒有寫這個鍵",
+  "版面": "雜物/_版面/milestoneactivity/1011/milestoneactivitypanel.json(132 節點)",
+  "程式": "lua/ui/milestoneactivity/milestoneactivityscreen.lua:17-32;核心lua/luabasic/UIConfigs.txt:3490;核心lua/luamain/HangActionMilestoneLogic.txt:63",
+  "圖": {
+   "文字.png": "mumu/巡夢少女_解包/巡夢少女_圖片素材_new/milestoneactivity/1011/lsqs_title_1_c.png.tw.png"
+  }
+ },
+ "拿不到": [
+  "檔期起訖日期(伺服器下發;2026-10-01 後快照沒有這個主題)",
+  "哪一個 InsideTaskTime 列叫「幸運卡包」"
+ ],
+ "未確定": [
+  "「幸運卡包」這個名稱:語系表、設定表、lua、ploy 快照都沒有。清單裡這一筆只來源於『活動表格(既有整理)』一處(使用者舊整理,只算線索)。可能是使用者/伺服器對某一檔期的稱呼,不是遊戲內名稱。",
+  "5 個 InsideTaskTime 變體(24011~24015)哪個是「幸運卡包」「紅卡包」:沒有表格依據,只有獎勵含 2_3505(幸運貼紙包)/2_3504(紅色貼紙包)的名字聯想,不下結論。",
+  "入口圖 milestone_1011 的 bundle 位置。",
+  "舊整理的『個人積分 30 階 全拿 5980』與 24013/24014 的 judge_reward 吻合(皆 30 階、末階 5980),但舊整理本身只是線索。"
+ ],
+ "關聯": [
+  "里程碑活動(父;清單索引另一筆)",
+  "曲水流觴·紅卡包(清單索引 89,同主題 1011 的另一個名稱)",
+  "畫冊",
+  "畫冊貼紙"
+ ]
+}
