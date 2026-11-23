@@ -137,6 +137,8 @@ function 切(i,聚焦){
    使用者 2026-11-17。 */
 function 列表清單(類, 清單){
   let a = (清單 || []).filter(o => o && o.名 && !String(o.名).includes('/傳記/'));
+  /* 畫冊收集:列表只列主題(名字沒有「/」);介面美術/待歸檔/貼紙包 不是主題(2026-11-23) */
+  if(類 === '畫冊收集') a = a.filter(o => !String(o.名).includes('/') && !['介面美術','待歸檔','貼紙包'].includes(String(o.名)));
   if(類 === '時裝'){
     const m = new Map();
     for(const o of a){
@@ -1579,7 +1581,7 @@ async function 快列(類, 清單){
     for(const [lv, col] of Object.entries(規.等級對色)) if(_色等[col] == null) _色等[col] = +lv;
   await 備妥零件();                                   // 要拿 window.格遮罩
   const 罩 = window.格遮罩 ? `-webkit-mask-image:url('${window.格遮罩}');mask-image:url('${window.格遮罩}');-webkit-mask-size:100% 100%;mask-size:100% 100%` : '';
-  const 候選 = (類 === '時裝') ? ['預覽圖_方.png','展示圖_縮圖.png','預覽圖.png'] : ['圖.png','立繪.png','縮圖.png','立繪_縮圖.png'];
+  const 候選 = (類 === '時裝') ? ['預覽圖_方.png','展示圖_縮圖.png','預覽圖.png'] : (類 === '畫冊收集') ? ['標題_縮圖.png','標題.png'] : ['圖.png','立繪.png','縮圖.png','立繪_縮圖.png'];
   const cj = esc(JSON.stringify(候選));
   const base = window.素材基底 + encodeURIComponent(類) + '/';
   const 本頁 = n => _靜態() ? 靜態路(類, n) : '#/' + encodeURIComponent(類) + '/' + encodeURIComponent(n);
