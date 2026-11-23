@@ -5,49 +5,80 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../共用.css?v=202611232014">
+<link rel="stylesheet" href="../共用.css?v=202611232019">
 </head><body><div class="page" id="app"></div>
-<script src="../共用.js?v=202611232014"></script>
-<script>async function 角碼卡(碼串, 附註) {
- const 碼 = String(碼串 || "").split(",").map((s => s.trim())).filter(Boolean);
- const 解 = await Promise.all(碼.map(解獎勵));
- return (await Promise.all(解.map(((r, i) => r ? 引用塊({
-  "類": r.類,
-  "名": r.名,
-  "量": r.量 > 1 ? r.量 : null,
-  "附註": 附註 || null
- }) : `<span class="obj miss"><span class="rfi bare"><span class="ab">?</span></span><b>${esc(碼[i])}</b><i>尚未建檔</i></span>`)))).join("");
-}
-
-async function 角等級板() {
+<script src="../共用.js?v=202611232019"></script>
+<script>async function 角等級板() {
  const t = await 心醫表();
  const a = t && t.等級 || [];
  if (!a.length) return '<p class="note">沒有</p>';
- const 數 = v => Number(v).toLocaleString("zh-TW");
- const 條 = r => Object.entries(r.條件 || {}).map((([k, v]) => `${k} ${數(v)}`)).join("<br>");
- let h = "", 前階 = null, 前夥 = null, 前裝 = null;
+ const 鍵 = "心醫等級", 級 = v => a[v - 1], 數 = v => Number(v || 0).toLocaleString("zh-TW");
+ const 得 = [];
+ const 得名 = new Map;
  for (const r of a) {
-  if (r.階級 !== 前階) {
-   h += `<h3 class="grp">${esc(r.階級)}</h3><table class="aff lvt"><thead><tr><th>級</th><th>條件</th><th>到了之後</th></tr></thead><tbody>`;
-   前階 = r.階級;
-  }
-  const 得 = [];
-  if (r.獎勵) 得.push(`<div class="objs fam">${await 角碼卡(r.獎勵)}</div>`);
-  if (r.解鎖能力 && r.解鎖能力.length > 12) 得.push(`${r.解鎖能力.length} 個能力從這級起可學(<a href="../能力/${_靜態() ? "清單.html" : "能力範本.html"}">能力列表</a>)`); else if (r.解鎖能力 && r.解鎖能力.length) 得.push(`<div class="objs fam">${(await Promise.all(r.解鎖能力.map((n => 引用塊({
+  const 列 = (r.解鎖能力 || []).map((n => ({
    "類": "能力",
    "名": n,
-   "附註": "解鎖"
-  }))))).join("")}</div>`);
-  if (r.可選能力) 得.push("可選一個能力");
-  if (r.考核) 得.push(`頭銜考核:${esc(r.考核)}`);
-  if (前夥 != null && r.夥伴升級上限 !== 前夥) 得.push(`夥伴可升到 ${r.夥伴升級上限} 級`);
-  if (前裝 != null && r.裝備強化上限 !== 前裝) 得.push(`裝備可強化到 ${r.裝備強化上限}`);
-  前夥 = r.夥伴升級上限;
-  前裝 = r.裝備強化上限;
-  h += `<tr><td>${r.級}</td><td>${條(r) || "—"}</td><td>${得.length ? 得.join("<br>") : "—"}</td></tr>`;
-  if (a[a.indexOf(r) + 1] == null || a[a.indexOf(r) + 1].階級 !== r.階級) h += "</tbody></table>";
+   "量": 1
+  })));
+  for (const c of String(r.獎勵 || "").split(",").map((x => x.trim())).filter(Boolean)) {
+   const h = await 解獎勵(c);
+   if (h) 列.push({
+    "類": h.類,
+    "名": h.名,
+    "量": h.量 || 1
+   });
+  }
+  得.push(列);
+  for (const o of 列) 得名.set(o.類 + "/" + o.名, {
+   "類": o.類,
+   "名": o.名
+  });
  }
- return h + `<p class="note">總能力點是六項能力的總和。頭銜考核的那一級要考過才能再升。坐騎突破、珍寶升級、寵物升星的心醫等級門檻寫在各自頁面的拉桿下面。</p>`;
+ const 梯 = await 階梯板({
+  "樣式": "拉桿",
+  "鍵": 鍵,
+  "下限": 1,
+  "上限": a.length,
+  "單位": "級",
+  "起始": 1,
+  "目標": 50,
+  "標": v => (級(v) || {}).階級 || "",
+  "材料": [ {
+   "類": "資源",
+   "名": "個人名望"
+  }, {
+   "類": "資源",
+   "名": "家族影響力"
+  } ],
+  "料標": "需要達到",
+  "算": (x, y) => {
+   const 條 = (級(y) || {}).條件 || {};
+   return {
+    "個人名望": 條.威望值 || 0,
+    "家族影響力": 條.家族影響力 || 0
+   };
+  },
+  "獲得": {
+   "材料": [ ...得名.values() ],
+   "標": "獲得",
+   "算": (x, y) => {
+    const g = {};
+    for (let v = x + 1; v <= y; v++) for (const o of 得[v - 1]) g[o.名] = (g[o.名] || 0) + o.量;
+    return g;
+   }
+  },
+  "附文": (x, y) => {
+   const r = 級(y) || {};
+   let 考 = 0, 選 = 0;
+   for (let v = x + 1; v <= y; v++) {
+    if (級(v).考核) 考++;
+    if (級(v).可選能力) 選++;
+   }
+   return [ `${y} 級・${r.階級 || ""}`, `總能力點需達 ${數((r.條件 || {}).總能力點)}`, `夥伴可升到 ${r.夥伴升級上限} 級`, `裝備可強化到 ${r.裝備強化上限}`, 考 ? `頭銜考核 ${考} 次` : "", 選 ? `可選能力 ${選} 次` : "" ].filter(Boolean).join(" · ");
+  }
+ });
+ return (梯 || '<p class="note">沒有</p>') + `<p class="note">需要達到的是門檻(到目標那一級要有多少),不是累計消耗。總能力點是六項能力的總和。頭銜考核每 5 級一次(36 級起),考過才能再升。</p>`;
 }
 
 async function 角時裝板() {
