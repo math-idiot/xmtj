@@ -5,9 +5,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../共用.css?v=202611231654">
+<link rel="stylesheet" href="../共用.css?v=202611231710">
 </head><body><div class="page" id="app"></div>
-<script src="../共用.js?v=202611231654"></script>
+<script src="../共用.js?v=202611231710"></script>
 <script>
 /* 畫冊收集範本(2026-11-23,使用者:「四個 tab 資料/畫冊/貼紙/其他;資料不用引用;畫冊顯示這檔 9 本;
    貼紙:檔期頁顯示全部、畫冊頁顯示那 9 張;有滑塊切已獲得/未獲得;星級要顯示」)。
@@ -39,13 +39,13 @@ async function 冊碼文(碼串){
   return 解.map((r, i) => r ? (r.名.split('/').pop() + (r.量 > 1 ? ' ×' + r.量 : '')) : 碼[i]).join('、') || null;
 }
 /* 獎勵碼 → 引用卡(貼紙頁底下那排「收集獎勵」) */
-async function 冊碼卡(碼串){
+async function 冊碼卡(碼串, 附註){
   const 段 = 冊段(碼串);
-  if(段.length > 1 || (段[0] && 段[0].張 != null))   // 分段:每段一排,前面一個「集 N 張」的標
-    return (await Promise.all(段.map(async g => `<div class="objs fam">${g.張 != null ? `<span class="src"><b>集 ${g.張} 張</b></span>` : ''}${await 冊碼卡(g.碼)}</div>`))).join('');
+  if(段.length > 1 || (段[0] && 段[0].張 != null))   // 分段:全部橫排一列,「集 N 張」寫在物品名字下面(使用者 2026-11-23:不要框)
+    return (await Promise.all(段.map(g => 冊碼卡(g.碼, g.張 != null ? '集 ' + g.張 + ' 張' : null)))).join('');
   const 碼 = String(碼串 || '').split(',').map(s => s.trim()).filter(Boolean);
   const 解 = await Promise.all(碼.map(解獎勵));
-  return (await Promise.all(解.map((r, i) => r ? 引用塊({類: r.類, 名: r.名, 量: r.量 > 1 ? r.量 : null})
+  return (await Promise.all(解.map((r, i) => r ? 引用塊({類: r.類, 名: r.名, 量: r.量 > 1 ? r.量 : null, 附註: 附註 || undefined})
     : `<span class="obj miss"><span class="rfi bare"><span class="ab">?</span></span><b>${esc(碼[i])}</b><i>尚未建檔</i></span>`))).join('');
 }
 /* 九本畫冊集滿獎勵的合計碼串:同一個東西量相加;18_(時裝單件)/44_(飾框)不進,整套在「本檔獎勵」 */
@@ -68,7 +68,7 @@ async function 冊貼紙格(主題名, 冊名, 冊資料){
     const 彩 = 夾 + encodeURIComponent(s.檔名 || (id + '.png')), 灰 = s.未解鎖圖 ? 夾 + encodeURIComponent(s.未解鎖圖) : null;
     /* 未解鎖圖是素材正本(有些是金色的,不是灰的)—— 有就照放、不調色;沒有那張才用 CSS 灰(使用者 2026-11-23) */
     return `<figure class="stk${own ? '' : (灰 ? ' lock' : ' dim')}" data-id="${id}" data-彩="${彩}" data-灰="${灰 || ''}" title="點一下切換已獲得">
-      <img src="${own || !灰 ? 彩 : 灰}" alt="" loading="lazy" onerror="this.src='${彩}'"><b>${esc(名)}</b>${冊星(m.星 || 0)}</figure>`;
+      <span class="stk-pic"><img src="${own || !灰 ? 彩 : 灰}" alt="" loading="lazy" onerror="this.src='${彩}'">${冊星(m.星 || 0)}</span><b>${esc(名)}</b></figure>`;   // 星星疊在貼紙下半部偏下、名字在底下(使用者 2026-11-23)
   }).join('');
 }
 /* 使用者 2026-11-23:「點一下就換造型,不需要滑塊」—— 預設全部未解鎖(灰),點一下變彩色、再點變回灰。只留計數。 */
@@ -120,7 +120,7 @@ async function 畫冊頁(x){
     ], x)
       /* 畫冊頁顯示這冊全部獎勵,時裝/飾框引用部件(18_ 單件 / 44_ 單個飾框) */
       + `<h3 class="grp">集滿獎勵</h3><div class="objs fam">${await 冊碼卡(冊資.獎勵 || x.集滿獎勵原碼) || '<span class="note">沒有</span>'}</div>`],
-    ['畫冊', `<div class="objs fam">${主卡}</div><p class="note">${esc(主)} 的 ${冊們.length} 本,框起來的是這本</p><div class="objs set">${卡.join('')}</div>`],
+    ['畫冊', `<div class="objs fam albtop">${主卡}</div><div class="objs set">${卡.join('')}</div>`],   // 檔期卡和九本之間留空行就好,不寫說明
     ['貼紙', 貼],
     ['其他', rows([['資料來源', x => x.資料來源], ['素材路徑', x => '畫冊收集/' + x._名]], x)],
   ];
