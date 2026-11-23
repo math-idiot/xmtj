@@ -30,6 +30,10 @@ const 稀排 = 清單 => (清單 || []).map((o, i) => [o, i])
   .map(p => p[0]);
 
 const 基底=()=>window.素材基底;
+/* 版本:從自己的 <script src="../共用.js?v=…"> 讀(雜物/_版本戳.py 每次發佈蓋),資料檔 fetch 也帶上 ?v=,
+   不然 Pages 的 10 分鐘快取會讓新範本配到舊 json(使用者 2026-11-23 手機看到玩法獎勵頁全空就是這個)。 */
+window.版本 = window.版本 || (document.currentScript && (String(document.currentScript.src).match(/[?&]v=(\d+)/) || [])[1]) || '';
+const 帶版 = u => (window.版本 && !/[?&]v=/.test(u)) ? u + (u.includes('?') ? '&' : '?') + 'v=' + window.版本 : u;
 
 /* ── 預載 / 錄(2026-11-22:每筆一張預先印好的頁,雜物/_印頁.py)──
    線上每個請求固定 0.3~0.5s 延遲,慢的是「趟數」不是大小。所以建置時用無頭瀏覽器把範本跑一遍,
@@ -1399,7 +1403,7 @@ async function _讀(路, 不錄){
   if(_範快.has(路)) return _範快.get(路);
   let p = (預載 && 預載.讀 && Object.prototype.hasOwnProperty.call(預載.讀, 路))
     ? Promise.resolve(預載.讀[路])
-    : fetch(路).then(r => r.ok ? r.json() : null).catch(() => null);
+    : fetch(帶版(路)).then(r => r.ok ? r.json() : null).catch(() => null);   // 快取鍵仍是 路(預載也用它),只有實際抓的 URL 帶 v
   /* 錄製:只錄「首屏就要」的 —— 引用卡自己讀的資料不錄(成品 HTML 已經錄了)、
      延後分頁階段讀的不錄(點到才抓)、全索引/協議全不整包錄(各自只錄用到的鍵/類)。 */
   if(錄 && !不錄 && !錄.延後 && !/_全索引\.json$|_協議全\.json$/.test(路)) p = p.then(d => { 錄.讀[路] = d; return d; });
