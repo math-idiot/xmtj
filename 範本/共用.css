@@ -626,7 +626,8 @@ ul.bul li{margin:var(--sp1) 0;line-height:1.7;color:var(--fg2)}
 .stk img{width:100%;max-width:120px;aspect-ratio:192/284;object-fit:contain;display:block}
 .stk.dim img{filter:grayscale(1) opacity(.55)}   /* 沒有未解鎖原圖的才整格灰 */
 .stk.lock img.stk-st,.stk.lock b{filter:grayscale(1) opacity(.6)}   /* 有未解鎖原圖:主圖照素材(可能是金色),只有星星和名字灰 */
-.stk img.stk-st{width:92px;height:24px;aspect-ratio:184/48;max-width:none}
+.stk-pic{position:relative;width:100%;max-width:120px}
+.stk img.stk-st{position:absolute;left:50%;bottom:9%;transform:translateX(-50%);width:76%;height:auto;aspect-ratio:184/48;max-width:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}   /* 星星疊在貼紙下半部偏下,像遊戲裡 */
 .stk b{font-weight:500;font-size:13px;text-align:center;line-height:1.2}
 .stk.dim b{color:var(--fg3)}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;margin:0 0 var(--sp2)}
@@ -650,3 +651,4 @@ ul.bul li{margin:var(--sp1) 0;line-height:1.7;color:var(--fg2)}
 .rgdot .dot .mc b{font-weight:500;font-size:13px;color:var(--fg)}
 .rgdot .dot.on{border-color:var(--accent,#b8893a);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent,#b8893a) 35%,transparent)}
 .rgdot.off .dot{opacity:.35;cursor:default;filter:grayscale(1)}
+.albtop{margin-bottom:var(--sp4,16px)}   /* 畫冊頁:檔期卡和九本之間留一行,不然擠到上面 */

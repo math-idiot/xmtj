@@ -462,12 +462,13 @@ async function 關聯板(類, 名, 向){
       for(const r of rs){
         /* 一律畫引用卡(使用者 2026-11-22:來源/用途全部用引用,不要文字)。
            沒建的類/筆由 引用塊 自己畫成「尚未建檔」虛線框。細節(數量/機率/幾處/檔期/選項)寫在附註。 */
-        const 附 = [r.標, r.量 && r.量[0] != null ? (r.量[0] === r.量[1] ? '×' + r.量[0] : '×' + r.量[0] + '～' + r.量[1]) : null,
+        const 附 = [r.標, r.量 && r.量[0] != null && !r.來源?.頁 ? (r.量[0] === r.量[1] ? '×' + r.量[0] : '×' + r.量[0] + '～' + r.量[1]) : null,   // 指到夥伴好感那種「人」的卡不寫數量
                     r.機率 ? '機率 ' + Math.round(r.機率 * 1000) / 10 + '%' : null, r.次 > 1 ? r.次 + ' 處' : null, r.摺 ? r.摺 + ' 項' : null,
                     r.例 && r.例.length ? r.例.slice(0, 3).join('、') : null, _期字(r.檔期)].filter(Boolean).join(' · ');
         if(!r.來源) continue;
         const ref = {類: r.來源.類, 名: r.來源.名, 附註: 附 || null};
         if(r.來源.所屬活動) ref.所屬活動 = r.來源.所屬活動;
+        if(r.來源.頁) ref.頁 = r.來源.頁;
         卡.push(await 引用塊(ref));
       }
       if(卡.length) h += `<h3 class="grp">${esc(k.replace(/^其他:/, ''))}</h3><div class="objs fam">${卡.join('')}</div>`;
@@ -1073,6 +1074,8 @@ async function 引用塊(ref){
   /* 靜態頁:../類/類範本.html#/類/名 → ../類/名.html(變體 @… 沒有靜態頁,維持 hash 連範本) */
   if(到 && _靜態()) 到 = 到.replace(/\/([^\/]+)範本\.html#\/\1\/([^@].*)$/,
     (m, c, rest) => { try{ return '/' + 靜態路(c, decodeURIComponent(rest)); }catch(e){ return m; } });
+  /* ref.頁:直接開到目標頁的某個分頁(例 夥伴好感)。靜態頁用 #頁=,hash 頁用 ?頁= 接在名字後(路由會剝掉) */
+  if(到 && ref.頁) 到 += (到.includes('#/') ? '?頁=' : '#頁=') + encodeURIComponent(ref.頁);
   const 題 = esc(V.提示 || V.名稱 || ref.名);
   /* 建檔了、只是還沒有圖:畫成虛線框(跟缺塊同一個樣子,但**不寫「尚未建檔」**,
      因為資料是有的)。不標的話看起來會像壞掉的半成品 —— 使用者 2026-11-16 問的就是這個。 */
@@ -1520,6 +1523,7 @@ async function 開範本(設定){
       變 ? {類, 名:變.名, [變.v.條件]:變.條件值, 顯名:false} : {類, 名:這.名, 顯名:false}, _抬));
     const 副 = (設定.副標 ? 設定.副標(x) : []) || [];
 
+    if(window._要開頁){ const k = 頁.findIndex(t => t[0] === window._要開頁); if(k >= 0) 選中頁籤 = k; window._要開頁 = null; }
     app.innerHTML = `
     <div class="bar">${麵包(類)}
       ${挑(清單)}<button class="btn" id="th">深淺色</button></div>
@@ -1543,6 +1547,7 @@ async function 開範本(設定){
 
   function 路由(){
     let h = location.hash || ''; try{ h = decodeURIComponent(h); }catch(e){}
+    const pm = h.match(/[?#]頁=([^&#?]+)$/); window._要開頁 = pm ? pm[1] : null; if(pm) h = h.slice(0, pm.index);   // ?頁=好感 / #頁=好感:開到那個分頁
     const m = h.match(new RegExp('^#/' + 類 + '/(.+)$'));
     畫(m ? m[1] : ((預載 && !預載.清單模式 && 預載.名) || null));
   }
