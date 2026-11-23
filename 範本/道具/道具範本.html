@@ -5,22 +5,23 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../共用.css?v=202611231953">
+<link rel="stylesheet" href="../共用.css?v=202611232014">
 </head><body><div class="page" id="app"></div>
-<script src="../共用.js?v=202611231953"></script>
+<script src="../共用.js?v=202611232014"></script>
 <script>async function 用途板(x, 清單) {
  const 關 = await 用途頁(x);
  if (關) return 關;
  let 開 = "";
  const 明 = x.開出明細 || [];
  if (明.length) {
-  const 卡 = await Promise.all(明.filter((o => o.類)).map((o => 引用塊({
+  const 解 = await Promise.all(明.map((async o => o.類 ? o : Object.assign({}, o, await 解獎勵(o.名) || {}))));
+  const 卡 = await Promise.all(解.filter((o => o.類)).map((o => 引用塊({
    "類": o.類,
    "名": o.名,
-   "量": o.數量 > 1 ? o.數量 : null,
+   "量": (o.數量 ?? o.量) > 1 ? o.數量 ?? o.量 : null,
    "附註": o.機率 != null ? o.機率 + "%" : null
   }))));
-  const 文 = 明.filter((o => !o.類)).map((o => `<span class="way"><b class="mono">${esc(o.名)}</b></span>`));
+  const 文 = 解.filter((o => !o.類)).map((o => `<span class="way"><b class="mono">${esc(o.名)}</b></span>`));
   開 = (卡.length ? `<div class="objs fam">${卡.join("")}</div>` : "") + (文.length ? `<div class="ways">${文.join("")}</div>` : "");
  } else 開 = await 獎勵排(x.開出內容, null);
  const 題 = x.可選件數 ? "可選 " + x.可選件數 + " 件" : "開出內容";
