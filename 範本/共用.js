@@ -205,6 +205,7 @@ function 切(i, 聚焦) {
 function 列表清單(類, 清單) {
  let a = (清單 || []).filter((o => o && o.名 && !String(o.名).includes("/傳記/")));
  if (類 === "畫冊收集") a = a.filter((o => !String(o.名).includes("/") && ![ "介面美術", "待歸檔", "資源" ].includes(String(o.名))));
+ if (類 === "歷練") a = a.filter((o => !String(o.名).includes("/")));
  if (類 === "時裝") {
   const m = new Map;
   for (const o of a) {
@@ -1465,7 +1466,8 @@ async function 開範本(設定) {
   const _屑 = _屑段.map(((seg, i) => {
    const 前 = _屑段.slice(0, i + 1).join("/");
    const 可 = i < _屑段.length - 1 && _有條.has(前);
-   return [ seg, 可 ? _靜態() ? 靜態路(類, 前) : "#/" + encodeURIComponent(類) + "/" + encodeURIComponent(前) : null ];
+   const 字 = i === _屑段.length - 1 && /^\d+_/.test(seg) && x && x.名稱 ? x.名稱 : seg;
+   return [ 字, 可 ? _靜態() ? 靜態路(類, 前) : "#/" + encodeURIComponent(類) + "/" + encodeURIComponent(前) : null ];
   }));
   app.innerHTML = `\n    <div class="bar">${麵包(類, _屑)}\n      ${挑(清單)}<button class="btn" id="th">深淺色</button></div>\n    <div class="top">\n      <div><div class="art">${卡}</div></div>\n      <div><h1 class="title">${esc(x.名稱 || 這.名稱 || 這.名)}</h1>\n        <p class="kind">${esc([ 設定.副標不帶品質 ? null : 設定.品質為稀有 ? 稀有字(x.品質) : x.品質, ...副 ].filter(Boolean).join(" · "))}</p>\n        <p class="desc">${rich(x.說明 || "")}</p></div></div>\n    <div class="tabwrap"><div class="tabs" role="tablist">${頁.map(((t, i) => `<button class="tab" role="tab" aria-selected="${i === 選中頁籤}" data-tab="${i}">${esc(t[0])}</button>`)).join("")}</div></div>\n    ${頁.map(((t, i) => `<div class="panel" data-pi="${i}"${i === 選中頁籤 ? "" : " hidden"}>${typeof t[1] === "function" ? '<p class="note">載入中…</p>' : t[1]}</div>`)).join("")}`;
   window._延頁 = 頁.map((t => typeof t[1] === "function" ? t[1] : null));
@@ -1578,7 +1580,9 @@ async function 快列(類, 清單) {
   const 夾 = base + 路 + "/";
   const 等 = _色等[o.品質] ?? _稀字等[o.稀有度];
   const 框 = 等 != null ? _框路(等, 規) : null;
-  return `<a class="obj" href="${本頁(o.名)}" title="${esc(o.名稱 || o.名)}">` + `<span class="rfi${框 ? "" : " bare"}"${框 ? ` style="background-image:url('${框}')"` : ""}>` + `<img src="${夾}${候選[0]}" alt="" loading="lazy"${罩 ? ` style="${罩}"` : ""} data-b="${夾}" data-c="${cj}" data-i="0" onerror="快圖退(this)"></span>` + `<b>${esc(o.名稱 || o.名)}</b></a>`;
+  const 首 = o.圖 ? base + String(o.圖).split("/").map(encodeURIComponent).join("/") : 夾 + 候選[0];
+  const 無圖 = 類 === "歷練" && !o.圖;
+  return `<a class="obj" href="${本頁(o.名)}" title="${esc(o.名稱 || o.名)}">` + `<span class="rfi${框 ? "" : " bare"}"${框 ? ` style="background-image:url('${框}')"` : ""}>` + (無圖 ? `<span class="ab">${esc(String(o.名稱 || o.名).slice(0, 2))}</span>` : `<img src="${首}" alt="" loading="lazy"${罩 ? ` style="${罩}"` : ""} data-b="${夾}" data-c="${o.圖 ? "[]" : cj}" data-i="0" onerror="快圖退(this)">`) + `</span>` + `<b>${esc(o.名稱 || o.名)}</b></a>`;
  })).join("") + `</div>`;
 }
 
