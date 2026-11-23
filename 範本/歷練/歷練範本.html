@@ -5,9 +5,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../共用.css?v=202611240043">
+<link rel="stylesheet" href="../共用.css?v=202611240130">
 </head><body><div class="page" id="app"></div>
-<script src="../共用.js?v=202611240043"></script>
+<script src="../共用.js?v=202611240130"></script>
 <script>const 歷基 = () => window.素材基底 + "歷練/";
 
 const 圖路 = p => p ? 歷基() + String(p).split("/").map(encodeURIComponent).join("/") : null;
@@ -117,33 +117,66 @@ async function 地圖頁(x) {
  const 排 = [ ...群.keys() ].sort(((a, b) => (類序.indexOf(a) + 1 || 99) - (類序.indexOf(b) + 1 || 99)));
  const 事件tab = async () => 排.length ? (await Promise.all(排.map((async k => `<h3 class="grp">${esc(k)}(${群.get(k).length})</h3>` + await 快列("歷練", 群.get(k)))))).join("") : '<p class="note">沒有事件</p>';
  const 區域tab = async () => (x.區域 || []).length ? `<div class="pics areas">${(await Promise.all(x.區域.map((async r => `<figure class="pic">${r.圖 ? `<img src="${圖路(r.圖)}" alt="" loading="lazy" onerror="this.remove()">` : ""}<figcaption><b>${esc(r.名稱)}</b>${r.介紹 ? `<p class="desc sm">${rich(r.介紹)}</p>` : ""}${r.解鎖消耗 ? await 獎排(r.解鎖消耗, "解鎖") : ""}${r.解鎖條件 ? await 條件排(r.解鎖條件) : ""}<i>${r.事件數 || 0} 個事件</i></figcaption></figure>`)))).join("")}</div>` : '<p class="note">沒有區域</p>';
- const 圖鑑tab = async () => {
-  const g = x.探索圖鑑 || {};
-  const 段 = [];
-  for (const [k, L] of Object.entries(g)) {
-   const 卡 = await Promise.all(L.map((async e => {
-    const 圖 = e.圖 ? `<img src="${圖路(e.圖)}" alt="" loading="lazy" onerror="this.remove()">` : e.圖引用 ? await 引用塊({
-     "類": e.圖引用.類,
-     "名": e.圖引用.名
-    }) : "";
-    const 尾 = [ e.小類, e.探索度 ? `探索度 +${e.探索度}` : null ].filter(Boolean).join(" · ");
-    return `<figure class="pic tj">${圖}<figcaption><b>${esc(e.名稱)}</b>${尾 ? `<i>${esc(尾)}</i>` : ""}${e.說明 ? `<p class="desc sm">${rich(e.說明)}</p>` : ""}\n          ${e.解鎖 ? await 條件排(e.解鎖) : ""}\n          ${e.事件 || e.能力 ? `<div class="objs fam">${e.事件 ? await 引用塊({
-     "類": "歷練",
-     "名": e.事件.名
-    }) : ""}${e.能力 ? await 引用塊({
-     "類": "能力",
-     "名": e.能力.名
-    }) : ""}</div>` : ""}\n          ${e.獎勵 ? await 獎排(e.獎勵, "圖鑑獎勵") : ""}</figcaption></figure>`;
-   })));
-   段.push(`<h3 class="grp">${esc(k)}(${L.length})</h3><div class="pics">${卡.join("")}</div>`);
-  }
-  return 段.join("") || '<p class="note">沒有圖鑑</p>';
+ const 圖鑑類tab = L => async () => {
+  const 列 = await Promise.all(L.map((async e => {
+   const 圖 = e.圖 ? `<img src="${圖路(e.圖)}" alt="" loading="lazy" onerror="this.remove()">` : "";
+   const 尾 = [ e.小類, e.探索度 ? `探索度 +${e.探索度}` : null ].filter(Boolean).join(" · ");
+   const 卡 = [];
+   const 已 = new Set;
+   for (const c of e.解鎖 || []) {
+    const 名 = c.事件 && typeof c.事件 === "object" ? c.事件.名 : null;
+    if (名) {
+     if (已.has(名)) continue;
+     已.add(名);
+     卡.push(引用塊({
+      "類": "歷練",
+      "名": 名,
+      "附註": c.文 || null
+     }));
+    } else if (c.引用) 卡.push(引用塊({
+     "類": c.引用.類,
+     "名": c.引用.名,
+     "附註": c.文 || null
+    })); else {
+     const t = [ c.文, typeof c.事件 === "string" ? c.事件 : null, c.碼 ].filter(Boolean).join(" ");
+     卡.push(`<span class="obj txt"><span class="rfi bare"><span class="ab">需</span></span><b>${esc(t)}</b></span>`);
+    }
+   }
+   if (e.事件 && !已.has(e.事件.名)) 卡.push(引用塊({
+    "類": "歷練",
+    "名": e.事件.名,
+    "附註": "事件"
+   }));
+   if (e.能力) 卡.push(引用塊({
+    "類": "能力",
+    "名": e.能力.名,
+    "附註": "能力"
+   }));
+   if (e.圖引用 && !圖) 卡.unshift(引用塊({
+    "類": e.圖引用.類,
+    "名": e.圖引用.名
+   }));
+   for (const r of e.獎勵 || []) if (!不畫(r) && 卡類.has(r.類)) 卡.push(引用塊({
+    "類": r.類,
+    "名": r.名,
+    "量": r.量 != null && r.量 !== 1 ? 量字(r.量) : null,
+    "附註": "圖鑑獎勵"
+   }));
+   const 卡s = await Promise.all(卡);
+   return `<div class="tjr"><div class="tjr-i">${圖}</div><div class="tjr-t"><b>${esc(e.名稱)}</b>${尾 ? `<i>${esc(尾)}</i>` : ""}${e.說明 ? `<p class="desc sm">${rich(e.說明)}</p>` : ""}</div><div class="tjr-c objs fam">${卡s.join("")}</div></div>`;
+  })));
+  return `<div class="tjl">${列.join("")}</div>`;
  };
- const 資訊 = rows([ [ "類型", x => x.類型 ], [ "介紹", x => x.介紹 ], [ "事件", x => x.事件數 ? `${x.事件數} 個` : null ] ], x) + (x.所屬活動 ? `<div class="objs fam">${await 引用塊({
+ const 圖鑑頁 = Object.entries(x.探索圖鑑 || {}).map((([k, L]) => [ k === "事件" ? "事件圖鑑" : k, 圖鑑類tab(L) ]));
+ const 資訊 = rows([ [ "類型", x => x.類型 ], [ "介紹", x => x.介紹 ], [ "事件", x => x.事件數 ? `${x.事件數} 個` : null ] ], x) + (x.所屬活動 || x.限定夥伴 ? `<h3 class="grp">所屬活動</h3><div class="objs fam">${x.所屬活動 ? x.活動有頁 ? await 引用塊({
   "類": "活動",
   "名": x.所屬活動
- })}</div>` : "") + (x.解鎖條件 ? await 條件排(x.解鎖條件, "開放條件") : "") + (x.地點卡 ? `<div class="pics"><figure class="pic"><img src="${圖路(x.地點卡)}" alt="" loading="lazy"><figcaption><i>地點卡</i></figcaption></figure></div>` : "");
- return [ [ "資訊", 資訊 ], [ "區域", 區域tab ], [ "事件", 事件tab ], [ "探索圖鑑", 圖鑑tab ], [ "其他", rows([ [ "編號", x => x.編號 ] ], x) ] ];
+ }) : `<span class="obj txt"><span class="rfi bare"><span class="ab">活</span></span><b>${esc(x.所屬活動)}</b><i>主題活動</i></span>` : ""}${x.限定夥伴 ? await 引用塊({
+  "類": "夥伴",
+  "名": x.限定夥伴.名,
+  "附註": "限定夥伴"
+ }) : ""}</div>` : "") + (x.解鎖條件 ? await 條件排(x.解鎖條件, "開放條件") : "");
+ return [ [ "資訊", 資訊 ], [ "區域", 區域tab ], [ "事件", 事件tab ], ...圖鑑頁, [ "其他", rows([ [ "編號", x => x.編號 ] ], x) ] ];
 }
 
 開範本({

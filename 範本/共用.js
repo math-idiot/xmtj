@@ -89,7 +89,7 @@ const 錄 = (() => {
  }
 })();
 
-const 靜態路 = (類, 名) => encodeURIComponent(String(名).replace(/\//g, "／")) + ".html";
+const 靜態路 = (類, 名) => 類 === "歷練" && String(名).includes("/") ? "歷練範本.html#/歷練/" + encodeURIComponent(名) : encodeURIComponent(String(名).replace(/\//g, "／")) + ".html";
 
 const _靜態 = () => !!(預載 || 錄);
 
@@ -449,6 +449,13 @@ async function 資源編號表() {
  return _資源號;
 }
 
+let _控資P = null;
+
+function _控制資源() {
+ if (!_控資P) _控資P = _讀(基底() + "系統/_控制資源.json", true).then((j => j && j.對照 || {})).catch((() => ({})));
+ return _控資P;
+}
+
 async function 解獎勵(碼) {
  const s = String(碼 == null ? "" : 碼).trim().replace(/%\d+$/, "");
  if (!/^\d+(_\d+)*$/.test(s)) return null;
@@ -465,6 +472,14 @@ async function 解獎勵(碼) {
   "名": 資.get(g[0]),
   "量": +g[1]
  };
+ if (g[0] === "83" && g.length >= 2) {
+  const m = await _控制資源();
+  const c = m && m[g[1]];
+  if (!c) return null;
+  const r = await 解獎勵(c.split("_").slice(0, 3).join("_"));
+  if (r && g.length >= 3) r.量 = +g[2];
+  return r;
+ }
  if (g[0] === "15" && g.length === 4) {
   const h = 查號("裝備", g[1]);
   if (!h) return null;
@@ -1006,6 +1021,11 @@ async function 引用塊(ref) {
  await 備妥零件();
  const 協 = await 載協議(ref.類);
  if (!協 || !協.夾) return _缺塊(ref, "沒有 協議_" + ref.類 + ".json");
+ if (錄 && 錄.不上.has(ref.類)) return _缺塊(ref, "尚未上站");
+ {
+  const 上 = await _上站類();
+  if (上 && 上.size && !上.has(ref.類)) return _缺塊(ref, "尚未上站");
+ }
  const _末 = String(ref.名).split("/").pop();
  const _末數 = (/^(\d+)星$/.exec(_末) || [])[1];
  let 夾樣 = 協.夾, 檔 = 協.資料檔 || "資料.json", 基類 = ref.類, 連樣 = 協.連結;
@@ -1145,7 +1165,23 @@ const _等級字 = V => V.強化等級 != null && V.強化等級 !== "" ? V.強�
 const _量字 = v => String(v).replace(/^\s*[×xX*]\s*/, "");
 
 function _缺塊(ref, why) {
- return `<span class="obj miss" title="${esc(why)}">\n    <span class="rfi bare"><span class="ab">?</span></span>\n    <b>${esc(ref.名)}</b><i>尚未建檔</i></span>`;
+ const 字 = why === "尚未上站" ? "尚未上站" : "尚未建檔";
+ return `<span class="obj miss" title="${esc(why)}">\n    <span class="rfi bare"><span class="ab">?</span></span>\n    <b>${esc(ref.名)}</b><i>${字}</i></span>`;
+}
+
+let _上站P = null;
+
+function _上站類() {
+ if (!_上站P) _上站P = (async () => {
+  try {
+   const r = await fetch(帶版(基底() + "_首頁清單.json"));
+   const j = r.ok ? await r.json() : null;
+   return new Set((j && j.清單 || []).map((c => c.名 || c.類)).filter(Boolean));
+  } catch (e) {
+   return null;
+  }
+ })();
+ return _上站P;
 }
 
 async function 變體排(類, x, 清單, 標題) {
@@ -1362,14 +1398,56 @@ async function 類資料(類, 名, 資料檔) {
  return _讀(基底() + encodeURIComponent(類) + "/" + 路 + "/" + (資料檔 || "資料.json"));
 }
 
+function 跨頁(類, 名) {
+ const c = encodeURIComponent(類);
+ return _靜態() ? `../${c}/${靜態路(類, 名)}` : `../${c}/${c}範本.html#/${c}/${encodeURIComponent(名)}`;
+}
+
+let _搜索P = null;
+
+function _搜索() {
+ if (!_搜索P) _搜索P = _讀(基底() + "_全索引.json", true).then((j => j && j.表 || {})).catch((() => ({})));
+ return _搜索P;
+}
+
+async function 全站搜尋(k, 本類, 本清單) {
+ const [表, 上] = await Promise.all([ _搜索(), _上站類() ]);
+ const seen = new Set;
+ const out = [];
+ const 收 = (類, 名, 名稱, 補) => {
+  const id = 類 + "|" + 名;
+  if (seen.has(id)) return;
+  seen.add(id);
+  out.push({
+   "類": 類,
+   "名": 名,
+   "名稱": 名稱,
+   "補": 補
+  });
+ };
+ for (const o of 本清單 || []) if (String(o.名稱 || o.名).includes(k)) 收(本類, o.名, o.名稱 || o.名, o.品質 || null);
+ for (const key of Object.keys(表)) {
+  if (key[0] === "@" || !key.includes(k)) continue;
+  for (const h of 表[key]) {
+   if (!h || !h.類 || !h.名) continue;
+   if (上 && 上.size && !上.has(h.類)) continue;
+   if (String(h.名).includes("/傳記/")) continue;
+   const 段 = key.split("/");
+   收(h.類, h.名, 段[段.length - 1].replace(/^\d+_/, ""), 段.length > 1 ? 段.slice(0, -1).join("/") : null);
+  }
+  if (out.length >= 60) break;
+ }
+ return out.slice(0, 40);
+}
+
 async function 開範本(設定) {
  const 類 = 設定.類別;
  const 本頁 = n => _靜態() ? 靜態路(類, n) : "#/" + encodeURIComponent(類) + "/" + encodeURIComponent(n);
  let KW = "";
- const 挑 = 清單 => {
+ const 挑 = async 清單 => {
   const k = KW.trim();
-  const hit = k ? 清單.filter((o => String(o.名稱 || o.名).includes(k))).slice(0, 40) : [];
-  return `<span class="jump"><input id="kw" placeholder="找別的${esc(類)}…" autocomplete="off" value="${esc(KW)}">\n      ${k ? `<ul>${hit.map((o => `<li><a href="${本頁(o.名)}">${esc(o.名稱 || o.名)}</a>\n        <small>${esc(設定.品質為稀有 ? 稀有字(o.品質) : o.品質 || "")}</small></li>`)).join("") || "<li><a>沒有符合的</a></li>"}</ul>` : ""}</span>`;
+  const hit = k ? await 全站搜尋(k, 類, 清單) : [];
+  return `<span class="jump"><input id="kw" placeholder="搜尋全站…" autocomplete="off" value="${esc(KW)}">\n      ${k ? `<ul>${hit.map((o => `<li><a href="${o.類 === 類 ? 本頁(o.名) : 跨頁(o.類, o.名)}">${esc(o.名稱)}</a>\n        <small>${esc(o.類)}${o.補 ? " · " + esc(o.補) : ""}</small></li>`)).join("") || "<li><a>沒有符合的</a></li>"}</ul>` : ""}</span>`;
  };
  async function 畫(名) {
   全索引();
@@ -1389,7 +1467,7 @@ async function 開範本(設定) {
   }
   if (!名) {
    const grid = await 快列(類, 清單);
-   app.innerHTML = `\n        <div class="bar">${麵包(類)}${挑(清單)}<button class="btn" id="th">深淺色</button></div>\n        <h1 class="title" style="margin:0 0 var(--sp3)">${esc(類)}</h1>\n        <p class="note" style="margin:0 0 var(--sp4)">共 ${清單.length} 筆 · 點一個看詳情</p>\n        ${grid || '<p class="note">這一類還沒有可列的內容</p>'}`;
+   app.innerHTML = `\n        <div class="bar">${麵包(類)}${await 挑(清單)}<button class="btn" id="th">深淺色</button></div>\n        <h1 class="title" style="margin:0 0 var(--sp3)">${esc(類)}</h1>\n        <p class="note" style="margin:0 0 var(--sp4)">共 ${清單.length} 筆 · 點一個看詳情</p>\n        ${grid || '<p class="note">這一類還沒有可列的內容</p>'}`;
    document.title = 類 + " · 巡夢圖鑑";
    _錄完();
    return;
@@ -1469,7 +1547,7 @@ async function 開範本(設定) {
    const 字 = i === _屑段.length - 1 && /^\d+_/.test(seg) && x && x.名稱 ? x.名稱 : seg;
    return [ 字, 可 ? _靜態() ? 靜態路(類, 前) : "#/" + encodeURIComponent(類) + "/" + encodeURIComponent(前) : null ];
   }));
-  app.innerHTML = `\n    <div class="bar">${麵包(類, _屑)}\n      ${挑(清單)}<button class="btn" id="th">深淺色</button></div>\n    <div class="top">\n      <div><div class="art">${卡}</div></div>\n      <div><h1 class="title">${esc(x.名稱 || 這.名稱 || 這.名)}</h1>\n        <p class="kind">${esc([ 設定.副標不帶品質 ? null : 設定.品質為稀有 ? 稀有字(x.品質) : x.品質, ...副 ].filter(Boolean).join(" · "))}</p>\n        <p class="desc">${rich(x.說明 || "")}</p></div></div>\n    <div class="tabwrap"><div class="tabs" role="tablist">${頁.map(((t, i) => `<button class="tab" role="tab" aria-selected="${i === 選中頁籤}" data-tab="${i}">${esc(t[0])}</button>`)).join("")}</div></div>\n    ${頁.map(((t, i) => `<div class="panel" data-pi="${i}"${i === 選中頁籤 ? "" : " hidden"}>${typeof t[1] === "function" ? '<p class="note">載入中…</p>' : t[1]}</div>`)).join("")}`;
+  app.innerHTML = `\n    <div class="bar">${麵包(類, _屑)}\n      ${await 挑(清單)}<button class="btn" id="th">深淺色</button></div>\n    <div class="top">\n      <div><div class="art">${卡}</div></div>\n      <div><h1 class="title">${esc(x.名稱 || 這.名稱 || 這.名)}</h1>\n        <p class="kind">${esc([ 設定.副標不帶品質 ? null : 設定.品質為稀有 ? 稀有字(x.品質) : x.品質, ...副 ].filter(Boolean).join(" · "))}</p>\n        <p class="desc">${rich(x.說明 || "")}</p></div></div>\n    <div class="tabwrap"><div class="tabs" role="tablist">${頁.map(((t, i) => `<button class="tab" role="tab" aria-selected="${i === 選中頁籤}" data-tab="${i}">${esc(t[0])}</button>`)).join("")}</div></div>\n    ${頁.map(((t, i) => `<div class="panel" data-pi="${i}"${i === 選中頁籤 ? "" : " hidden"}>${typeof t[1] === "function" ? '<p class="note">載入中…</p>' : t[1]}</div>`)).join("")}`;
   window._延頁 = 頁.map((t => typeof t[1] === "function" ? t[1] : null));
   填頁(選中頁籤);
   _階梯全算();
@@ -1509,7 +1587,7 @@ async function 開範本(設定) {
   KW = e.target.value;
   const p = e.target.selectionStart;
   const j = document.querySelector(".jump");
-  if (j) j.outerHTML = 挑(await 類索引(類));
+  if (j) j.outerHTML = await 挑(await 類索引(類));
   const n = document.getElementById("kw");
   if (n) {
    n.focus();
