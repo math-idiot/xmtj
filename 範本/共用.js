@@ -1603,7 +1603,7 @@ async function 快列(類, 清單){
     for(const [lv, col] of Object.entries(規.等級對色)) if(_色等[col] == null) _色等[col] = +lv;
   await 備妥零件();                                   // 要拿 window.格遮罩
   const 罩 = window.格遮罩 ? `-webkit-mask-image:url('${window.格遮罩}');mask-image:url('${window.格遮罩}');-webkit-mask-size:100% 100%;mask-size:100% 100%` : '';
-  const 候選 = (類 === '時裝') ? ['預覽圖_方.png','展示圖_縮圖.png','預覽圖.png'] : (類 === '畫冊收集') ? ['標題_縮圖.png','標題.png'] : ['圖.png','立繪.png','縮圖.png','立繪_縮圖.png'];
+  const 候選 = (類 === '時裝') ? ['預覽圖_方.png','展示圖_縮圖.png','預覽圖.png'] : (類 === '畫冊收集') ? ['標題_縮圖.png','標題.png'] : (類 === '夢魘') ? ['完整素體_縮圖.png','立繪.png'] : ['圖.png','立繪.png','縮圖.png','立繪_縮圖.png'];
   const cj = esc(JSON.stringify(候選));
   const base = window.素材基底 + encodeURIComponent(類) + '/';
   const 本頁 = n => _靜態() ? 靜態路(類, n) : '#/' + encodeURIComponent(類) + '/' + encodeURIComponent(n);

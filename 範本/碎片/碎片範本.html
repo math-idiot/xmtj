@@ -5,9 +5,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../共用.css?v=202611231718">
+<link rel="stylesheet" href="../共用.css?v=202611231737">
 </head><body><div class="page" id="app"></div>
-<script src="../共用.js?v=202611231718"></script>
+<script src="../共用.js?v=202611231737"></script>
 <script>
 /* 碎片範本。**不帶任何資料** —— 全部執行時讀 素材/碎片/。
    外框(抬頭/分頁/挑選框/路由/事件)在 共用.js 的 開範本();
@@ -125,6 +125,7 @@ async function 兌換板(x, 清單){
           : '')
       + await 家族(x, 清單)],
     ['獲取', async () => (await 獲取頁(x)) || '<p class="note">尚未建檔</p>'],
+    ['用途', async () => (await 用途頁(x)) || '<p class="note">沒有</p>'],   // 關聯表的「耗」邊:夢魘殘頁 → 那隻夢魘的傳記(2026-11-23)
     ['兌換', () => 兌換板(x, 清單)],
     ['其他', rows([
       ['編號',         x => x.編號],
