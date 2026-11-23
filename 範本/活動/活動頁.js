@@ -42,9 +42,9 @@ const 類型名 = 深 => (設定.類型預設 || (d => d > 1 ? '子活動' : '�
 /* ── 讀檔,同一支只讀一次 ─────────────────────────────────── */
 const 快取 = new Map();
 async function 讀(路){
+  /* 走共用的 _讀:有預載就不抓、錄製時會記下來、抓的 URL 帶版本戳(2026-11-23,讓玩法頁也能印成靜態頁) */
   if(快取.has(路)) return 快取.get(路);
-  const p = fetch(typeof 帶版 === 'function' ? 帶版(路) : 路).then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); })   // 帶版本戳躲快取
-                     .catch(e=>({_讀不到:String(e.message||e), _路:路}));
+  const p = _讀(路).then(d => d || {_讀不到:'讀不到', _路:路});
   快取.set(路,p); return p;
 }
 /* 路徑可以是空的 —— 家族那一類,類別夾自己就是「家族」這一筆(素材/家族/資訊.json)。
@@ -243,7 +243,7 @@ async function 系列板(頂, 路徑){
 }
 
 /* ── 路由 ─────────────────────────────────────────────── */
-const 本頁 = 路徑 => '#/' + encodeURIComponent(類別) + '/' + 路徑.map(encodeURIComponent).join('/');
+const 本頁 = 路徑 => (typeof _靜態 === 'function' && _靜態() && 路徑.length) ? 靜態路(類別, 路徑.join('/')) : '#/' + encodeURIComponent(類別) + '/' + 路徑.map(encodeURIComponent).join('/');
 let KW='';
 function 挑(){
   const k=KW.trim();
@@ -415,11 +415,13 @@ async function render(路徑){
   ${頁.map((t,i)=>`<div class="panel"${i===選中頁籤?'':' hidden'}>${t[1]}</div>`).join('')}`;
 }
 
-function draw(){
+let draw = function(){
   let h=location.hash||''; try{h=decodeURIComponent(h)}catch(e){}
   if(new RegExp('^#/'+類別+'/?$').test(h)) return render([]);   // 根那一筆
   const m=h.match(new RegExp('^#/'+類別+'/(.+)$'));
-  render(m ? m[1].split('/').filter(Boolean) : (預設 ? [預設] : []));
+  /* 靜態頁沒有 hash:名從預載來(清單模式 = 空路徑列目錄) */
+  if(!m && typeof 預載 !== 'undefined' && 預載) return render(預載.清單模式 ? [] : String(預載.名 || '').split('/').filter(Boolean));
+  return render(m ? m[1].split('/').filter(Boolean) : (預設 ? [預設] : []));
 }
 /* 捲到規則原文的某一段。段落標題在 .panel 裡,切完頁籤才量得到位置。 */
 function 捲到(id){
@@ -428,6 +430,9 @@ function 捲到(id){
     matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'});
 }
 addEventListener('hashchange',()=>{KW='';選中頁籤=0;draw();scrollTo(0,0)});
+/* 錄製收尾:render 是 async,畫完才吐錄到的東西(共用.js _錄完;活動頁沒有延後分頁) */
+window._延頁 = window._延頁 || [];
+const _原draw = draw; draw = function(){ const r = _原draw.apply(this, arguments); Promise.resolve(r).then(() => typeof _錄完 === 'function' && _錄完()); return r; };
 document.addEventListener('click',e=>{
   const g=e.target.closest('[data-go]');
   const t=e.target.closest('[data-tab]');
