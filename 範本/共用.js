@@ -332,7 +332,7 @@ async function 找物(名){
      三段且類型 215          215_4022_2592000 第三格是秒數不是數量
      類型 2(道具)在素材被拆成道具/寶石/精粹/碎片/花/資源,編號要跨這幾類找
    對不到就回 null,呼叫端照原碼列文字 —— 不要瞎猜。 */
-const 獎勵類型 = {'2':'道具','14':'夥伴','15':'裝備','17':'精粹','44':'飾框','117':'寵物','122':'珍寶','215':'飾框'};
+const 獎勵類型 = {'2':'道具','14':'夥伴','15':'裝備','17':'精粹','18':'時裝','44':'飾框','117':'寵物','122':'珍寶','215':'飾框'};   // 18 = 時裝單件(部件編號在時裝索引),41 整套另外處理
 const 道具系 = ['道具','寶石','精粹','碎片','花','珍藏碎片','意志','資源','畫冊收集'];   // 貼紙包(2_3501~3505)在 畫冊收集/資源/ 底下
 const 限種類 = {'44':['頭像框','聊天氣泡','宮牌','天幕','頭像'], '215':['稱號']};
 let _資源號;
@@ -360,6 +360,11 @@ async function 解獎勵(碼){
     const h = 查號('裝備', g[1]);
     if(!h) return null;
     return {類:'裝備', 名:String(h.名).split('/')[0] + '/' + g[2] + '星', 量:+g[3]};
+  }
+  /* 41_<套裝編號> = 整套時裝(畫冊檔期大獎那種)。索引只有部件,套裝編號 = 首件的編號 → 取部件名的「套/」那段 */
+  if(g[0] === '41' && g.length >= 2){
+    const h = 查號('時裝', g[1]);
+    return h ? {類:'時裝', 名:String(h.名).split('/')[0], 量:(g.length >= 3 ? +g[2] : 1)} : null;
   }
   const 類 = 獎勵類型[g[0]];
   if(!類 || g.length < 2) return null;
@@ -781,7 +786,7 @@ const _推導 = {
      星號從指向末段解(青竹腕/1星 → 1),所以引擎會把它塞進 資料._星 再呼叫。 */
   '@星級欄': null,   // 帶參數,由 _取 特別處理
   '@品質轉等級': (資料, 夾, 規) => {
-    const 色 = _挖(資料,'引用.品質') ?? _挖(資料,'品質');
+    const 色 = _挖(資料,'引用.品質') ?? _挖(資料,'品質') ?? _挖(資料,'類型.品質');   // 道具系的品質常在 類型.品質
     if(!色) return null;
     const 對 = (規 || {}).等級對色 || {};
     for(const k of Object.keys(對)) if(對[k] === 色) return +k;
@@ -954,8 +959,8 @@ async function 引用塊(ref){
   const 罩 = window.格遮罩 ? ` style="-webkit-mask-image:url('${window.格遮罩}');mask-image:url('${window.格遮罩}')"` : '';
   /* 圖比例(高/寬):協議可以按樣式給,例如夥伴的 全身 是 1.27。
      寫成 CSS 變數 --比,.rfi 的高度跟著它算。 */
-  const _比 = (協.圖比例 && (協.圖比例[修.樣式] != null ? 協.圖比例[修.樣式]
-              : 協.圖比例[Object.keys(協.圖比例)[0]])) || null;
+  const _比 = (_覆.圖比例 != null) ? _覆.圖比例 : ((協.圖比例 && (協.圖比例[修.樣式] != null ? 協.圖比例[修.樣式]
+              : 協.圖比例[Object.keys(協.圖比例)[0]])) || null);
   /* 沒圖時的替代(名字本來會畫在底下就留空)——也塞給 img 的 data-f,全部候選都載不到時換成它 */
   const _無圖 = 要.名稱 ? '' : `<span class="ab">${esc(String(V.名稱 || ref.名 || '?').slice(0,10))}</span>`;
   const 內 = (要.圖 && V.圖)
@@ -1029,7 +1034,7 @@ async function 引用塊(ref){
 
   /* 版式=原樣:不是道具格的類(聊天貼圖/表情符號/活動入口圖),
      不套 128 方格的品質框與圓角遮罩,照原比例容納。 */
-  const 原 = (協.版式 === '原樣') ? ' raw' : '';
+  const 原 = ((_覆.版式 || 協.版式) === '原樣') ? ' raw' : '';   // 子類覆蓋 可以把版式改回方格(畫冊收集/資源/ 的貼紙包)
   const _樣 = [框 ? `background-image:url('${框}')` : null,
                (_比 && +_比 !== 1) ? `--比:${_比}` : null].filter(Boolean).join(';');
   const 格 = `<span class="rfi${框 ? '' : ' bare'}${原}"${
@@ -1154,15 +1159,19 @@ function 心醫門檻板(列, 動){
 
 async function 階梯板(opt){
   const o = Object.assign({單位:'級', 材料:[], 註:null}, opt);
-  if(!o.材料.length || typeof o.算 !== 'function') return '';
+  /* 獲得:第二排材料(拿到什麼),玩法的階段獎勵用 —— 需要(積分/藥材)一排、獲得(獎勵)一排(使用者 2026-11-23)。
+     有 獲得 時 材料(需要)可以是空的(曲水那種只有積分、素材沒有積分圖)。 */
+  if(o.獲得 && !Array.isArray(o.獲得.材料)) o.獲得 = null;
+  if((!o.材料.length && !(o.獲得 && o.獲得.材料.length)) || typeof o.算 !== 'function') return '';
   /* 素材裡沒有的那一格就不要畫 —— 這是算耗材的工具,畫一個永遠點不進去、
      數字也不會亮的「尚未建檔」格沒有用
      (使用者 2026-11-16:「不在素材裡面的就不用顯示了,他顯示了也沒用」)。
      注意:獲取/好感那些地方還是要留「尚未建檔」,那裡缺什麼要看得見。 */
-  const _在 = await Promise.all(o.材料.map(m =>
-    類資料(m.類, m.名).then(d => !!d).catch(() => false)));
+  const 查在 = 列 => Promise.all(列.map(m => m._在 === true ? true : 類資料(m.類, m.名).then(d => !!d).catch(() => false)));
+  const _在 = await 查在(o.材料);
   o.材料 = o.材料.filter((m, i) => _在[i]);
-  if(!o.材料.length) return '';
+  if(o.獲得){ const _在2 = await 查在(o.獲得.材料); o.獲得.材料 = o.獲得.材料.filter((m, i) => _在2[i]); if(!o.獲得.材料.length) o.獲得 = null; }
+  if(!o.材料.length && !o.獲得) return '';
   _階梯表[o.鍵] = o;
   if(o.樣式 === '拉桿') return _拉桿(o);
   const 格 = await Promise.all(o.材料.map((m, i) =>
@@ -1249,6 +1258,7 @@ function 扇形(星, 上限){
 
 async function _拉桿(o){
   const 格 = await Promise.all(o.材料.map(m => 引用塊(Object.assign({}, m, {量:0, 顯名:true}))));
+  const 得格 = o.獲得 ? await Promise.all(o.獲得.材料.map(m => 引用塊(Object.assign({}, m, {量:0, 顯名:true})))) : [];
   const R = (端, v) => `<input type="range" data-梯="${esc(o.鍵)}" data-端="${端}"
       min="${o.下限}" max="${o.上限}" value="${v}" step="1"
       aria-label="${端 === 'a' ? '起始' : '目標'}">`;
@@ -1271,8 +1281,10 @@ async function _拉桿(o){
         </div>
         ${端鈕('b', 'max', o.上限)}
       </div>
-      <span class="lvt">${esc(o.料標 || '要花')}</span>
-      <div class="objs fam" data-梯料="${esc(o.鍵)}">${格.join('')}</div>
+      ${o.材料.length ? `<span class="lvt">${esc(o.料標 || '要花')}</span>
+      <div class="objs fam" data-梯料="${esc(o.鍵)}">${格.join('')}</div>` : ''}
+      ${o.獲得 ? `<span class="lvt">${esc(o.獲得.標 || '獲得')}</span>
+      <div class="objs fam" data-梯得="${esc(o.鍵)}">${得格.join('')}</div>` : ''}
       ${o.附文 ? `<p class="rgsub" data-梯文="${esc(o.鍵)}"></p>` : ''}
     </div>${o.註 ? `<p class="note">${esc(o.註)}</p>` : ''}`;
 }
@@ -1306,31 +1318,27 @@ function _階梯算(鍵){
   }
   if(o.附文){ const t = 組.querySelector('[data-梯文]');
     if(t) t.textContent = o.附文(a, b) || ''; }
-  const 需 = o.算(a, b) || {};
-  const 料 = 組.parentNode.querySelector(`[data-梯料="${CSS.escape(鍵)}"]`)
-          || 組.querySelector(`[data-梯料="${CSS.escape(鍵)}"]`);
-  if(!料) return;
-  [...料.children].forEach((格, i) => {
-    const m = o.材料[i] || {};
-    /* 量鍵:畫圖還是用 名,但數量照 量鍵 查 —— 兩格畫同一張圖、數量卻不同時用
-       (寵物突破:本尊 vs 任意同等寵物,同一個意志圖、數量不一樣。使用者 2026-11-17)。 */
-    const 鍵 = m.量鍵 || m.名;
-    const n = 需[鍵] || 需[String(鍵).split('/').pop()] || 0;
-    /* 數量有兩種畫法:能堆疊的疊在格子裡(.ov.num),
-       不能堆疊的(裝備)寫在名字旁邊(.q) —— 兩邊都要更新,
-       不然裝備那幾頁永遠停在 ×0。 */
-    /* 格式 是給拉桿上那兩個值用的(例「紫 2 星」),**不能拿來寫材料數量** ——
-       材料要的是純數字,大數字才縮寫。要另外縮寫就給 量格式。 */
-    const 字 = n ? (o.量格式 ? o.量格式(n) : _量字(n)) : '';
-    const ov = 格.querySelector('.ov.num');
-    if(ov) ov.textContent = 字;
-    const q = 格.querySelector('b .q');
-    if(q) q.textContent = n ? '×' + 字 : '';
-    /* 這一段區間用不到的材料**整格不畫** —— 不是淡掉
-       (使用者 2026-11-16 圈的就是那些灰格子:「不用到的就不顯示」)。
-       拉桿一動就會重算,要用到的時候自己會回來。 */
-    格.style.display = n ? '' : 'none';
-  });
+  const 更新列 = (料, 材料, 需) => {
+    if(!料) return;
+    [...料.children].forEach((格, i) => {
+      const m = 材料[i] || {};
+      /* 量鍵:畫圖還是用 名,但數量照 量鍵 查 —— 兩格畫同一張圖、數量卻不同時用
+         (寵物突破:本尊 vs 任意同等寵物,同一個意志圖、數量不一樣。使用者 2026-11-17)。 */
+      const 鍵 = m.量鍵 || m.名;
+      const n = 需[鍵] || 需[String(鍵).split('/').pop()] || 0;
+      /* 格式 是給拉桿上那兩個值用的(例「紫 2 星」),**不能拿來寫材料數量** —— 材料要的是純數字,大數字才縮寫。 */
+      const 字 = n ? (o.量格式 ? o.量格式(n) : _量字(n)) : '';
+      const ov = 格.querySelector('.ov.num');
+      if(ov) ov.textContent = 字;
+      const q = 格.querySelector('b .q');
+      if(q) q.textContent = n ? '×' + 字 : '';
+      /* 這一段區間用不到的材料**整格不畫**(使用者 2026-11-16:「不用到的就不顯示」) */
+      格.style.display = n ? '' : 'none';
+    });
+  };
+  const 找 = sel => 組.parentNode.querySelector(sel) || 組.querySelector(sel);
+  更新列(找(`[data-梯料="${CSS.escape(鍵)}"]`), o.材料, o.算(a, b) || {});
+  if(o.獲得) 更新列(找(`[data-梯得="${CSS.escape(鍵)}"]`), o.獲得.材料, o.獲得.算(a, b) || {});
 }
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-梯]'); if(!b || b.tagName !== 'BUTTON') return;
