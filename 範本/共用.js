@@ -960,7 +960,8 @@ async function 引用塊(ref){
   const 框 = 要.品質框 ? _框路(V.等級, 規) : null;
   /* 圖鋪滿格子(128×128),圓角交給遊戲自己的遮罩 com_mask_djk0。
      不要縮圖 —— 圖槽本來就是滿格,縮了是縮兩次。 */
-  const 罩 = window.格遮罩 ? ` style="-webkit-mask-image:url('${window.格遮罩}');mask-image:url('${window.格遮罩}')"` : '';
+  const _原樣 = ((_覆.版式 || 協.版式) === '原樣');
+  const 罩 = (window.格遮罩 && !_原樣) ? ` style="-webkit-mask-image:url('${window.格遮罩}');mask-image:url('${window.格遮罩}')"` : '';   // 原樣版式(畫冊標題 420×168 那種)不套方格圓角遮罩
   /* 圖比例(高/寬):協議可以按樣式給,例如夥伴的 全身 是 1.27。
      寫成 CSS 變數 --比,.rfi 的高度跟著它算。 */
   const _比 = (_覆.圖比例 != null) ? _覆.圖比例 : ((協.圖比例 && (協.圖比例[修.樣式] != null ? 協.圖比例[修.樣式]

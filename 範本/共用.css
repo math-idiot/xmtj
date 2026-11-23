@@ -624,7 +624,8 @@ ul.bul li{margin:var(--sp1) 0;line-height:1.7;color:var(--fg2)}
 .stk{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;border-radius:12px;padding:6px 4px;transition:background .15s;margin:0}
 .stk:hover{background:var(--bg2)}
 .stk img{width:100%;max-width:120px;aspect-ratio:192/284;object-fit:contain;display:block}
-.stk.dim img{filter:grayscale(1) opacity(.55)}   /* 未獲得整格灰,星星也灰(遊戲就是這樣) */
+.stk.dim img{filter:grayscale(1) opacity(.55)}   /* 沒有未解鎖原圖的才整格灰 */
+.stk.lock img.stk-st,.stk.lock b{filter:grayscale(1) opacity(.6)}   /* 有未解鎖原圖:主圖照素材(可能是金色),只有星星和名字灰 */
 .stk img.stk-st{width:92px;height:24px;aspect-ratio:184/48;max-width:none}
 .stk b{font-weight:500;font-size:13px;text-align:center;line-height:1.2}
 .stk.dim b{color:var(--fg3)}
