@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>夢魘 · 巡夢圖鑑</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../共用.css?v=202611231825">
+</head><body><div class="page" id="app"></div>
+<script src="../共用.js?v=202611231825"></script>
+<script>
+/* 夢魘範本。**不帶資料** —— 全部執行時讀 素材/夢魘/<名>/資料.json。
+   夢魘錄(NightmareCodex):特性/稱號/三段故事(每段 解鎖消耗→解鎖獎勵);TowerMonster:最低級數值。
+   使用者 2026-11-23:「夢魘可以先做,傳記只有文字檔的話就給他一個 Tab 放」。 */
+
+/* 獎勵碼串 → 引用卡(解獎勵 在 共用.js:2_21017_25 → 道具 黯淡靈團·殘頁 ×25) */
+async function 魘碼卡(碼串, 附註){
+  const 碼 = String(碼串 || '').split(',').map(s => s.trim()).filter(Boolean);
+  const 解 = await Promise.all(碼.map(解獎勵));
+  return (await Promise.all(解.map((r, i) => r
+    ? 引用塊({類: r.類, 名: r.名, 量: r.量 > 1 ? r.量 : null, 附註: 附註 || null})
+    : `<span class="obj miss"><span class="rfi bare"><span class="ab">?</span></span><b>${esc(碼[i])}</b><i>尚未建檔</i></span>`))).join('');
+}
+
+/* 傳記:夢魘錄的三段故事。每段:標題、內文、解鎖要花什麼、解鎖給什麼(都是引用卡) */
+async function 魘傳記板(x){
+  const a = x.故事 || [];
+  if(!a.length) return x.不在夢魘錄裡 ? `<p class="note">${esc(x.不在夢魘錄裡)}</p>` : '';
+  const 塊 = await Promise.all(a.map(async c => {
+    const 耗 = c.解鎖消耗碼 ? await 魘碼卡(c.解鎖消耗碼, '解鎖消耗') : '';   // 標寫在卡的名字下面,不另外框(使用者 2026-11-23 畫冊那次說的)
+    const 獎 = c.解鎖獎勵碼 ? await 魘碼卡(c.解鎖獎勵碼, '解鎖獎勵') : '';
+    return `<h3 class="grp">${esc(c.標題 || ('第 ' + c.第幾段 + ' 段'))}</h3>`
+      + `<p class="desc">${rich(String(c.內文 || '')).replace(/\n/g, '<br>')}</p>`
+      + ((耗 || 獎) ? `<div class="objs fam">${耗}${獎}</div>` : '');
+  }));
+  return 塊.join('');
+}
+
+/* 圖:各介面用的版本,有哪張放哪張(六隻沒進夢魘錄的只有完整素體) */
+function 魘圖板(x){
+  const 夾 = window.素材基底 + '夢魘/' + encodeURIComponent(x._名) + '/';
+  const 版 = [['完整素體', '完整素體_縮圖.png', 'spine 渲染的完整去背素體'], ['立繪', '立繪.png', '224×532,圖鑑主圖(裁切版)'], ['大圖', '大圖.png', '380×320,配件最完整'],
+    ['頭像', '頭像.png', '128×128'], ['技能條頭像', '技能條頭像.png', '452×160,戰鬥技能條用'], ['未解鎖剪影', '未解鎖剪影.png', '未解鎖時顯示的剪影']];
+  const 有 = x.各版本的圖 || {完整素體: x.完整素體};
+  return `<div class="pics">${版.filter(v => 有[v[0]]).map(v => `<figure class="pic"><img src="${夾}${v[1]}" alt="${esc(v[0])}" loading="lazy" onerror="this.closest('figure').remove()"><figcaption><b>${esc(v[0])}</b><i>${esc(v[2])}</i></figcaption></figure>`).join('')}</div>`
+    + (x.動畫在網站上看不到 ? `<p class="note">${esc(x.動畫在網站上看不到)}</p>` : '');
+}
+
+/* 最低級數值:TowerMonster 取最低一級當代表 */
+function 魘數值板(x){
+  const d = x.最低級數值; if(!d || !d.屬性) return '';
+  return `<h3 class="grp">數值(Lv.${d.等級})</h3><table class="aff"><tbody>${d.屬性.filter(p => p.數值 !== '0').map(p => `<tr><td>${esc(p.名稱)}</td><td>${esc(p.數值)}</td></tr>`).join('')}</tbody></table>`
+    + (x.數值說明 ? `<p class="note">${esc(x.數值說明)}</p>` : '');
+}
+
+開範本({
+  類別: '夢魘',
+  抬頭樣式: '全身',
+  副標不帶品質: true,
+  副標: x => [x.稱號, x.特性 ? '特性 ' + x.特性 : null],
+  分頁: async (x, 清單) => [
+    ['資訊', rows([
+      ['稱號', x => x.稱號],
+      ['特性', x => x.特性],
+      ['各系統怎麼叫它', x => x.各系統怎麼叫它 ? Object.entries(x.各系統怎麼叫它).map(([k, v]) => k + ':' + [...new Set(v)].join('、')).join(' · ') : null],
+      ['別名', x => x.別名],
+      ['名字從哪來', x => x.名字從哪來],
+    ], x) + (x.不在夢魘錄裡 ? `<p class="note">${esc(x.不在夢魘錄裡)}</p>` : '') + 魘數值板(x)],
+    ['傳記', async () => (await 魘傳記板(x)) || '<p class="note">沒有傳記</p>'],
+    ['圖', () => 魘圖板(x)],
+    ['全部', () => 索引排('夢魘', 清單, x._名, '全部', 200)],
+    ['其他', rows([
+      ['圖片編號', x => x.圖片編號],
+      ['資料來源', x => x.資料來源],
+      ['產生時間', x => x.產生時間],
+      ['素材路徑', x => '素材/夢魘/' + x._名],
+    ], x)],
+  ],
+});
+</script></body></html>

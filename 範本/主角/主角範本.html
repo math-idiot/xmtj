@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>主角 · 巡夢圖鑑</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../共用.css?v=202611231825">
+</head><body><div class="page" id="app"></div>
+<script src="../共用.js?v=202611231825"></script>
+<script>
+/* 主角範本:玩家自己(心醫)。**不帶資料**,讀 素材/主角/<名>/資料.json;心醫等級表讀 素材/系統/_心醫等級.json(共用.js 心醫表)。
+   分頁:資訊 / 心醫等級(階級稱號、各系統上限) / 時裝(樣子取決於穿哪套) / 其他。 */
+
+/* 心醫等級:296 級每一級一列 —— 到這級的條件(總能力點;高階另要威望值/家族影響力)、到了之後給什麼(獎勵、可選/解鎖的能力、頭銜考核、
+   夥伴/裝備上限提升)。依 11 個階級分段。資料 素材/系統/_心醫等級.json(雜物/_建心醫等級.py 從 HangIncomeLv + 素材/能力 建)。
+   使用者 2026-11-23:「到一個等級的條件和到了之後的獎勵哪些,有些學習的技能就是等級的獎勵」。 */
+async function 角碼卡(碼串, 附註){
+  const 碼 = String(碼串 || '').split(',').map(s => s.trim()).filter(Boolean);
+  const 解 = await Promise.all(碼.map(解獎勵));
+  return (await Promise.all(解.map((r, i) => r ? 引用塊({類: r.類, 名: r.名, 量: r.量 > 1 ? r.量 : null, 附註: 附註 || null})
+    : `<span class="obj miss"><span class="rfi bare"><span class="ab">?</span></span><b>${esc(碼[i])}</b><i>尚未建檔</i></span>`))).join('');
+}
+async function 角等級板(){
+  const t = await 心醫表(); const a = (t && t.等級) || [];
+  if(!a.length) return '<p class="note">沒有</p>';
+  const 數 = v => Number(v).toLocaleString('zh-TW');
+  const 條 = r => Object.entries(r.條件 || {}).map(([k, v]) => `${k} ${數(v)}`).join('<br>');
+  let h = '', 前階 = null, 前夥 = null, 前裝 = null;
+  for(const r of a){
+    if(r.階級 !== 前階){ h += `<h3 class="grp">${esc(r.階級)}</h3><table class="aff lvt"><thead><tr><th>級</th><th>條件</th><th>到了之後</th></tr></thead><tbody>`; 前階 = r.階級; }
+    const 得 = [];
+    if(r.獎勵) 得.push(`<div class="objs fam">${await 角碼卡(r.獎勵)}</div>`);
+    if(r.解鎖能力 && r.解鎖能力.length > 12) 得.push(`${r.解鎖能力.length} 個能力從這級起可學(<a href="../能力/${_靜態() ? '清單.html' : '能力範本.html'}">能力列表</a>)`);   // 第 1 級就有 43 個,不逐張畫
+    else if(r.解鎖能力 && r.解鎖能力.length) 得.push(`<div class="objs fam">${(await Promise.all(r.解鎖能力.map(n => 引用塊({類: '能力', 名: n, 附註: '解鎖'})))).join('')}</div>`);
+    if(r.可選能力) 得.push('可選一個能力');
+    if(r.考核) 得.push(`頭銜考核:${esc(r.考核)}`);
+    if(前夥 != null && r.夥伴升級上限 !== 前夥) 得.push(`夥伴可升到 ${r.夥伴升級上限} 級`);
+    if(前裝 != null && r.裝備強化上限 !== 前裝) 得.push(`裝備可強化到 ${r.裝備強化上限}`);
+    前夥 = r.夥伴升級上限; 前裝 = r.裝備強化上限;
+    h += `<tr><td>${r.級}</td><td>${條(r) || '—'}</td><td>${得.length ? 得.join('<br>') : '—'}</td></tr>`;
+    if(a[a.indexOf(r) + 1] == null || a[a.indexOf(r) + 1].階級 !== r.階級) h += '</tbody></table>';
+  }
+  return h + `<p class="note">總能力點是六項能力的總和。頭銜考核的那一級要考過才能再升。坐騎突破、珍寶升級、寵物升星的心醫等級門檻寫在各自頁面的拉桿下面。</p>`;
+}
+
+/* 時裝:她沒有固定的全身樣子,穿哪套就是哪套。預設是 浮香引。 */
+async function 角時裝板(){
+  const 卡 = await 引用塊({類: '時裝', 名: '浮香引', 附註: '預設時裝'});
+  return `<div class="objs fam">${卡}</div><p class="note">全身的樣子由穿著的時裝決定。<a href="../時裝/${_靜態() ? '清單.html' : '時裝範本.html'}">全部時裝</a></p>`;
+}
+
+開範本({
+  類別: '主角',
+  預設名: '女主',
+  抬頭樣式: '半身',
+  副標不帶品質: true,   // 品質 藍 對主角沒意義
+  副標: x => [x.稱號],
+  分頁: async (x, 清單) => [
+    ['資訊', rows([
+      ['稱號', x => x.稱號],
+      ['介紹', x => x.介紹],
+      ['生日', x => x.生日],
+      ['星座', x => x.星座],
+      ['血型', x => x.血型],
+      ['年齡', x => x.年齡],
+    ], x)],
+    ['心醫等級', () => 角等級板()],
+    ['時裝', () => 角時裝板()],
+    ['其他', rows([
+      ['編號', x => x.id],
+    ], x)],
+  ],
+});
+</script></body></html>
