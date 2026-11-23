@@ -14,5 +14,8 @@
   "icon": "zmf_70122",
   "get_way": "483(GetWay 進行歷練)"
  },
- "圖": "圖.png = img/activityres/zmf_70122.png,128×128,3824 色;來源 mumu 巡夢少女_圖片素材_new/activityres/"
+ "圖": "圖.png = img/activityres/zmf_70122.png,128×128,3824 色;來源 mumu 巡夢少女_圖片素材_new/activityres/",
+ "品質原碼": "4",
+ "品質": "紫",
+ "品質依據": "PloyResources.quality(2026-11-23 補,使用者:資源有等級就給框)"
 }

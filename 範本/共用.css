@@ -634,3 +634,18 @@ ul.bul li{margin:var(--sp1) 0;line-height:1.7;color:var(--fg2)}
 .stkbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:var(--sp2) 0}
 .stkbar .note{margin:0}
 .albcur{outline:2px solid var(--accent,#b8893a);outline-offset:3px;border-radius:12px;display:inline-block}
+
+/* 玩法 隨機翻牌 九宮格 */
+.objs.grid9{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:460px}
+.g9{display:flex;justify-content:center;align-items:flex-start;padding:8px 4px;border:1px dashed var(--line);border-radius:12px;min-height:120px}
+
+
+/* 拉桿軌道正下方的點(玩法各場名次):對齊每一階的位置;不在選取範圍的灰掉、不能按 */
+.rg.hasdots{margin-bottom:38px}
+.rgdots{position:absolute;left:11px;right:11px;top:28px;height:30px}
+.rgdot{position:absolute;top:0;transform:translateX(-50%)}
+.rgdot .dot{width:32px;height:32px;border-radius:50%;border:0;background:transparent;color:var(--fg2);font:inherit;font-size:13px;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.rgdot .dot .mc{width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:center/contain no-repeat}
+.rgdot .dot .mc b{font-weight:500;font-size:13px;color:var(--fg)}
+.rgdot .dot.on{border-color:var(--accent,#b8893a);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent,#b8893a) 35%,transparent)}
+.rgdot.off .dot{opacity:.35;cursor:default;filter:grayscale(1)}

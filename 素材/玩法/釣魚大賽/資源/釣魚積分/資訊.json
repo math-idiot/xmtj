@@ -1,9 +1,0 @@
-{
- "名稱": "釣魚積分",
- "res_id": 70010,
- "ploy_type": 329,
- "o_type": 203,
- "說明": "通過釣魚可獲得，決定釣魚大賽排行榜排名。",
- "說明來源": "config/PloyResources.lua res_id=70010 desc 原文",
- "圖": "圖.png = activityres/dyds_70010.png,128×128,2655 色"
-}

@@ -1275,9 +1275,10 @@ async function _拉桿(o){
       </div>
       <div class="rgrow">
         ${端鈕('a', 'min', o.下限)}
-        <div class="rg">
+        <div class="rg${o.軌點 && o.軌點.length ? ' hasdots' : ''}">
           <div class="rg-track"></div><div class="rg-fill" data-梯填="${esc(o.鍵)}"></div>
           ${R('a', o.起始)}${R('b', o.目標)}
+          ${o.軌點 && o.軌點.length ? `<div class="rgdots">${o.軌點.map(d => `<span class="rgdot" data-階="${d.階}" style="left:${((d.階 - 0.5 - o.下限) / Math.max(1, o.上限 - o.下限) * 100).toFixed(3)}%">${d.html}</span>`).join('')}</div>` : ''}
         </div>
         ${端鈕('b', 'max', o.上限)}
       </div>
@@ -1318,6 +1319,9 @@ function _階梯算(鍵){
   }
   if(o.附文){ const t = 組.querySelector('[data-梯文]');
     if(t) t.textContent = o.附文(a, b) || ''; }
+  /* 軌道下的點(各場名次):只有選取範圍內那幾階可以按,其餘灰掉(使用者 2026-11-23) */
+  組.querySelectorAll('.rgdot[data-階]').forEach(d => { const k = +d.dataset.階, 在 = k > a && k <= b;
+    d.classList.toggle('off', !在); d.querySelectorAll('button').forEach(b2 => b2.disabled = !在); });
   const 更新列 = (料, 材料, 需) => {
     if(!料) return;
     [...料.children].forEach((格, i) => {
