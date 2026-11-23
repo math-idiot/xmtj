@@ -5,10 +5,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../共用.css?v=202611231654">
-<link rel="stylesheet" href="../活動/活動頁.css?v=202611231654">
+<link rel="stylesheet" href="../共用.css?v=202611231701">
+<link rel="stylesheet" href="../活動/活動頁.css?v=202611231701">
 </head><body><div class="page" id="app"></div>
-<script src="../共用.js?v=202611231654"></script>
+<script src="../共用.js?v=202611231701"></script>
 <script>
 /* 玩法範本(2026-11-23)。**跟活動/家族是同一份渲染**(../活動/活動頁.js,根類=玩法)——
    分頁固定,多一個「獎勵」分頁,裡面**固定三段**:階段獎勵(雙頭拉桿)/ 隨機獎勵 / 名次獎勵,
@@ -107,6 +107,12 @@ async function 階段梯(r, 鍵){
     for(let i = 0; i < 列.length; i++){ const 機 = (r.機率 || [])[i]; 格.push(await 卡排(列[i].得, 機 != null ? '機率 ' + Math.round(機 * 1000) / 10 + '%' : null)); }
     h += `<h4 class="way">翻牌(順序隨機)</h4><div class="objs grid9">${格.map(g => `<div class="g9">${g || '<span class="note">空</span>'}</div>`).join('')}</div>`;
   }
+  if(r.靈感迸發){        // 奇遇:不參與上面的拉桿,自己一欄
+    const g = r.靈感迸發;
+    h += `<h3 class="grp">靈感迸發(奇遇)</h3><p class="note">${esc([g.觸發, g.每日上限 ? '每日最多 ' + g.每日上限 + ' 次' : ''].filter(Boolean).join(' · '))}</p>`
+      + `<h4 class="way">穩中求寶</h4><div class="objs fam"><span class="src"><b>消耗</b></span>${await 碼卡(g.穩中求寶.消耗)}<span class="src"><b>必得</b></span>${await 碼卡(g.穩中求寶.獎勵)}</div>`
+      + `<h4 class="way">放手一搏</h4><div class="objs fam"><span class="src"><b>不消耗</b><i>${esc(g.放手一搏.機率 != null ? Math.round(g.放手一搏.機率 * 100) + '% 得' : '')}</i></span>${await 碼卡(g.放手一搏.獎勵)}</div>`;
+  }
   return h;
 }
 /* 總獎勵:舊站的「全部領完總獎勵」有就用,沒有就把全部階段獎勵加總(御貓只算第 1 名) */
@@ -136,7 +142,9 @@ async function 資訊附加(x, 路徑){
   const 名 = 路徑[路徑.length - 1]; const 全 = await _讀(window.素材基底 + '玩法/_獎勵.json');
   const r = (全 && 全.表 && 全.表[名]) || {}; _本玩法 = 名; _資源名 = (全 && 全.活動資源名) || {};
   const 卡 = await 總獎勵卡(r);
-  return `<h3 class="grp">總獎勵</h3>` + (卡 ? `<div class="objs fam">${卡}</div>` : '<p class="note">沒有</p>');
+  let h = `<h3 class="grp">總獎勵</h3>` + (卡 ? `<div class="objs fam">${卡}</div>` : '<p class="note">沒有</p>');
+  if(r.靈感迸發) h += `<h3 class="grp">靈感迸發(隨機,每次一份${r.靈感迸發.每日上限 ? ',每日最多 ' + r.靈感迸發.每日上限 + ' 次' : ''})</h3><div class="objs fam">${await 碼卡(r.靈感迸發.穩中求寶.獎勵)}</div>`;
+  return h;
 }
 window.活動頁設定 = {
   根類: '玩法',
