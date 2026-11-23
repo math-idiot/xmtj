@@ -5,7 +5,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="共用.css?v=202611231718">
+<link rel="stylesheet" href="共用.css?v=202611231946">
 <style>
 .hub{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:var(--格距)}
 .hub a{display:flex;flex-direction:column;gap:2px;padding:14px 16px;border-radius:12px;
@@ -15,51 +15,36 @@
 .hub i{font:400 12px/1.4 var(--mono);font-style:normal;color:var(--fg3)}
 </style>
 </head><body><div class="page" id="app"></div>
-<script>window.素材基底 = '../素材/';</script>
-<script src="共用.js?v=202611231718"></script>
-<script>
-/* 發佈用首頁(跟 index.html 分開 —— 原本那個還留著開發/活動用)。
-   使用者 2026-11-17:卡片動態產生、只放**已建好**的(有索引+有範本),還沒建的不上。
-   這幾類這批先不上:活動/家族/歷練/招募(改 不上 清單即可)。 */
-const 不上 = new Set(['活動','家族','歷練','招募']);
+<script>window.素材基底 = "../素材/";</script>
+<script src="共用.js?v=202611231946"></script>
+<script>const 不上 = new Set([ "活動", "家族", "歷練", "招募" ]);
+
 (async () => {
-  /* 建置時預先算好的分類卡(素材/_首頁清單.json,雜物/_建索引.py 產生)——
-     有就直接用,不用逐分類 HEAD+fetch;沒有才退回下面的即時算法。2026-11-22。 */
-  const 預 = await fetch(基底() + '_首頁清單.json').then(r => r.ok ? r.json() : null).catch(() => null);
-  if(預 && Array.isArray(預.清單) && 預.清單.length){
-    const 卡 = o => `<a href="${o.連}"><b>${esc(o.類)}</b><i>${o.數} 筆</i></a>`;
-    document.getElementById('app').innerHTML = `
-    <div class="bar"><span class="crumb">巡夢圖鑑</span><span class="sp"></span>
-      <button class="btn" id="th">深淺色</button></div>
-    <h1 class="title" style="margin:0 0 var(--sp2)">巡夢圖鑑</h1>
-    <p class="note" style="margin:0 0 2px">${預.清單.length} 個分類 · 點一類看全部</p>
-    <p class="note" style="margin:0 0 var(--sp4);color:var(--fg3)">資料僅供參考,如有錯誤請私訊 69 - 白蓮花</p>
-    <div class="hub">${預.清單.map(卡).join('')}</div>`;
-    return;
-  }
-  const top = await fetch(基底() + '_索引.json').then(r => r.ok ? r.json() : null).catch(() => null);
-  const 類表 = (((top || {}).清單) || [])
-    .map(c => c.名 || c.類).filter(c => c && !不上.has(c));
-  /* 數字自己算 —— 抓各類 _索引,用 列表清單 數(傳記不算、時裝歸套裝),不讀寫死的數量。
-     有範本(HEAD)+ 列表有東西 才建卡片。使用者 2026-11-17。 */
-  const 卡表 = (await Promise.all(類表.map(async 類 => {
-    const u = encodeURIComponent(類) + '/' + encodeURIComponent(類) + '範本.html';
-    const [r, idx] = await Promise.all([
-      fetch(u, {method: 'HEAD'}).catch(() => null),
-      fetch(基底() + encodeURIComponent(類) + '/_索引.json').then(r => r.ok ? r.json() : null).catch(() => null)
-    ]);
-    if(!(r && r.ok)) return null;
-    const 數 = idx ? 列表清單(類, idx.清單 || []).length : 0;
-    return 數 > 0 ? {類, 連: u, 數} : null;
-  }))).filter(Boolean);
+ const 預 = await fetch(基底() + "_首頁清單.json").then((r => r.ok ? r.json() : null)).catch((() => null));
+ if (預 && Array.isArray(預.清單) && 預.清單.length) {
   const 卡 = o => `<a href="${o.連}"><b>${esc(o.類)}</b><i>${o.數} 筆</i></a>`;
-  document.getElementById('app').innerHTML = `
-    <div class="bar"><span class="crumb">巡夢圖鑑</span><span class="sp"></span>
-      <button class="btn" id="th">深淺色</button></div>
-    <h1 class="title" style="margin:0 0 var(--sp2)">巡夢圖鑑</h1>
-    <p class="note" style="margin:0 0 2px">${卡表.length} 個分類 · 點一類看全部</p>
-    <p class="note" style="margin:0 0 var(--sp4);color:var(--fg3)">資料僅供參考,如有錯誤請私訊 69 - 白蓮花</p>
-    <div class="hub">${卡表.map(卡).join('')}</div>`;
+  document.getElementById("app").innerHTML = `\n    <div class="bar"><span class="crumb">巡夢圖鑑</span><span class="sp"></span>\n      <button class="btn" id="th">深淺色</button></div>\n    <h1 class="title" style="margin:0 0 var(--sp2)">巡夢圖鑑</h1>\n    <p class="note" style="margin:0 0 2px">${預.清單.length} 個分類 · 點一類看全部</p>\n    <p class="note" style="margin:0 0 var(--sp4);color:var(--fg3)">資料僅供參考,如有錯誤請私訊 69 - 白蓮花</p>\n    <div class="hub">${預.清單.map(卡).join("")}</div>`;
+  return;
+ }
+ const top = await fetch(基底() + "_索引.json").then((r => r.ok ? r.json() : null)).catch((() => null));
+ const 類表 = ((top || {}).清單 || []).map((c => c.名 || c.類)).filter((c => c && !不上.has(c)));
+ const 卡表 = (await Promise.all(類表.map((async 類 => {
+  const u = encodeURIComponent(類) + "/" + encodeURIComponent(類) + "範本.html";
+  const [r, idx] = await Promise.all([ fetch(u, {
+   method: "HEAD"
+  }).catch((() => null)), fetch(基底() + encodeURIComponent(類) + "/_索引.json").then((r => r.ok ? r.json() : null)).catch((() => null)) ]);
+  if (!(r && r.ok)) return null;
+  const 數 = idx ? 列表清單(類, idx.清單 || []).length : 0;
+  return 數 > 0 ? {
+   "類": 類,
+   "連": u,
+   "數": 數
+  } : null;
+ })))).filter(Boolean);
+ const 卡 = o => `<a href="${o.連}"><b>${esc(o.類)}</b><i>${o.數} 筆</i></a>`;
+ document.getElementById("app").innerHTML = `\n    <div class="bar"><span class="crumb">巡夢圖鑑</span><span class="sp"></span>\n      <button class="btn" id="th">深淺色</button></div>\n    <h1 class="title" style="margin:0 0 var(--sp2)">巡夢圖鑑</h1>\n    <p class="note" style="margin:0 0 2px">${卡表.length} 個分類 · 點一類看全部</p>\n    <p class="note" style="margin:0 0 var(--sp4);color:var(--fg3)">資料僅供參考,如有錯誤請私訊 69 - 白蓮花</p>\n    <div class="hub">${卡表.map(卡).join("")}</div>`;
 })();
-document.addEventListener('click', e => { if(e.target.id === 'th') 切色(); });
-</script></body></html>
+
+document.addEventListener("click", (e => {
+ if (e.target.id === "th") 切色();
+}));</script></body></html>

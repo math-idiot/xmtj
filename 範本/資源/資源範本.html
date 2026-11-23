@@ -5,46 +5,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../共用.css?v=202611231718">
+<link rel="stylesheet" href="../共用.css?v=202611231946">
 </head><body><div class="page" id="app"></div>
-<script src="../共用.js?v=202611231718"></script>
-<script>
-/* 資源範本。**不帶任何資料**,全部執行時讀 素材/資源/。
-   外框(抬頭/分頁/挑選框/路由/麵包屑)在 共用.js 的 開範本();引用一律走協議。
-   活動限定資源(弈珠/演算符)指向是 @活動資源/<活動名>/<資源名>,開範本 照 資源協議 的「另有」去活動夾讀。
-
-   分頁固定五個、欄位固定 —— 每一筆顯示的東西都一樣,沒有的寫「—」或「沒有」。
-   (使用者 2026-11-15:「這張範本不管哪個畫面顯示的東西都一樣,如果沒有的那就說沒有」) */
-開範本({
-  類別: '資源',
-  副標: x => [x.所屬活動 ? '活動限定' : null],
-  分頁: async (x, 清單) => {
-    /* 所屬活動是引用,不是文字 */
-    const 屬 = x.所屬活動
-      ? await 引用排([{類:'活動', 名:x.所屬活動, 顯類型:false}], '所屬活動')
-      : `<h3 class="grp">所屬活動</h3><p class="note">沒有</p>`;
-
-    return [
-      ['資訊', rows([
-          ['品質', x => x.品質],
-          ['說明', x => x.說明],
-          ['別稱', x => x.別稱],
-        ], x)
-        + 屬
-        + (x.這是什麼 ? `<h3 class="grp">這是什麼</h3><p class="note long">${rich(x.這是什麼)}</p>` : '')],
-      /* 後面幾頁點到才算(全部資源一次 54 張卡,一進來就畫太慢) */
-      ['獲取方式', async () => await 獲取頁(x) || '<p class="note">尚未建檔</p>'],
-      ['用途',     async () => await 用途頁(x) || '<p class="note">沒有用途</p>'],
-      ['全部資源', async () => await 索引排('資源', 清單, x._名, '全部資源') || '<p class="note">沒有</p>'],
-      ['其他', rows([
-          ['資源編號',     x => x.資源編號 ?? x.編號],
-          ['對應圖像編號', x => x.對應圖像編號 ?? x.圖像編號],
-          ['請求獲取指令', x => (x.請求獲取指令 || {}).範例 || (x.請求獲取指令 || {}).格式],
-          ...(x.所屬活動 ? [['檔期', x => x.檔期]] : []),
-          ['資料來源',     x => x.資料來源],
-          ['素材路徑',     x => x._變 ? '素材/活動/' + x._變.條件值 + '/資源/' + x._變.名 : '素材/資源/' + x._名],
-        ], x)],
-    ];
-  },
-});
-</script></body></html>
+<script src="../共用.js?v=202611231946"></script>
+<script>開範本({
+ "類別": "資源",
+ "副標": x => [ x.所屬活動 ? "活動限定" : null ],
+ "分頁": async (x, 清單) => {
+  const 屬 = x.所屬活動 ? await 引用排([ {
+   "類": "活動",
+   "名": x.所屬活動,
+   "顯類型": false
+  } ], "所屬活動") : `<h3 class="grp">所屬活動</h3><p class="note">沒有</p>`;
+  return [ [ "資訊", rows([ [ "品質", x => x.品質 ], [ "說明", x => x.說明 ], [ "別稱", x => x.別稱 ] ], x) + 屬 + (x.這是什麼 ? `<h3 class="grp">這是什麼</h3><p class="note long">${rich(x.這是什麼)}</p>` : "") ], [ "獲取方式", async () => await 獲取頁(x) || '<p class="note">尚未建檔</p>' ], [ "用途", async () => await 用途頁(x) || '<p class="note">沒有用途</p>' ], [ "全部資源", async () => await 索引排("資源", 清單, x._名, "全部資源") || '<p class="note">沒有</p>' ], [ "其他", rows([ [ "資源編號", x => x.資源編號 ?? x.編號 ], [ "對應圖像編號", x => x.對應圖像編號 ?? x.圖像編號 ], ...x.所屬活動 ? [ [ "檔期", x => x.檔期 ] ] : [] ], x) ] ];
+ }
+});</script></body></html>

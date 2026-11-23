@@ -1,16 +1,1 @@
-{
- "這是什麼": "夥伴的五行屬性圖示(金木水火土)。",
- "對照": {
-  "zmt_other_ys_02": "金",
-  "zmt_other_ys_03": "木",
-  "zmt_other_ys_04": "水",
-  "zmt_other_ys_05": "火",
-  "zmt_other_ys_06": "土"
- },
- "怎麼確認的": "遊戲原始碼 luabasic/ConstDefine.lua 的 const.CharacterIcon = {[0]=zmt_other_ys_01_c, [1]=zmt_other_ys_02, … [5]=zmt_other_ys_06},索引就是 Retinue.character;EmbattleTeamAllChangeItem.lua 取圖用的就是 CharacterIcon[GetCharacter()]。圖案本身也對得上:金=金色星芒、木=綠葉、水=藍水滴、火=紅焰、土=褐山。使用者的遊戲截圖裡慕凌辰(character=1 金)旁邊就是那個金色菱形。",
- "尺寸": "56×57",
- "資料來源": "圖集 commonfpj",
- "產生時間": "2026-11-16",
- "網頁有沒有在用": "沒有。使用者 2026-11-16:「這裡不需要放圖好了」—— 夥伴頁的屬性欄用文字。圖先留著,之後哪裡要用再接。",
- "職業類型的圖呢": "本來也抓了一組 coma_icon1~5(菱形,裡面是鎚子/鋼筆/皇冠/領帶),但使用者一看就問「這個菱形不是另外一個遊戲的東西嗎」—— 那組圖是辦公室題材,跟巡夢少女的古風美術對不上,而且 ConstDefine 的 const.VocationType 註解寫的是陸版職場用詞(支配/黃/設計、影響/藍/決策、穩健/紅/推進)。沒驗就不該放進素材,已經移走。表本身(Vocation.lua)是活的(上陣畫面的克制提示會讀它的 name),只有那組圖可疑。"
-}
+{"對照":{"zmt_other_ys_02":"金","zmt_other_ys_03":"木","zmt_other_ys_04":"水","zmt_other_ys_05":"火","zmt_other_ys_06":"土"},"尺寸":"56×57"}

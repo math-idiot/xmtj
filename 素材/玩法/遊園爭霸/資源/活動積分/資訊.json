@@ -1,9 +1,1 @@
-{
- "名稱": "活動積分",
- "名稱說明": "資料夾標示名,非台版正本。遊戲內顯示名是 ResDefine '%s積分' 代入空字串後的「積分」。",
- "資源碼": "150_2001_<數量>(const.ResNumType.InsideActIntegral=150,後接活動 id;注意程式裡的 aid 是 InsideTaskTime.id,如 25002,不是 2001。AwardUtil.txt:1041 ret.resId=paramNum2=aid;圖用 InsideTaskTime.extend=2001)",
- "說明": "%s積分可用於兌換積分達成獎勵。(config/ResDefine.lua 原文,%s 為空)",
- "限定": "積分跟著活動 aid 計,是否活動結束清空沒有權威原文,寫「沒有」",
- "圖": "圖.png(comz_icon_res_150_25_2001,128×128,4009 色)",
- "依據": "config/ResDefine.lua res_icon='comz_icon_res_150_%s';AwardUtil.txt:1080-1086 icon = string.format(res_icon,type)..'_'..extend,type=25(InsideTaskTime.type)、extend=2001"
-}
+{"名稱":"活動積分","限定":"積分跟著活動 aid 計,是否活動結束清空沒有權威原文,寫「沒有」","圖":"圖.png(comz_icon_res_150_25_2001,128×128,4009 色)"}
