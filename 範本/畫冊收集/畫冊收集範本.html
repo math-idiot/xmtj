@@ -45,17 +45,13 @@ async function 冊貼紙格(主題名, 冊名, 冊資料){
       <img src="${own || !灰 ? 彩 : 灰}" alt="" loading="lazy" onerror="this.src='${彩}'"><b>${esc(名)}</b>${冊星(m.星 || 0)}</figure>`;
   }).join('');
 }
-const 冊切鈕 = `<div class="stkbar"><span class="seg" id="貼紙切">
-    <button aria-pressed="true" data-f="全部">全部</button><button aria-pressed="false" data-f="有">已獲得</button><button aria-pressed="false" data-f="無">未獲得</button></span>
-    <span class="note" id="貼紙數"></span></div>`;
+/* 使用者 2026-11-23:「點一下就換造型,不需要滑塊」—— 預設全部未解鎖(灰),點一下變彩色、再點變回灰。只留計數。 */
+const 冊切鈕 = `<div class="stkbar"><span class="note" id="貼紙數"></span></div>`;
 function 冊數字(){ const all = document.querySelectorAll('.stk'), own = document.querySelectorAll('.stk:not(.dim)'); const el = document.getElementById('貼紙數'); if(el) el.textContent = `已獲得 ${own.length} / ${all.length}`; }
-function 冊套濾(){ const b = document.querySelector('#貼紙切 [aria-pressed="true"]'); const f = b ? b.dataset.f : '全部';
-  document.querySelectorAll('.stk').forEach(el => { el.hidden = f === '有' ? el.classList.contains('dim') : f === '無' ? !el.classList.contains('dim') : false; }); 冊數字(); }
 document.addEventListener('click', e => {
-  const b = e.target.closest('#貼紙切 button'); if(b){ b.parentNode.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); 冊套濾(); return; }
   const f = e.target.closest('.stk'); if(!f) return;
   const s = 冊已得.讀(); const id = f.dataset.id; if(s.has(id)) s.delete(id); else s.add(id); 冊已得.存(s);
-  f.classList.toggle('dim', !s.has(id)); const img = f.querySelector('img'); img.src = (s.has(id) || !f.dataset.灰) ? f.dataset.彩 : f.dataset.灰; 冊套濾();
+  f.classList.toggle('dim', !s.has(id)); const img = f.querySelector('img'); img.src = (s.has(id) || !f.dataset.灰) ? f.dataset.彩 : f.dataset.灰; 冊數字();
 });
 async function 冊讀(主題名, 冊名){ return _讀(冊基() + encodeURIComponent(主題名) + '/' + encodeURIComponent(冊名) + '/資料.json'); }
 
