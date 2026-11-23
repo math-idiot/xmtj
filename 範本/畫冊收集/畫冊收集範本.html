@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>畫冊收集 · 巡夢圖鑑</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../共用.css">
+</head><body><div class="page" id="app"></div>
+<script src="../共用.js"></script>
+<script>
+/* 畫冊收集範本(2026-11-23,使用者:「四個 tab 資料/畫冊/貼紙/其他;資料不用引用;畫冊顯示這檔 9 本;
+   貼紙:檔期頁顯示全部、畫冊頁顯示那 9 張;有滑塊切已獲得/未獲得;星級要顯示」)。
+   三層:主題(檔期)#/畫冊收集/夜市煙火 → 畫冊 #/畫冊收集/夜市煙火/叫賣聲聲 → 貼紙是畫冊頁的格子。
+   資料:主題/畫冊各自 資料.json(圖檔名在這)+ 素材/畫冊收集/_貼紙.json(名/星級/獎勵/檔期,雜物/_建畫冊.py 產生)。
+   已獲得:存在瀏覽器 localStorage(key 畫冊已獲得),點貼紙切換 —— 這是玩家自己的進度,不在素材裡。 */
+const 冊基 = () => window.素材基底 + '畫冊收集/';
+let _冊;
+async function 冊表(){ if(_冊 === undefined) _冊 = await _讀(冊基() + '_貼紙.json'); return _冊 || {貼紙:{}, 主題:{}}; }
+const 冊已得 = { 讀(){ try{ return new Set(JSON.parse(localStorage.getItem('畫冊已獲得') || '[]')); }catch(e){ return new Set(); } },
+                 存(s){ try{ localStorage.setItem('畫冊已獲得', JSON.stringify([...s])); }catch(e){} } };
+const 冊星 = n => { const 亮 = window.素材基底 + '介面/裝備星級/星_亮.png', 暗 = window.素材基底 + '介面/裝備星級/星_暗.png';
+  let h = ''; for(let i = 0; i < 5; i++) h += `<img src="${i < n ? 亮 : 暗}" alt="">`; return `<span class="stk-st" title="${n} 星">${h}</span>`; };
+/* 獎勵碼 → 純文字(資料頁不用引用) */
+async function 冊碼文(碼串){
+  const 碼 = String(碼串 || '').split(',').map(s => s.trim()).filter(Boolean);
+  const 解 = await Promise.all(碼.map(解獎勵));
+  return 解.map((r, i) => r ? (r.名.split('/').pop() + (r.量 > 1 ? ' ×' + r.量 : '')) : 碼[i]).join('、') || null;
+}
+/* 獎勵碼 → 引用卡(貼紙頁底下那排「收集獎勵」) */
+async function 冊碼卡(碼串){
+  const 碼 = String(碼串 || '').split(',').map(s => s.trim()).filter(Boolean);
+  const 解 = await Promise.all(碼.map(解獎勵));
+  return (await Promise.all(解.map((r, i) => r ? 引用塊({類: r.類, 名: r.名, 量: r.量 > 1 ? r.量 : null})
+    : `<span class="obj miss"><span class="rfi bare"><span class="ab">?</span></span><b>${esc(碼[i])}</b><i>尚未建檔</i></span>`))).join('');
+}
+/* 一本畫冊的貼紙格:資料.json 的 貼紙[].檔名/未解鎖圖 給圖,_貼紙.json 給名字/星級 */
+async function 冊貼紙格(主題名, 冊名, 冊資料){
+  const T = await 冊表(); const 有 = 冊已得.讀();
+  const 夾 = 冊基() + encodeURIComponent(主題名) + '/' + encodeURIComponent(冊名) + '/';
+  return (冊資料.貼紙 || []).map(s => {
+    const id = String(s.編號), m = T.貼紙[id] || {}; const 名 = m.名 || s.名稱 || id; const own = 有.has(id);
+    const 彩 = 夾 + encodeURIComponent(s.檔名 || (id + '.png')), 灰 = s.未解鎖圖 ? 夾 + encodeURIComponent(s.未解鎖圖) : null;
+    return `<figure class="stk${own ? '' : ' dim'}" data-id="${id}" data-彩="${彩}" data-灰="${灰 || ''}" title="點一下切換已獲得">
+      <img src="${own || !灰 ? 彩 : 灰}" alt="" loading="lazy" onerror="this.src='${彩}'"><b>${esc(名)}</b>${冊星(m.星 || 0)}</figure>`;
+  }).join('');
+}
+const 冊切鈕 = `<div class="stkbar"><span class="seg" id="貼紙切">
+    <button aria-pressed="true" data-f="全部">全部</button><button aria-pressed="false" data-f="有">已獲得</button><button aria-pressed="false" data-f="無">未獲得</button></span>
+    <span class="note" id="貼紙數"></span></div>`;
+function 冊數字(){ const all = document.querySelectorAll('.stk'), own = document.querySelectorAll('.stk:not(.dim)'); const el = document.getElementById('貼紙數'); if(el) el.textContent = `已獲得 ${own.length} / ${all.length}`; }
+function 冊套濾(){ const b = document.querySelector('#貼紙切 [aria-pressed="true"]'); const f = b ? b.dataset.f : '全部';
+  document.querySelectorAll('.stk').forEach(el => { el.hidden = f === '有' ? el.classList.contains('dim') : f === '無' ? !el.classList.contains('dim') : false; }); 冊數字(); }
+document.addEventListener('click', e => {
+  const b = e.target.closest('#貼紙切 button'); if(b){ b.parentNode.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); 冊套濾(); return; }
+  const f = e.target.closest('.stk'); if(!f) return;
+  const s = 冊已得.讀(); const id = f.dataset.id; if(s.has(id)) s.delete(id); else s.add(id); 冊已得.存(s);
+  f.classList.toggle('dim', !s.has(id)); const img = f.querySelector('img'); img.src = (s.has(id) || !f.dataset.灰) ? f.dataset.彩 : f.dataset.灰; 冊套濾();
+});
+async function 冊讀(主題名, 冊名){ return _讀(冊基() + encodeURIComponent(主題名) + '/' + encodeURIComponent(冊名) + '/資料.json'); }
+
+async function 主題頁(x){
+  const T = await 冊表(); const m = T.主題[x._名] || {};
+  const 冊們 = (x.畫冊 || []).map(a => a.名稱);
+  const 卡 = await Promise.all(冊們.map(n => 引用塊({類: '畫冊收集', 名: x._名 + '/' + n, 樣式: '封面'})));
+  // 貼紙:全部(照畫冊分組,標題連到畫冊頁)
+  let 貼 = 冊切鈕;
+  for(const n of 冊們){
+    const d = await 冊讀(x._名, n); if(!d) continue;
+    貼 += `<h3 class="grp"><a href="#/畫冊收集/${encodeURIComponent(x._名)}/${encodeURIComponent(n)}">${esc(n)}</a></h3><div class="stks">${await 冊貼紙格(x._名, n, d)}</div>`;
+  }
+  setTimeout(冊數字, 0);
+  return [
+    ['資料', rows([
+      ['主題編號', x => x.主題編號], ['畫冊數', x => (x.畫冊 || []).length + ' 本'], ['貼紙數', x => (x.畫冊 || []).reduce((t, a) => t + (a.貼紙數 || 0), 0) + ' 張'],
+      ['檔期', () => (m.檔期 || []).map(p => p[0].slice(0, 10).replace(/-/g, '/') + '～' + p[1].slice(0, 10).replace(/-/g, '/')).join('、') || null],
+      ['獎勵預覽', () => x._獎文],
+    ], x)],
+    ['畫冊', `<div class="objs set">${卡.join('')}</div>`],
+    ['貼紙', 貼],
+    ['其他', rows([['資料來源', x => x.資料來源], ['素材路徑', x => '畫冊收集/' + x._名]], x)],
+  ];
+}
+async function 畫冊頁(x){
+  const T = await 冊表(); const 主 = String(x._名).split('/')[0], 冊 = String(x._名).split('/')[1];
+  const 主資 = await _讀(冊基() + encodeURIComponent(主) + '/資料.json') || {};
+  const 冊們 = (主資.畫冊 || []).map(a => a.名稱);
+  const 卡 = await Promise.all(冊們.map(async n => { const h = await 引用塊({類: '畫冊收集', 名: 主 + '/' + n, 樣式: '封面'}); return n === 冊 ? `<span class="albcur">${h}</span>` : h; }));
+  const 冊資 = (T.主題[主] && T.主題[主].畫冊 || []).find(a => a.名 === 冊) || {};
+  const 貼 = 冊切鈕 + `<div class="stks">${await 冊貼紙格(主, 冊, x)}</div>`
+    + `<h3 class="grp">收集獎勵</h3><div class="objs fam">${await 冊碼卡(冊資.獎勵 || x.集滿獎勵原碼) || '<span class="note">沒有</span>'}</div>`;
+  setTimeout(冊數字, 0);
+  return [
+    ['資料', rows([
+      ['主題', x => x.主題], ['畫冊編號', x => x.畫冊編號], ['貼紙數', x => x.貼紙數 + ' 張'],
+      ['集滿獎勵', () => x._獎文],
+    ], x)],
+    ['畫冊', `<p class="note">${esc(主)} 的 ${冊們.length} 本,框起來的是這本</p><div class="objs set">${卡.join('')}</div>`],
+    ['貼紙', 貼],
+    ['其他', rows([['資料來源', x => x.資料來源], ['素材路徑', x => '畫冊收集/' + x._名]], x)],
+  ];
+}
+/* 貼紙包(道具型子項):資料 / 獲取 / 用途 / 其他 */
+async function 貼紙包頁(x){
+  return [
+    ['資料', rows([['名稱', x => x.名稱], ['說明', x => x.說明 || x.介紹]], x)],
+    ['獲取', async () => (await 獲取頁(x)) || '<p class="note">尚未建檔</p>'],
+    ['用途', async () => (await 用途頁(x)) || '<p class="note">沒有</p>'],
+    ['其他', rows([['資料來源', x => x.資料來源], ['素材路徑', x => '畫冊收集/' + x._名]], x)],
+  ];
+}
+開範本({
+  類別: '畫冊收集',
+  子項: true,
+  清單轉換: 清單 => 列表清單('畫冊收集', 清單),
+  抬頭不框: true,
+  副標: x => String(x._名).includes('/') ? ['屬 ' + String(x._名).split('/')[0]] : [(x.畫冊 || []).length ? (x.畫冊.length + ' 本畫冊') : null],
+  抬頭HTML: async x => {
+    const n = String(x._名); const b = 冊基() + n.split('/').map(encodeURIComponent).join('/') + '/';
+    if(n.startsWith('貼紙包/')) return `<span class="rfi bare"><img src="${b}圖.png" alt=""></span>`;
+    if(n.includes('/')) return `<span class="rfi bare" style="--比:1.09"><img src="${b}封面.png" alt=""></span>`;
+    return `<span class="rfi bare" style="--比:0.4"><img src="${b}標題.png" alt="" onerror="this.src='${b}標題_縮圖.png'"></span>`;
+  },
+  分頁: async (x) => {
+    x._獎文 = await 冊碼文(String(x._名).includes('/') ? x.集滿獎勵原碼 : x.獎勵預覽原碼);
+    const n = String(x._名);
+    return n.startsWith('貼紙包/') ? 貼紙包頁(x) : n.includes('/') ? 畫冊頁(x) : 主題頁(x);
+  },
+});
+</script>
+</body></html>
