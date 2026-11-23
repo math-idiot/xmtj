@@ -43,7 +43,7 @@ const 類型名 = 深 => (設定.類型預設 || (d => d > 1 ? '子活動' : '�
 const 快取 = new Map();
 async function 讀(路){
   if(快取.has(路)) return 快取.get(路);
-  const p = fetch(路).then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); })
+  const p = fetch(typeof 帶版 === 'function' ? 帶版(路) : 路).then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); })   // 帶版本戳躲快取
                      .catch(e=>({_讀不到:String(e.message||e), _路:路}));
   快取.set(路,p); return p;
 }
