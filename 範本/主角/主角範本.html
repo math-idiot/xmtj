@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>主角 · 巡夢圖鑑</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../共用.css?v=202611231718">
+</head><body><div class="page" id="app"></div>
+<script src="../共用.js?v=202611231718"></script>
+<script>
+/* 主角範本:玩家自己(心醫)。**不帶資料**,讀 素材/主角/<名>/資料.json;心醫等級表讀 素材/系統/_心醫等級.json(共用.js 心醫表)。
+   分頁:資訊 / 心醫等級(階級稱號、各系統上限) / 時裝(樣子取決於穿哪套) / 其他。 */
+
+/* 心醫等級:階級稱號 + 到幾級夥伴/裝備可以升到哪 */
+async function 角等級板(){
+  const t = await 心醫表(); const a = (t && t.變化點) || [];
+  if(!a.length) return '<p class="note">沒有</p>';
+  const 階 = []; for(const r of a){ const last = 階[階.length - 1]; if(!last || last.名 !== r.階級) 階.push({名: r.階級, 起: r.心醫等級起}); }
+  const 階表 = `<h3 class="grp">階級</h3><table class="aff"><thead><tr><th>階級</th><th>心醫等級</th></tr></thead><tbody>${
+    階.map((s, i) => `<tr><td>${esc(s.名)}</td><td>${s.起}${階[i + 1] ? ' ～ ' + (階[i + 1].起 - 1) : ' 起'}</td></tr>`).join('')}</tbody></table>`;
+  const 上限 = `<h3 class="grp">等級卡住的上限</h3><table class="aff"><thead><tr><th>心醫等級</th><th>夥伴可升到</th><th>裝備可強化到</th></tr></thead><tbody>${
+    a.map(r => `<tr><td>${r.心醫等級起}</td><td>${r.夥伴升級上限 ?? ''}</td><td>${r.裝備強化上限 ?? ''}</td></tr>`).join('')}</tbody></table>`
+    + `<p class="note">坐騎突破、珍寶升級、寵物升星也有心醫等級門檻,寫在各自頁面的拉桿下面。</p>`;
+  return 階表 + 上限;
+}
+
+/* 時裝:她沒有固定的全身樣子,穿哪套就是哪套。預設是 浮香引。 */
+async function 角時裝板(){
+  const 卡 = await 引用塊({類: '時裝', 名: '浮香引', 附註: '預設時裝'});
+  return `<div class="objs fam">${卡}</div><p class="note">全身的樣子由穿著的時裝決定。<a href="../時裝/${_靜態() ? '清單.html' : '時裝範本.html'}">全部時裝</a></p>`;
+}
+
+開範本({
+  類別: '主角',
+  預設名: '女主',
+  抬頭樣式: '半身',
+  副標不帶品質: true,   // 品質 藍 對主角沒意義
+  副標: x => [x.稱號],
+  分頁: async (x, 清單) => [
+    ['資訊', rows([
+      ['稱號', x => x.稱號],
+      ['介紹', x => x.介紹],
+      ['生日', x => x.生日],
+      ['星座', x => x.星座],
+      ['血型', x => x.血型],
+      ['年齡', x => x.年齡],
+    ], x)],
+    ['心醫等級', () => 角等級板()],
+    ['時裝', () => 角時裝板()],
+    ['其他', rows([
+      ['編號', x => x.id],
+    ], x)],
+  ],
+});
+</script></body></html>

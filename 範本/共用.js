@@ -1524,8 +1524,14 @@ async function 開範本(設定){
     const 副 = (設定.副標 ? 設定.副標(x) : []) || [];
 
     if(window._要開頁){ const k = 頁.findIndex(t => t[0] === window._要開頁); if(k >= 0) 選中頁籤 = k; window._要開頁 = null; }
+    /* 麵包屑要顯示到目前位置(使用者 2026-11-23:「只會到分類就不往下了」)。名字有層的(時裝 套/件、畫冊 主題/冊、
+       寵物 名/稀有度)每一層一段;中間那層自己有條目(在索引或轉換後的清單裡)才給連結,最後一段是本頁不連。 */
+    const _屑段 = String(這.名).split('/');
+    const _有條 = new Set([...(清單 || []).map(o => o.名), ...((設定.清單轉換 ? (設定.清單轉換(清單) || []) : []).map(o => o.名))]);
+    const _屑 = _屑段.map((seg, i) => { const 前 = _屑段.slice(0, i + 1).join('/'); const 可 = i < _屑段.length - 1 && _有條.has(前);
+      return [seg, 可 ? (_靜態() ? 靜態路(類, 前) : '#/' + encodeURIComponent(類) + '/' + encodeURIComponent(前)) : null]; });
     app.innerHTML = `
-    <div class="bar">${麵包(類)}
+    <div class="bar">${麵包(類, _屑)}
       ${挑(清單)}<button class="btn" id="th">深淺色</button></div>
     <div class="top">
       <div><div class="art">${卡}</div></div>
@@ -1603,7 +1609,7 @@ async function 快列(類, 清單){
     for(const [lv, col] of Object.entries(規.等級對色)) if(_色等[col] == null) _色等[col] = +lv;
   await 備妥零件();                                   // 要拿 window.格遮罩
   const 罩 = window.格遮罩 ? `-webkit-mask-image:url('${window.格遮罩}');mask-image:url('${window.格遮罩}');-webkit-mask-size:100% 100%;mask-size:100% 100%` : '';
-  const 候選 = (類 === '時裝') ? ['預覽圖_方.png','展示圖_縮圖.png','預覽圖.png'] : (類 === '畫冊收集') ? ['標題_縮圖.png','標題.png'] : ['圖.png','立繪.png','縮圖.png','立繪_縮圖.png'];
+  const 候選 = (類 === '時裝') ? ['預覽圖_方.png','展示圖_縮圖.png','預覽圖.png'] : (類 === '畫冊收集') ? ['標題_縮圖.png','標題.png'] : (類 === '夢魘') ? ['完整素體_縮圖.png','立繪.png'] : ['圖.png','立繪.png','縮圖.png','立繪_縮圖.png'];
   const cj = esc(JSON.stringify(候選));
   const base = window.素材基底 + encodeURIComponent(類) + '/';
   const 本頁 = n => _靜態() ? 靜態路(類, n) : '#/' + encodeURIComponent(類) + '/' + encodeURIComponent(n);
