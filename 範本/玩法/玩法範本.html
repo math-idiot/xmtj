@@ -34,108 +34,108 @@ async function 碼卡(碼串, 附註){
 }
 /* 這個玩法的積分/材料資源 → 引用卡的 ref(素材/玩法/<名>/資源/<資源名>/ 有才算;沒有就回 null,拉桿只寫字) */
 let _資源夾 = new Map();
+let _活動資源 = [];
 async function 資源ref(資源名){
   if(!資源名) return null;
-  if(!_資源夾.has(資源名)) _資源夾.set(資源名, _讀(window.素材基底 + '玩法/' + encodeURIComponent(_本玩法) + '/資源/' + encodeURIComponent(資源名) + '/資訊.json').then(d => !!d));
-  return (await _資源夾.get(資源名)) ? {類: '資源', 名: 資源名, 所屬玩法: _本玩法, _在: true} : null;
+  /* 舊站的需求項目叫「積分」,資源夾可能叫「活動積分」「釣魚積分」—— 先找同名夾,沒有再找夾名包含它的 */
+  const 候 = [資源名, ..._活動資源.filter(n => n !== 資源名 && String(n).includes(資源名))];
+  for(const 名 of 候){
+    if(!_資源夾.has(名)){ const b = window.素材基底 + '玩法/' + encodeURIComponent(_本玩法) + '/資源/' + encodeURIComponent(名) + '/';
+      _資源夾.set(名, _讀(b + '資訊.json').then(d => d ? true : _讀(b + '資料.json').then(e => !!e))); }
+    if(await _資源夾.get(名)) return {類: '資源', 名, 所屬玩法: _本玩法, _在: true};
+  }
+  return null;
 }
-/* 每階的 需求 / 獎勵 解成 {鍵:{ref,量}}:需求 = 累計門檻差(積分資源)或 消耗 碼(藥材);獎勵 = 獎勵碼 */
-async function 階解(軌, 積分資源){
-  const 階 = 軌.階 || [], 累計 = 軌.累計 !== false; const out = [];
-  for(let i = 0; i < 階.length; i++){
-    const s = 階[i], 需 = {}, 得 = {};
-    if(s.消耗){ for(const c of String(s.消耗).split(',')){ const r = c.trim() && await 解碼(c.trim()); if(r) 需[r.名] = {ref: r, 量: (需[r.名] ? 需[r.名].量 : 0) + (r.量 || 1)}; } }
-    else {
-      const n = 累計 ? (+s.門檻 || 0) - (i ? +階[i - 1].門檻 || 0 : 0) : (+s.需積分 || +s.門檻 || 0);
-      if(n) 需[積分資源 ? 積分資源.名 : '積分'] = {ref: 積分資源, 量: n, 字: (積分資源 ? 積分資源.名 : '積分')};   // 鍵要跟卡片的名一樣,拉桿才找得到數量
-    }
-    for(const c of String(s.獎勵 || '').split(',')){ const r = c.trim() && await 解碼(c.trim()); if(r) 得[r.名] = {ref: r, 量: (得[r.名] ? 得[r.名].量 : 0) + (r.量 || 1)}; }
-    out.push({需, 得, 累計: 累計 ? +s.門檻 : null, 名: s.名 || null});
+/* 獎勵名字 → 素材的 {類,名}(舊站的表寫的是名字);對不到就回 null(畫成文字) */
+const _名快 = new Map();
+async function 名ref(名){
+  if(!_名快.has(名)) _名快.set(名, 找物(名).then(h => h && h.類 ? {類: h.類, 名: h.名} : null).catch(() => null));
+  return _名快.get(名);
+}
+/* 舊站的階段 → 每階 {需:{鍵:{ref,量,字}}, 得:{鍵:…}, 得by:{名次:{鍵:…}}};御貓那種帶名次的,得 = 第 1 名,各名次放 得by */
+async function 階解(r){
+  const out = [];
+  for(const st of (r.階段 || [])){
+    const 需 = {}, 得by = {};
+    for(const x of (st.需求 || [])){ const ref = await 資源ref(x.項目); const k = x.項目; 需[k] = {ref, 量: (需[k] ? 需[k].量 : 0) + (+x.數量 || 0), 字: x.項目}; }
+    for(const x of (st.獎勵 || [])){ const rk = x.名次 != null ? +x.名次 : 1; const m = 得by[rk] || (得by[rk] = {}); const ref = await 名ref(x.道具); const k = ref ? ref.名 : x.道具; m[k] = {ref, 量: (m[k] ? m[k].量 : 0) + (+x.數量 || 1), 字: x.道具}; }
+    if(st.獎勵碼){ const m = 得by[1] || (得by[1] = {}); for(const c of String(st.獎勵碼).split(',')){ const rr = c.trim() && await 解碼(c.trim()); if(rr){ m[rr.名] = {ref: rr, 量: (m[rr.名] ? m[rr.名].量 : 0) + (rr.量 || 1)}; } } }
+    out.push({需, 得: 得by[1] || {}, 得by, 名次們: Object.keys(得by).map(Number).sort((a, b) => a - b), 累積: st.累積, 名: st.名});
   }
   return out;
 }
-const 合 = (列, k, a, b) => { const m = {}; for(let i = a; i < b; i++) for(const [n, v] of Object.entries(列[i][k])) m[n] = (m[n] || 0) + v.量; return m; };
-/* 一軌階段 → 雙頭拉桿:需要(積分/材料)一排、獲得(獎勵)一排。隨機型(沒獎勵)只有需要。
-   底下接每一階的表(階段 / 需求 / 累積 / 獎勵),獎勵畫引用卡 —— 舊站(github xm)那張表的樣子。 */
-async function 階段梯(軌, 鍵, 積分資源){
-  const 階 = 軌.階 || []; if(!階.length) return '';
-  const 單位 = 軌.單位 || '階', 列 = await 階解(軌, 積分資源);
-  const 材 = m => { const 見 = new Map(); for(const r of 列) for(const v of Object.values(r[m])) if(v.ref && !見.has(v.ref.名)) 見.set(v.ref.名, Object.assign({}, v.ref)); return [...見.values()].map(x => { delete x.量; return x; }); };
+const 合 = (列, k, a, b, 選) => { const m = {}; for(let i = a; i < b; i++) for(const [n, v] of Object.entries(k === '得' && 選 ? (列[i].得by[選[i]] || {}) : 列[i][k])) m[n] = (m[n] || 0) + v.量; return m; };
+const _名次選 = {};
+/* 名次點:用這個玩法自己的底圖(資訊.json 名次底圖,御貓 = 元件/ymjx_floor_mc 貓頭)疊數字;沒有底圖就只有數字 */
+let _名次底 = '';
+const 名次圖 = k => `<span class="mc"${_名次底 ? ` style="background-image:url('${_名次底}')"` : ''}><b>${k}</b></span>`;
+document.addEventListener('click', e => {
+  const b = e.target.closest('.dot'); if(!b || b.disabled) return;
+  const 鍵 = b.dataset.名次梯, st = _名次選[鍵]; if(!st) return;
+  const i = +b.dataset.i, 可 = st.列[i].名次們.length ? st.列[i].名次們 : [1];
+  const k = 可.indexOf(st.選[i]); st.選[i] = 可[(k + 1) % 可.length]; b.innerHTML = 名次圖(st.選[i]); b.classList.toggle('on', st.選[i] !== 1);
+  _階梯算(鍵);
+});
+const 文卡 = (v, 附) => `<span class="src"><b>${esc(v.字 || '?')}</b><i>${esc([v.量 ? '×' + v.量 : null, 附].filter(Boolean).join(' · '))}</i></span>`;
+async function 卡排(m, 附){ return (await Promise.all(Object.values(m).map(v => v.ref ? 引用塊(Object.assign({}, v.ref, {量: v.量 > 1 ? v.量 : null, 附註: 附 || null})) : 文卡(v, 附)))).join(''); }
+/* 拉桿:需要(活動道具,累積算)一排、獲得一排;隨機型只有需要,底下接九宮格(各格獎勵 + 機率)。
+   使用者 2026-11-23:不要階段表、不要下拉,以舊站的表為準。 */
+async function 階段梯(r, 鍵){
+  const 列 = await 階解(r); if(!列.length) return '';
+  const 單位 = '階';
+  const 材 = m => { const 見 = new Map(); for(const x of 列) for(const src of (m === '得' ? Object.values(x.得by) : [x[m]])) for(const [k, v] of Object.entries(src)) if(v.ref && !見.has(k)) 見.set(k, Object.assign({}, v.ref, {量鍵: k})); return [...見.values()].map(o => { delete o.量; return o; }); };
   const 需材 = 材('需'), 得材 = 材('得');
-  const 有積分字 = 列.some(r => r.需.積分 && !r.需.積分.ref);
+  const 有名次 = 列.some(x => x.名次們.length > 1);
+  const 名次選 = 列.map(() => 1);          // 每一階選的名次(御貓:每場預設第 1 名,點點點切換)
+  _名次選[鍵] = {選: 名次選, 列};
+  const 需字 = [...new Set(列.flatMap(x => Object.values(x.需).filter(v => !v.ref).map(v => v.字)))];
+  const 得字 = r.隨機 ? [] : [...new Set(列.flatMap(x => Object.values(x.得).filter(v => !v.ref).map(v => v.字)))];
   const 梯 = await 階梯板({
-    樣式: '拉桿', 鍵, 下限: 0, 上限: 階.length, 單位, 起始: 0, 目標: 階.length,
+    樣式: '拉桿', 鍵, 下限: 0, 上限: 列.length, 單位, 起始: 0, 目標: 列.length,
     材料: 需材, 料標: '需要', 算: (a, b) => 合(列, '需', a, b),
-    獲得: 得材.length ? {材料: 得材, 標: '獲得', 算: (a, b) => 合(列, '得', a, b)} : null,
-    標: v => (v && 列[v - 1].累計 != null) ? 列[v - 1].累計 + ' 積分' : '',
-    附文: 有積分字 ? ((a, b) => { const n = 合(列, '需', a, b).積分 || 0; return n ? `從第 ${a} ${單位}到第 ${b} ${單位},要再存 ${n} 積分` : ''; }) : null,
+    獲得: (!r.隨機 && 得材.length) ? {材料: 得材, 標: '獲得', 算: (a, b) => 合(列, '得', a, b, 名次選)} : null,
+    /* 各場名次:軌道正下方一階一顆,預設第 1 名,點一下 1→2→3→4→5 循環;只有拉桿範圍內的能按(使用者 2026-11-23) */
+    軌點: 有名次 ? 列.map((x, i) => ({階: i + 1, html: `<button class="dot" data-i="${i}" data-名次梯="${esc(鍵)}" title="${esc(x.名 || ('第 ' + (i + 1) + ' 場'))}:算第幾名">${名次圖(1)}</button>`})) : null,
+    標: v => (v && 列[v - 1].累積 != null) ? 列[v - 1].累積 + ' ' + esc(r.需求單位 || '') : '',
+    附文: (需字.length || 得字.length) ? ((a, b) => { const n = 合(列, '需', a, b), g = 合(列, '得', a, b);
+      return [...需字.map(k => n[k] ? `需要 ${k} ×${n[k]}` : ''), ...得字.map(k => g[k] ? `獲得 ${k} ×${g[k]}` : '')].filter(Boolean).join(' · '); }) : null,
   });
-  const 卡 = async m => (await Promise.all(Object.values(m).map(v => v.ref ? 引用塊(Object.assign({}, v.ref, {量: v.量 > 1 ? v.量 : null})) : `<span class="src"><b>${esc(v.字 || '積分')}</b><i>×${v.量}</i></span>`))).join('');
-  let 表 = `<table class="aff"><thead><tr><th>${esc(單位 === '階' ? '階段' : 單位)}</th><th>需求</th>${列.some(r => r.累計 != null) ? '<th>累積</th>' : ''}<th>獎勵</th></tr></thead><tbody>`;
-  for(let i = 0; i < 列.length; i++){ const r = 列[i];
-    表 += `<tr><td>${i + 1}${r.名 ? ' ' + esc(r.名) : ''}</td><td><div class="objs fam">${await 卡(r.需) || '—'}</div></td>${列.some(x => x.累計 != null) ? `<td>${r.累計 != null ? r.累計 : '—'}</td>` : ''}<td><div class="objs fam">${await 卡(r.得) || '<span class="note">隨機(見下)</span>'}</div></td></tr>`; }
-  表 += '</tbody></table>';
-  return 梯 + 表;
+  /* 各場名次:拉桿上面一排點點(一場一顆),預設 1,點一下 1→2→3→4→5→1 切換那一場算第幾名(使用者 2026-11-23) */
+  let h = 梯 || '<p class="note">沒有</p>';
+  if(r.隨機){          // 九宮格:每一格是哪個獎勵、機率多少(翻牌順序隨機)
+    const 格 = [];
+    for(let i = 0; i < 列.length; i++){ const 機 = (r.機率 || [])[i]; 格.push(await 卡排(列[i].得, 機 != null ? '機率 ' + Math.round(機 * 1000) / 10 + '%' : null)); }
+    h += `<h4 class="way">翻牌(順序隨機)</h4><div class="objs grid9">${格.map(g => `<div class="g9">${g || '<span class="note">空</span>'}</div>`).join('')}</div>`;
+  }
+  if((r.額外獎勵 || []).length){
+    for(const x of r.額外獎勵){ const m = {}; for(const y of (x.獎勵 || [])){ const ref = await 名ref(y.道具); const k = ref ? ref.名 : y.道具; m[k] = {ref, 量: (m[k] ? m[k].量 : 0) + (+y.數量 || 1), 字: y.道具}; }
+      h += `<h4 class="way">${esc(x.項目 || '額外獎勵')}</h4><div class="objs fam">${await 卡排(m)}</div>`; }
+  }
+  return h;
 }
-/* 總獎勵:第一軌全部階段的獎勵加總(資料頁用,使用者 2026-11-23:玩法的資料頁要引用總獎勵) */
+/* 總獎勵:舊站的「全部領完總獎勵」有就用,沒有就把全部階段獎勵加總(御貓只算第 1 名) */
 async function 總獎勵卡(r){
-  const 軌 = (r.階段 || [])[0]; if(!軌) return '';
-  const 列 = await 階解(軌, null); const m = {};
-  for(const x of 列) for(const [n, v] of Object.entries(x.得)){ if(!m[n]) m[n] = {ref: v.ref, 量: 0}; m[n].量 += v.量; }
-  const 卡 = await Promise.all(Object.values(m).map(v => 引用塊(Object.assign({}, v.ref, {量: v.量 > 1 ? v.量 : null}))));
-  return 卡.join('');
+  const m = {};
+  if(r.總獎勵 && r.總獎勵.length){ for(const y of r.總獎勵){ const ref = await 名ref(y.道具); const k = ref ? ref.名 : y.道具; m[k] = {ref, 量: (m[k] ? m[k].量 : 0) + (+y.數量 || 1), 字: y.道具}; } }
+  else { const 列 = await 階解(r); for(const x of 列) for(const [k, v] of Object.entries(x.得)){ if(!m[k]) m[k] = {ref: v.ref, 量: 0, 字: v.字}; m[k].量 += v.量; } }
+  return 卡排(m);
 }
 async function 獎勵分頁(x, 路徑){
   const 名 = 路徑[路徑.length - 1];
   const 全 = await _讀(window.素材基底 + '玩法/_獎勵.json');
   const r = (全 && 全.表 && 全.表[名]) || {};
-  _本玩法 = 名; _資源名 = (全 && 全.活動資源名) || {};
+  _本玩法 = 名; _資源名 = (全 && 全.活動資源名) || {}; _資源夾 = new Map();
+  _名次底 = x.名次底圖 ? window.素材基底 + '玩法/' + encodeURIComponent(名) + '/' + String(x.名次底圖).split('/').map(encodeURIComponent).join('/') : '';
+  _活動資源 = [...(x.活動資源 || [])];
   const 空 = t => `<p class="note">${esc(t)}</p>`;
   let h = '';
-  // 積分來源
   const 來 = r.積分來源 || [];
   h += `<h3 class="grp">積分來源</h3>` + (來.length
     ? `<div class="objs fam">${(await Promise.all(來.map(o => 引用塊({類: o.類, 名: o.名, 附註: '+' + o.積分 + ' 積分'})))).join('')}</div>` : 空('沒有'));
-  // 階段獎勵:一軌一個拉桿;多軌用下拉切(曲水那種同一主題 5 組門檻)
-  const 軌們 = r.階段 || [];
-  h += `<h3 class="grp">階段獎勵</h3>`;
-  if(!軌們.length) h += 空('沒有');
-  else {
-    const 積分資源 = await 資源ref(((x.活動資源 || [])[0]) || null);
-    const 梯 = await Promise.all(軌們.map((t, i) => 階段梯(t, '玩法階段' + i, 積分資源)));
-    const 有 = 軌們.map((t, i) => [t, 梯[i], i]).filter(a => a[1]);
-    if(!有.length) h += 空('沒有');
-    else if(有.length === 1) h += 有[0][1];
-    else h += `<p class="note">這個主題有 ${有.length} 組門檻(伺服器挑一組),用下拉切:</p>
-      <select class="btn" id="軌選">${有.map(([t,,i], k) => `<option value="${i}">${esc(t.軌)}(${t.階.length} ${esc(t.單位 || '階')})</option>`).join('')}</select>
-      ${有.map(([t, g, i], k) => `<div class="軌" data-軌="${i}"${k ? ' hidden' : ''}>${g}</div>`).join('')}`;
-  }
-  // 隨機獎勵:項 + 機率
-  const 隨 = r.隨機 || [];
-  h += `<h3 class="grp">隨機獎勵</h3>`;
-  if(!隨.length) h += 空('沒有');
-  for(const g of 隨){
-    const 項 = g.項 || []; const 總 = 項.reduce((t, o) => t + (+o.權重 || 0), 0) || 1;
-    const 卡 = (await Promise.all(項.map(o => 碼卡(o.獎勵 === '0' ? '' : o.獎勵, 項.length > 1 ? '機率 ' + Math.round(o.權重 / 總 * 1000) / 10 + '%' : null)))).join('');
-    h += `<h4 class="way">${esc(g.名)}</h4><div class="objs fam">${卡 || '<span class="note">空獎勵</span>'}</div>`;
-  }
-  // 名次獎勵(御貓疾行那種每場名次)
-  const 名次 = r.名次 || [];
-  h += `<h3 class="grp">名次獎勵</h3>`;
-  if(!名次.length) h += 空('沒有');
-  for(const 場 of 名次){
-    h += `<h4 class="way">第 ${場.場} 場 · 需 ${場.需積分} 積分</h4>`;
-    for(const n of (場.名次 || [])) h += `<div class="objs fam"><span class="obj" style="pointer-events:none"><b>第 ${n.名次} 名</b></span>${await 碼卡(n.獎勵)}</div>`;
-  }
-  // 活動頁.js 把 HTML 塞進 DOM 之後沒有人叫 _階梯全算,這裡等格子出現再算一次
+  h += `<h3 class="grp">階段獎勵</h3>` + (await 階段梯(r, '玩法階段') || 空('沒有'));
   let n = 0; const t = setInterval(() => { if(document.querySelector('[data-梯組]')){ _階梯全算(); clearInterval(t); } else if(++n > 60) clearInterval(t); }, 50);
   return [['獎勵', h]];
 }
-document.addEventListener('change', e => {
-  if(e.target.id !== '軌選') return;
-  document.querySelectorAll('.軌').forEach(d => d.hidden = d.dataset.軌 !== e.target.value);
-  _階梯全算();
-});
 async function 資訊附加(x, 路徑){
   const 名 = 路徑[路徑.length - 1]; const 全 = await _讀(window.素材基底 + '玩法/_獎勵.json');
   const r = (全 && 全.表 && 全.表[名]) || {}; _本玩法 = 名; _資源名 = (全 && 全.活動資源名) || {};
