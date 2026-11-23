@@ -19,8 +19,8 @@ let _冊;
 async function 冊表(){ if(_冊 === undefined) _冊 = await _讀(冊基() + '_貼紙.json'); return _冊 || {貼紙:{}, 主題:{}}; }
 const 冊已得 = { 讀(){ try{ return new Set(JSON.parse(localStorage.getItem('畫冊已獲得') || '[]')); }catch(e){ return new Set(); } },
                  存(s){ try{ localStorage.setItem('畫冊已獲得', JSON.stringify([...s])); }catch(e){} } };
-const 冊星 = n => { const 亮 = window.素材基底 + '介面/裝備星級/星_亮.png', 暗 = window.素材基底 + '介面/裝備星級/星_暗.png';
-  let h = ''; for(let i = 0; i < 5; i++) h += `<img src="${i < n ? 亮 : 暗}" alt="">`; return `<span class="stk-st" title="${n} 星">${h}</span>`; };
+const 冊星 = n => { const k = Math.max(1, Math.min(5, +n || 1));   // 畫冊專用、排好的星星列:介面美術/shouji_1003~1007 = 1~5 星(使用者找到的)
+  return `<img class="stk-st" src="${冊基()}${encodeURIComponent('介面美術')}/shouji_${1002 + k}.png" alt="${k} 星" title="${k} 星">`; };
 /* 獎勵碼 → 純文字(資料頁不用引用) */
 async function 冊碼文(碼串){
   const 碼 = String(碼串 || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -100,7 +100,7 @@ async function 畫冊頁(x){
     ['其他', rows([['資料來源', x => x.資料來源], ['素材路徑', x => '畫冊收集/' + x._名]], x)],
   ];
 }
-/* 貼紙包(道具型子項):資料 / 獲取 / 用途 / 其他 */
+/* 貼紙包 = 畫冊收集/資源/<各色貼紙包>(道具型子項,使用者的架構 2026-11-23):資料 / 獲取 / 用途 / 其他 */
 async function 貼紙包頁(x){
   return [
     ['資料', rows([['名稱', x => x.名稱], ['說明', x => x.說明 || x.介紹]], x)],
@@ -117,14 +117,14 @@ async function 貼紙包頁(x){
   副標: x => String(x._名).includes('/') ? ['屬 ' + String(x._名).split('/')[0]] : [(x.畫冊 || []).length ? (x.畫冊.length + ' 本畫冊') : null],
   抬頭HTML: async x => {
     const n = String(x._名); const b = 冊基() + n.split('/').map(encodeURIComponent).join('/') + '/';
-    if(n.startsWith('貼紙包/')) return `<span class="rfi bare"><img src="${b}圖.png" alt=""></span>`;
+    if(n.startsWith('資源/')) return `<span class="rfi bare"><img src="${b}圖.png" alt=""></span>`;
     if(n.includes('/')) return `<span class="rfi bare" style="--比:1.09"><img src="${b}封面.png" alt=""></span>`;
     return `<span class="rfi bare" style="--比:0.4"><img src="${b}標題.png" alt="" onerror="this.src='${b}標題_縮圖.png'"></span>`;
   },
   分頁: async (x) => {
     x._獎文 = await 冊碼文(String(x._名).includes('/') ? x.集滿獎勵原碼 : x.獎勵預覽原碼);
     const n = String(x._名);
-    return n.startsWith('貼紙包/') ? 貼紙包頁(x) : n.includes('/') ? 畫冊頁(x) : 主題頁(x);
+    return n.startsWith('資源/') ? 貼紙包頁(x) : n.includes('/') ? 畫冊頁(x) : 主題頁(x);
   },
 });
 </script>
