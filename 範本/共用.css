@@ -635,6 +635,10 @@ ul.bul li{margin:var(--sp1) 0;line-height:1.7;color:var(--fg2)}
 .tjr-i .obj{width:88px;padding:0}
 .tjr-i .obj>b{font-size:12px}
 .tjr-i img{width:88px;height:88px;object-fit:contain;border-radius:8px;background:var(--bg2)}
+.tjr-a{display:block;border-radius:8px;transition:transform .15s}
+.tjr-a:hover{transform:translateY(-2px)}
+.tjr-a:focus-visible{outline:2px solid var(--fg2);outline-offset:2px}
+.tjr-a img{display:block}
 .tjr-t b{display:block;font:500 15px/1.5 var(--sans);color:var(--fg)}
 .tjr-t i{font-style:normal;font:400 12px var(--mono);color:var(--fg3)}
 .tjr-t .desc.sm{margin:4px 0 0;max-width:62ch}
