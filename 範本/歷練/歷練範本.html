@@ -5,9 +5,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../共用.css?v=202611240220">
+<link rel="stylesheet" href="../共用.css?v=202611252050">
 </head><body><div class="page" id="app"></div>
-<script src="../共用.js?v=202611240220"></script>
+<script src="../共用.js?v=202611252050"></script>
 <script>const 歷基 = () => window.素材基底 + "歷練/";
 
 const 圖路 = p => p ? 歷基() + String(p).split("/").map(encodeURIComponent).join("/") : null;
@@ -123,7 +123,10 @@ async function 地圖頁(x) {
    const 卡 = [];
    const 已 = new Set;
    let 圖 = e.圖 ? `<img src="${圖路(e.圖)}" alt="" loading="lazy" onerror="this.remove()">` : "";
-   if (!圖 && e.事件) {
+   if (圖 && e.事件) {
+    圖 = `<a class="tjr-a" href="${跨頁("歷練", e.事件.名)}" title="${esc(e.名稱 || "")}">${圖}</a>`;
+    已.add(e.事件.名);
+   } else if (!圖 && e.事件) {
     圖 = await 引用塊({
      "類": "歷練",
      "名": e.事件.名
